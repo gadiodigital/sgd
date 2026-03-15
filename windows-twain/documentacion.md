@@ -71,6 +71,9 @@ Hoy expone estas operaciones:
 - `get-page-preview`
 - `delete-page`
 - `rotate-page`
+- `move-page`
+- `adjust-page`
+- `merge-session`
 - `export-pdf`
 
 ## Descubrimiento de escáneres
@@ -380,6 +383,68 @@ Errores:
 - `400` si la página no existe
 - `400` si falta el archivo físico de la página
 
+### `POST /api/scans/{sessionId}/pages/{pageNumber}/move`
+
+Mueve una página a otra posición dentro de la sesión y renumera el resto.
+
+Body JSON:
+
+```json
+{
+  "targetPageNumber": 3
+}
+```
+
+Notas:
+
+- `targetPageNumber` es obligatorio.
+- El rango válido es `1..pageCount`.
+- Invalida el PDF exportado y todas las previews ya generadas.
+
+### `POST /api/scans/{sessionId}/pages/{pageNumber}/adjust`
+
+Aplica un ajuste destructivo de brillo y contraste sobre la imagen actual de una página.
+
+Body JSON:
+
+```json
+{
+  "brightness": 10,
+  "contrast": -10
+}
+```
+
+Rangos:
+
+- `brightness`: `-100..100`
+- `contrast`: `-100..100`
+
+Notas:
+
+- Si ambos vienen en `0`, no cambia la imagen.
+- Invalida el PDF exportado y todas las previews ya generadas.
+
+### `POST /api/scans/{sessionId}/merge`
+
+Inserta las páginas de otra sesión dentro de la sesión actual.
+
+Body JSON:
+
+```json
+{
+  "sourceSessionId": "otra-sesion",
+  "insertAfterPageNumber": 2
+}
+```
+
+Notas:
+
+- `sourceSessionId` es obligatorio.
+- `insertAfterPageNumber` es opcional.
+- Si no se envía, las páginas se agregan al final.
+- La sesión origen se consume y se elimina al fusionarse.
+- Invalida el PDF exportado y todas las previews ya generadas.
+
 ## Exportación a PDF
 
 ### `GET /api/scans/{sessionId}/pdf`
@@ -446,5 +511,5 @@ La API no usa un único envelope de error global. Según el endpoint, los errore
 2. `POST /api/scans/adf/simplex` o `POST /api/scans/adf/duplex`.
 3. `GET /api/scans/{sessionId}` para consultar páginas y metadatos.
 4. `GET /api/scans/{sessionId}/pages/{pageNumber}/preview` para mostrar previews.
-5. `POST /api/scans/{sessionId}/pages/{pageNumber}/rotate` o `DELETE /api/scans/{sessionId}/pages/{pageNumber}` si hace falta editar.
+5. Editar con `rotate`, `move`, `adjust`, `delete` o `merge` según haga falta.
 6. `GET /api/scans/{sessionId}/pdf` para descargar el resultado final.

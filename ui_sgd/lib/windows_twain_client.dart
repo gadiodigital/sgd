@@ -103,7 +103,7 @@ class WindowsTwainClient {
       '/api/scans/$targetSessionId/merge',
       body: {
         'sourceSessionId': sourceSessionId,
-        if (insertAfterPageNumber != null) 'insertAfterPageNumber': insertAfterPageNumber,
+        ...?insertAfterPageNumber == null ? null : {'insertAfterPageNumber': insertAfterPageNumber},
       },
     );
     return TwainScanSession.fromJson(response);

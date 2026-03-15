@@ -70,7 +70,19 @@ La organización documental debe permitir:
   - cada tipo de contenedor puede elegir un icono del catálogo de Material Design
   - al crear/editar instancias del árbol se pueden cargar valores de atributos
   - los atributos `list` se representan en la UI como combo desplegable
-  - los nodos finales con `acceptsDocs = true` pueden abrir la interfaz de adquisición basada en `ui1.html` servida por la API local
+  - los nodos finales con `acceptsDocs = true` ahora abren un `Centro de escaneo` integrado en Flutter, basado visualmente en `ui3.html`
+  - el centro de escaneo consume `windows-twain` en forma directa para:
+    - descubrir escáneres
+    - escanear ADF simplex/duplex
+    - ver previews
+    - rotar páginas
+    - mover páginas dentro del lote
+    - ajustar brillo/contraste
+    - eliminar páginas
+    - fusionar una segunda sesión para insertar hojas
+    - exportar PDF temporal
+  - el centro de escaneo permite además capturar metadatos del documento antes de guardar
+  - esos metadatos se basan hoy en los atributos definidos en el tipo del nodo y se persisten como atributos de documento generados para el flujo de escaneo
   - corre en web sin depender de `dart:io`
   - los diálogos principales validan en cliente antes de cerrar
   - cuando un campo es inválido el diálogo queda abierto y muestra el error en el campo
@@ -81,7 +93,8 @@ La organización documental debe permitir:
   - en `Jerarquía`, cada nodo ahora muestra el estado de sus atributos definidos por tipo, incluso si fueron creados después del nodo
   - si un atributo existe pero todavía no tiene dato cargado, la UI lo marca explícitamente como `Sin valor`
   - las pantallas y acciones visibles dependen del perfil del usuario en el proyecto actual
-  - todavía no expone ABM real de tipos de documento ni de sus atributos
+  - ya puede listar documentos existentes por nodo y guardar documentos escaneados en PostgreSQL
+  - todavía no expone ABM real de tipos de documento ni de sus atributos como módulo independiente
 
 ### API local para UI principal
 
@@ -97,10 +110,20 @@ La organización documental debe permitir:
   - CRUD de reglas padre-hijo
   - CRUD de nodos jerárquicos
   - CRUD de perfiles y membresías por proyecto
+  - listado de documentos por nodo
+  - guardado de documentos escaneados desde sesiones de `windows-twain`
+  - descarga del PDF actual del documento
   - auditoría funcional de lectura/escritura y eventos de autenticación
   - lectura agregada por proyecto (`snapshot`) para hidratar la UI
   - el `snapshot` normaliza aliases SQL para devolver atributos, reglas y nodos con claves estables en camelCase
   - publicación local de `ui1.html`, `ui2.html` y `ui3.html`
+  - el guardado documental persiste:
+    - `documents`
+    - `document_versions`
+    - `document_files`
+    - `document_attribute_values`
+  - el backend genera un `document_type` técnico por tipo de nodo para el flujo de escaneo y espeja allí los atributos del nodo como atributos de documento
+  - los PDFs se guardan en `sgd_storage/documents/...` dentro del repo local
 
 ### Seguridad y acceso
 
@@ -117,6 +140,7 @@ La organización documental debe permitir:
   - `project.read` / `project.write`
   - `types.read` / `types.write`
   - `hierarchy.read` / `hierarchy.write`
+  - `documents.read` / `documents.write`
   - `security.read` / `security.write`
 - Cada proyecto se inicializa con perfiles por defecto:
   - `admin`
@@ -206,12 +230,13 @@ Archivos principales:
 - [V202603151900__add_node_type_icon_key.sql](C:/Users/Gabriel/Desktop/SGD/db/migrations/V202603151900__add_node_type_icon_key.sql)
 - [V202603152130__add_auth_profiles_and_audit_v3.sql](C:/Users/Gabriel/Desktop/SGD/db/migrations/V202603152130__add_auth_profiles_and_audit_v3.sql)
 - [V202603152245__add_document_permissions_v4.sql](C:/Users/Gabriel/Desktop/SGD/db/migrations/V202603152245__add_document_permissions_v4.sql)
+- [V202603152245__add_document_permissions_v4.sql](C:/Users/Gabriel/Desktop/SGD/db/migrations/V202603152245__add_document_permissions_v4.sql)
 - [sgd_dev_snapshot.sql](C:/Users/Gabriel/Desktop/SGD/db/exports/sgd_dev_snapshot.sql)
 
 Estado:
 
 - base `sgd` creada
-- migraciones `V202603151410`, `V202603151730`, `V202603151900` y `V202603152130` aplicadas
+- migraciones `V202603151410`, `V202603151730`, `V202603151900`, `V202603152130` y `V202603152245` aplicadas
 - la migración `V202603152245` ya existe en `db/migrations` pero todavía no está aplicada en la base local `sgd`
 - validada la jerarquía por proyecto
 - validados atributos dinámicos en `node_attribute_values` y `document_attribute_values`

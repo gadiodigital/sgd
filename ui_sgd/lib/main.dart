@@ -2,11 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
-import 'external_launcher_stub.dart'
-    if (dart.library.html) 'external_launcher_web.dart'
-    if (dart.library.io) 'external_launcher_io.dart';
 import 'local_api_runtime_stub.dart'
     if (dart.library.io) 'local_api_runtime_io.dart';
+import 'scan_center_page.dart';
 import 'sgd_api_client.dart';
 
 void main() => runApp(const UiSgdApp());
@@ -2365,7 +2363,7 @@ class _HomePageState extends State<HomePage> {
           child: Wrap(
             spacing: 0,
             children: [
-              if (type?.acceptsDocs ?? false)
+              if ((type?.acceptsDocs ?? false) && (can('documents.read') || can('documents.write')))
                 IconButton(
                   onPressed: () => _openAcquisition(node),
                   icon: const Icon(Icons.document_scanner_outlined),
@@ -2450,12 +2448,47 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _openAcquisition(NodeItem node) async {
-    final opened = await openExternalUrl(widget.api.acquisitionUrl);
-    if (!opened) {
-      snack('No se pudo abrir la interfaz de adquisición.');
+    final currentProject = this.currentProject;
+    final type = typeById(node.typeId);
+    if (currentProject == null || type == null) {
+      snack('Falta contexto para abrir el centro de escaneo.');
       return;
     }
-    snack('Interfaz de adquisición abierta para ${node.name}.');
+    if (!can('documents.read') && !can('documents.write')) {
+      snack('Tu perfil no tiene acceso documental en este proyecto.');
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ScanCenterPage(
+          api: widget.api,
+          projectId: currentProject.id,
+          projectName: currentProject.name,
+          nodeId: node.id,
+          nodeName: node.name,
+          nodeCode: node.code,
+          nodeTypeName: type.name,
+          canReadDocuments: can('documents.read'),
+          canWriteDocuments: can('documents.write'),
+          attributes: type.attributes
+              .map(
+                (attr) => ScanAttributeDefinition(
+                  id: attr.id,
+                  name: attr.name,
+                  code: attr.code,
+                  dataType: attr.dataType,
+                  extension: attr.extension,
+                  regex: attr.regex,
+                  options: attr.options
+                      .map((option) => ScanAttributeOption(code: option.code, label: option.label))
+                      .toList(),
+                ),
+              )
+              .toList(),
+        ),
+      ),
+    );
   }
 
   Future<void> _removeProject(Project p) async {

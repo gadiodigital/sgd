@@ -244,7 +244,9 @@ class _ScanCenterPageState extends State<ScanCenterPage> {
       );
 
       TwainScanSession nextSession = newSession;
-      if (mergeIntoCurrent && session != null && session!.pageCount > 0 && newSession.pageCount > 0) {
+      if (mergeIntoCurrent && session != null && session!.pageCount > 0 && newSession.pageCount == 0) {
+        nextSession = session!;
+      } else if (mergeIntoCurrent && session != null && session!.pageCount > 0 && newSession.pageCount > 0) {
         final insertAfter = selectedPageNumber ?? session!.pageCount;
         nextSession = await twain.mergeSession(
           session!.sessionId,

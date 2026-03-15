@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import 'external_launcher_stub.dart'
+    if (dart.library.html) 'external_launcher_web.dart'
+    if (dart.library.io) 'external_launcher_io.dart';
 import 'local_api_runtime_stub.dart'
     if (dart.library.io) 'local_api_runtime_io.dart';
 import 'scan_center_page.dart';
@@ -303,6 +306,9 @@ class _HomePageState extends State<HomePage> {
   final securityPermissions = <PermissionDefinition>[];
   final projectProfiles = <ProjectProfileItem>[];
   final projectMemberships = <ProjectUserMembershipItem>[];
+  final nodeDocumentsByNodeId = <String, List<NodeDocumentSummary>>{};
+  final nodeDocumentsLoading = <String>{};
+  final nodeDocumentsErrorByNodeId = <String, String?>{};
   Section section = Section.proyectos;
   String? currentProjectId;
   bool loading = true;
@@ -353,6 +359,9 @@ class _HomePageState extends State<HomePage> {
           documentTypes.clear();
           rules.clear();
           nodes.clear();
+          nodeDocumentsByNodeId.clear();
+          nodeDocumentsLoading.clear();
+          nodeDocumentsErrorByNodeId.clear();
           securityPermissions.clear();
           projectProfiles.clear();
           projectMemberships.clear();
@@ -396,6 +405,9 @@ class _HomePageState extends State<HomePage> {
         documentTypes.clear();
         rules.clear();
         nodes.clear();
+        nodeDocumentsByNodeId.clear();
+        nodeDocumentsLoading.clear();
+        nodeDocumentsErrorByNodeId.clear();
         securityPermissions.clear();
         projectProfiles.clear();
         projectMemberships.clear();
@@ -439,6 +451,9 @@ class _HomePageState extends State<HomePage> {
         nodes
           ..clear()
           ..addAll(((snapshot['nodes'] as List?) ?? const []).map((item) => NodeItem.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>()))));
+        nodeDocumentsByNodeId.clear();
+        nodeDocumentsLoading.clear();
+        nodeDocumentsErrorByNodeId.clear();
         if (!can('security.read')) {
           securityPermissions.clear();
           projectProfiles.clear();
@@ -564,6 +579,50 @@ class _HomePageState extends State<HomePage> {
       _ensureSectionAvailable();
     });
     await _reloadCurrentProject();
+  }
+
+  Future<void> _loadNodeDocuments(String nodeId, {bool force = false}) async {
+    final projectId = currentProjectId;
+    if (projectId == null || !can('documents.read', projectId)) {
+      return;
+    }
+    if (!force && (nodeDocumentsLoading.contains(nodeId) || nodeDocumentsByNodeId.containsKey(nodeId))) {
+      return;
+    }
+    setState(() {
+      nodeDocumentsLoading.add(nodeId);
+      nodeDocumentsErrorByNodeId[nodeId] = null;
+    });
+    try {
+      final items = await widget.api.listNodeDocuments(projectId, nodeId);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        nodeDocumentsByNodeId[nodeId] =
+            items.map(NodeDocumentSummary.fromJson).toList();
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => nodeDocumentsErrorByNodeId[nodeId] = _errorText(error));
+    } finally {
+      if (mounted) {
+        setState(() => nodeDocumentsLoading.remove(nodeId));
+      }
+    }
+  }
+
+  Future<void> _openDocumentPdf(String documentId) async {
+    final projectId = currentProjectId;
+    if (projectId == null) {
+      return;
+    }
+    final opened = await openExternalUrl(widget.api.documentPdfUrl(projectId, documentId));
+    if (!opened && mounted) {
+      snack('No se pudo abrir el PDF del documento.');
+    }
   }
 
   Project? get currentProject {
@@ -726,6 +785,7 @@ class _HomePageState extends State<HomePage> {
     }
     return parts.join(' • ');
   }
+  int documentCountForNode(String nodeId) => nodeDocumentsByNodeId[nodeId]?.length ?? 0;
   TextInputType keyboardTypeForAttribute(String dataType) => switch (dataType) {
         'integer' => TextInputType.number,
         'decimal' => const TextInputType.numberWithOptions(decimal: true),
@@ -2893,6 +2953,10 @@ class _HomePageState extends State<HomePage> {
   Widget _nodeCard(NodeItem node, bool rootCard) {
     final kids = childrenOf(node.id);
     final type = typeById(node.typeId);
+    final canReadNodeDocuments = (type?.acceptsDocs ?? false) && can('documents.read');
+    final documents = nodeDocumentsByNodeId[node.id] ?? const <NodeDocumentSummary>[];
+    final documentsLoadingForNode = nodeDocumentsLoading.contains(node.id);
+    final documentsError = nodeDocumentsErrorByNodeId[node.id];
     final missingAttributes = type == null
         ? 0
         : type.attributes.where((attr) => !_hasAttributeValue(node.values[attr.id])).length;
@@ -2900,6 +2964,11 @@ class _HomePageState extends State<HomePage> {
       margin: EdgeInsets.only(left: rootCard ? 0 : 20, bottom: 12),
       child: ExpansionTile(
         initiallyExpanded: rootCard,
+        onExpansionChanged: (expanded) {
+          if (expanded && canReadNodeDocuments) {
+            _loadNodeDocuments(node.id);
+          }
+        },
         title: Row(
           children: [
             Icon(iconFor(type?.iconKey ?? 'folder'), size: 18),
@@ -2911,6 +2980,8 @@ class _HomePageState extends State<HomePage> {
           node.code.isEmpty ? '(sin código)' : node.code,
           type?.name ?? 'Tipo',
           'nivel ${node.depth}',
+          if (canReadNodeDocuments && nodeDocumentsByNodeId.containsKey(node.id))
+            '${documentCountForNode(node.id)} documento(s)',
           if (type != null && type.attributes.isNotEmpty)
             missingAttributes == 0 ? 'atributos completos' : '$missingAttributes sin valor',
         ].join(' • ')),
@@ -2987,6 +3058,62 @@ class _HomePageState extends State<HomePage> {
                       );
                     }).toList(),
                   ),
+                ],
+              ),
+            ),
+          if (canReadNodeDocuments)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Documentos',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: documentsLoadingForNode ? null : () => _loadNodeDocuments(node.id, force: true),
+                        icon: const Icon(Icons.refresh),
+                        tooltip: 'Recargar documentos',
+                      ),
+                    ],
+                  ),
+                  if (documentsLoadingForNode)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: LinearProgressIndicator(),
+                    )
+                  else if (documentsError != null && documentsError.isNotEmpty)
+                    Text(
+                      documentsError,
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                    )
+                  else if (documents.isEmpty)
+                    const Text('Todavía no hay documentos guardados en este nodo.')
+                  else
+                    ...documents.map(
+                      (document) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(document.title),
+                        subtitle: Text(
+                          [
+                            if (document.documentTypeName.isNotEmpty) document.documentTypeName,
+                            '${document.pageCount} pág(s)',
+                            'versión ${document.currentVersionNumber}',
+                            document.updatedAtLabel,
+                          ].join(' • '),
+                        ),
+                        trailing: IconButton(
+                          onPressed: can('documents.read') ? () => _openDocumentPdf(document.id) : null,
+                          icon: const Icon(Icons.picture_as_pdf_outlined),
+                          tooltip: 'Abrir PDF',
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -3069,6 +3196,9 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+    if (mounted && can('documents.read')) {
+      await _loadNodeDocuments(node.id, force: true);
+    }
   }
 
   Future<void> _removeProject(Project p) async {
@@ -3259,6 +3389,33 @@ class NodeItem {
   final int order;
 }
 
+class NodeDocumentSummary {
+  const NodeDocumentSummary({
+    required this.id,
+    required this.title,
+    required this.documentTypeName,
+    required this.currentVersionNumber,
+    required this.pageCount,
+    required this.updatedAtLabel,
+  });
+
+  factory NodeDocumentSummary.fromJson(Map<String, dynamic> json) => NodeDocumentSummary(
+        id: json['id'].toString(),
+        title: (json['title'] ?? '').toString(),
+        documentTypeName: (json['documentTypeName'] ?? '').toString(),
+        currentVersionNumber: (json['currentVersionNumber'] as num?)?.toInt() ?? 1,
+        pageCount: (json['pageCount'] as num?)?.toInt() ?? 0,
+        updatedAtLabel: _formatDateTimeLabel((json['updatedAt'] ?? '').toString()),
+      );
+
+  final String id;
+  final String title;
+  final String documentTypeName;
+  final int currentVersionNumber;
+  final int pageCount;
+  final String updatedAtLabel;
+}
+
 class AttributeItem {
   AttributeItem({
     required this.id,
@@ -3394,6 +3551,19 @@ class AuthSessionState {
   final CurrentUser user;
   final List<ProjectMembershipAccess> memberships;
   final List<String> allPermissionCodes;
+}
+
+String _formatDateTimeLabel(String value) {
+  if (value.trim().isEmpty) {
+    return 'sin fecha';
+  }
+  final parsed = DateTime.tryParse(value);
+  if (parsed == null) {
+    return value;
+  }
+  final local = parsed.toLocal();
+  String two(int number) => number.toString().padLeft(2, '0');
+  return '${two(local.day)}/${two(local.month)}/${local.year} ${two(local.hour)}:${two(local.minute)}';
 }
 
 class PermissionDefinition {

@@ -93,6 +93,8 @@ La organización documental debe permitir:
   - cuando un campo es inválido el diálogo queda abierto y muestra el error en el campo
   - navegación por teclado mejorada en formularios principales (`Tab` y `Enter` en campos de una línea)
   - la jerarquía volvió a renderizar sin pantalla roja; se ajustó el trailing de acciones por nodo
+  - en `Jerarquía`, los nodos que aceptan documentos ahora listan sus documentos guardados al expandirse y permiten abrir el PDF actual
+  - al volver del centro de escaneo, la lista documental del nodo se refresca automáticamente
   - en escritorio, si la API local no responde en `127.0.0.1:8081`, la app intenta levantar `sgd_api` automáticamente antes de mostrar error
   - la carga del snapshot tolera claves en minúscula devueltas por PostgreSQL/driver (`projectid`, `acceptsdocs`, `iconkey`, etc.) para no ocultar tipos o nodos existentes
   - en `Jerarquía`, cada nodo ahora muestra el estado de sus atributos definidos por tipo, incluso si fueron creados después del nodo
@@ -119,6 +121,7 @@ La organización documental debe permitir:
   - listado de documentos por nodo
   - guardado de documentos escaneados desde sesiones de `windows-twain`
   - descarga del PDF actual del documento
+  - el endpoint de PDF acepta Bearer y también `access_token` por query string para apertura desde visor externo local
   - auditoría funcional de lectura/escritura y eventos de autenticación
   - lectura agregada por proyecto (`snapshot`) para hidratar la UI
   - el `snapshot` normaliza aliases SQL para devolver atributos, tipos documentales, reglas y nodos con claves estables en camelCase

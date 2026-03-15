@@ -159,7 +159,17 @@ class SgdApiClient {
     return _send('POST', '/projects/$projectId/nodes/$nodeId/documents/from-scan', body: body);
   }
 
-  String documentPdfUrl(String projectId, String documentId) => '$baseUrl/projects/$projectId/documents/$documentId/pdf';
+  String documentPdfUrl(String projectId, String documentId) {
+    final uri = Uri.parse('$baseUrl/projects/$projectId/documents/$documentId/pdf');
+    final token = _authToken;
+    if (token == null || token.isEmpty) {
+      return uri.toString();
+    }
+    return uri.replace(queryParameters: {
+      ...uri.queryParameters,
+      'access_token': token,
+    }).toString();
+  }
 
   Future<void> updateNode(String projectId, String nodeId, Map<String, dynamic> body) {
     return _sendWithoutResult('PUT', '/projects/$projectId/nodes/$nodeId', body: body);

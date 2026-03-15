@@ -621,10 +621,12 @@ Future<Response> _withAuth(
 
 Future<AuthenticatedRequest> _authenticateRequest(Request request, SgdRepository repo) async {
   final authHeader = request.headers[HttpHeaders.authorizationHeader] ?? '';
-  if (!authHeader.toLowerCase().startsWith('bearer ')) {
-    throw const ApiError(401, 'Debes iniciar sesión.');
+  var token = '';
+  if (authHeader.toLowerCase().startsWith('bearer ')) {
+    token = authHeader.substring(7).trim();
+  } else {
+    token = request.url.queryParameters['access_token']?.trim() ?? '';
   }
-  final token = authHeader.substring(7).trim();
   if (token.isEmpty) {
     throw const ApiError(401, 'Debes iniciar sesión.');
   }

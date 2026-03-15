@@ -218,10 +218,43 @@ class _ScanCenterPageState extends State<ScanCenterPage> {
     scaffoldBackgroundColor: _bg,
     colorScheme: const ColorScheme.dark(primary: _accent, onPrimary: Color(0xFF082F49), secondary: Color(0xFF22D3EE), onSecondary: Color(0xFF083344), surface: _surface, onSurface: _text, surfaceContainerHighest: _surfaceAlt, onSurfaceVariant: _muted, outline: _border, error: Color(0xFFFDA4AF), onError: Color(0xFF4C0519)),
     textTheme: base.textTheme.apply(bodyColor: _text, displayColor: _text),
+    disabledColor: const Color(0xFF94A3B8),
+    hintColor: _muted,
     cardTheme: const CardThemeData(color: _surface, surfaceTintColor: Colors.transparent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(18)), side: BorderSide(color: _border))),
+    canvasColor: _surfaceAlt,
+    splashColor: _accent.withAlpha(28),
+    highlightColor: _accent.withAlpha(18),
     dividerColor: Colors.transparent,
     expansionTileTheme: const ExpansionTileThemeData(iconColor: _text, collapsedIconColor: _text, textColor: _text, collapsedTextColor: _text),
-    inputDecorationTheme: InputDecorationTheme(labelStyle: const TextStyle(color: _muted), hintStyle: const TextStyle(color: _muted), helperStyle: const TextStyle(color: _muted), errorStyle: const TextStyle(color: Color(0xFFFDA4AF)), filled: true, fillColor: _surfaceAlt, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _border)), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _border)), focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _accent, width: 1.4)), errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFDA4AF))), focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFDA4AF), width: 1.4))),
+    dropdownMenuTheme: const DropdownMenuThemeData(textStyle: TextStyle(color: _text)),
+    segmentedButtonTheme: SegmentedButtonThemeData(
+      style: ButtonStyle(
+        foregroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.disabled) ? const Color(0xFF94A3B8) : _text),
+        backgroundColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? _surfaceAlt : _surface),
+        side: const WidgetStatePropertyAll(BorderSide(color: _border)),
+      ),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? _text : const Color(0xFFE2E8F0)),
+      trackColor: WidgetStateProperty.resolveWith((states) => states.contains(WidgetState.selected) ? const Color(0xFF0F766E) : const Color(0xFF475569)),
+      trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      labelStyle: const TextStyle(color: _muted),
+      floatingLabelStyle: const TextStyle(color: _text),
+      hintStyle: const TextStyle(color: _muted),
+      helperStyle: const TextStyle(color: _muted),
+      helperMaxLines: 3,
+      errorStyle: const TextStyle(color: Color(0xFFFDA4AF)),
+      filled: true,
+      fillColor: _surfaceAlt,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _border)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _border)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: _accent, width: 1.4)),
+      disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF475569))),
+      errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFDA4AF))),
+      focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFDA4AF), width: 1.4)),
+    ),
   );
 
   @override
@@ -347,6 +380,7 @@ class _ScanCenterPageState extends State<ScanCenterPage> {
           initialValue: selectedScannerId,
           decoration: const InputDecoration(labelText: 'Escáner disponible'),
           dropdownColor: _surfaceAlt,
+          style: const TextStyle(color: _text),
           items: scanners.map((s) => DropdownMenuItem(value: s.id, child: Text('${s.name} · ${s.manufacturer}', overflow: TextOverflow.ellipsis))).toList(),
           onChanged: widget.canWriteDocuments ? (value) => setState(() => selectedScannerId = value) : null,
         ),
@@ -357,13 +391,13 @@ class _ScanCenterPageState extends State<ScanCenterPage> {
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       SegmentedButton<bool>(showSelectedIcon: false, segments: const [ButtonSegment(value: false, icon: Icon(Icons.filter_1), label: Text('Simple')), ButtonSegment(value: true, icon: Icon(Icons.copy_all_outlined), label: Text('Doble faz'))], selected: {duplex}, onSelectionChanged: widget.canWriteDocuments ? (value) => setState(() => duplex = value.first) : null),
       const SizedBox(height: 12),
-      DropdownButtonFormField<String>(initialValue: pixelType, decoration: const InputDecoration(labelText: 'Color'), dropdownColor: _surfaceAlt, items: pixelTypes.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(), onChanged: widget.canWriteDocuments ? (value) => setState(() => pixelType = value ?? 'gray') : null),
+      DropdownButtonFormField<String>(initialValue: pixelType, decoration: const InputDecoration(labelText: 'Color'), dropdownColor: _surfaceAlt, style: const TextStyle(color: _text), items: pixelTypes.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: const TextStyle(color: _text)))).toList(), onChanged: widget.canWriteDocuments ? (value) => setState(() => pixelType = value ?? 'gray') : null),
       const SizedBox(height: 12),
-      DropdownButtonFormField<int?>(initialValue: dpi, decoration: const InputDecoration(labelText: 'Resolución'), dropdownColor: _surfaceAlt, items: dpiOptions.map((v) => DropdownMenuItem<int?>(value: v, child: Text(v == null ? 'Auto' : '$v DPI'))).toList(), onChanged: widget.canWriteDocuments ? (value) => setState(() => dpi = value) : null),
+      DropdownButtonFormField<int?>(initialValue: dpi, decoration: const InputDecoration(labelText: 'Resolución'), dropdownColor: _surfaceAlt, style: const TextStyle(color: _text), items: dpiOptions.map((v) => DropdownMenuItem<int?>(value: v, child: Text(v == null ? 'Auto' : '$v DPI', style: const TextStyle(color: _text)))).toList(), onChanged: widget.canWriteDocuments ? (value) => setState(() => dpi = value) : null),
       const SizedBox(height: 12),
       TextFormField(controller: timeoutController, decoration: const InputDecoration(labelText: 'Timeout (segundos)'), keyboardType: TextInputType.number, textInputAction: TextInputAction.done, onFieldSubmitted: (_) => _scan(mode: _ScanMergeMode.replace)),
       const SizedBox(height: 6),
-      SwitchListTile(value: discardBlankPages, onChanged: widget.canWriteDocuments ? (value) => setState(() => discardBlankPages = value) : null, contentPadding: EdgeInsets.zero, title: const Text('Descartar hojas en blanco')),
+      SwitchListTile(value: discardBlankPages, onChanged: widget.canWriteDocuments ? (value) => setState(() => discardBlankPages = value) : null, contentPadding: EdgeInsets.zero, title: const Text('Descartar hojas en blanco', style: TextStyle(color: _text)), subtitle: const Text('Evita sumar páginas vacías cuando el driver lo soporta.', style: TextStyle(color: _muted))),
     ]);
   }
 
@@ -379,7 +413,7 @@ class _ScanCenterPageState extends State<ScanCenterPage> {
         TextFormField(controller: descriptionController, decoration: const InputDecoration(labelText: 'Descripción'), minLines: 2, maxLines: 3),
         const SizedBox(height: 12),
         if (widget.documentTypes.isNotEmpty)
-          DropdownButtonFormField<String>(initialValue: selectedDocumentTypeId, decoration: const InputDecoration(labelText: 'Tipo documental'), dropdownColor: _surfaceAlt, items: widget.documentTypes.map((t) => DropdownMenuItem(value: t.id, child: Text('${t.name} (${t.code})', overflow: TextOverflow.ellipsis))).toList(), onChanged: widget.canWriteDocuments ? (value) => setState(() => selectedDocumentTypeId = value) : null)
+          DropdownButtonFormField<String>(initialValue: selectedDocumentTypeId, decoration: const InputDecoration(labelText: 'Tipo documental'), dropdownColor: _surfaceAlt, style: const TextStyle(color: _text), items: widget.documentTypes.map((t) => DropdownMenuItem(value: t.id, child: Text('${t.name} (${t.code})', overflow: TextOverflow.ellipsis, style: const TextStyle(color: _text)))).toList(), onChanged: widget.canWriteDocuments ? (value) => setState(() => selectedDocumentTypeId = value) : null)
         else
           Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), border: Border.all(color: _border), color: _surfaceAlt), child: const Text('No hay tipos documentales definidos. La carga usa atributos heredados del contenedor.', style: TextStyle(color: _muted, height: 1.35))),
         const SizedBox(height: 16),
@@ -411,7 +445,7 @@ class _ScanCenterPageState extends State<ScanCenterPage> {
       final items = a.dataType == 'boolean'
           ? const [DropdownMenuItem<String>(value: '', child: Text('(sin valor)')), DropdownMenuItem<String>(value: 'true', child: Text('Sí')), DropdownMenuItem<String>(value: 'false', child: Text('No'))]
           : [const DropdownMenuItem<String>(value: '', child: Text('(sin valor)')), ...a.options.map((o) => DropdownMenuItem<String>(value: o.code, child: Text(o.label)))];
-      return Padding(padding: const EdgeInsets.only(bottom: 12), child: DropdownButtonFormField<String>(initialValue: attributeSelections[a.id], decoration: InputDecoration(labelText: a.name, helperText: helper), dropdownColor: _surfaceAlt, items: items, onChanged: (value) => setState(() => attributeSelections[a.id] = value == null || value.isEmpty ? null : value), validator: (value) => _validateAttribute(a, value)));
+      return Padding(padding: const EdgeInsets.only(bottom: 12), child: DropdownButtonFormField<String>(initialValue: attributeSelections[a.id], decoration: InputDecoration(labelText: a.name, helperText: helper), dropdownColor: _surfaceAlt, style: const TextStyle(color: _text), items: items.map((item) => DropdownMenuItem<String>(value: item.value, child: DefaultTextStyle.merge(style: const TextStyle(color: _text), child: item.child))).toList(), onChanged: (value) => setState(() => attributeSelections[a.id] = value == null || value.isEmpty ? null : value), validator: (value) => _validateAttribute(a, value)));
     }
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),

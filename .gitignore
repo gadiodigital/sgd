@@ -1,0 +1,37 @@
+# OS and editor noise
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.temp
+*.swp
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.idea/
+.vscode/
+
+# Dart / Flutter
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub/
+**/.pub-cache/
+ui_sgd/build/
+ui_sgd/windows/flutter/ephemeral/
+ui_sgd/linux/flutter/ephemeral/
+ui_sgd/macos/Flutter/ephemeral/
+ui_sgd/ios/Flutter/ephemeral/
+ui_sgd/android/.gradle/
+ui_sgd/android/local.properties
+ui_sgd/pubspec_overrides.yaml
+
+# .NET scanner connector
+windows-twain/bin/
+windows-twain/obj/
+windows-twain/*.csproj.user
+
+# Local environment files
+.env
+.env.*

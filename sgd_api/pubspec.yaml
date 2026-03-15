@@ -1,0 +1,11 @@
+name: sgd_api
+description: API local de desarrollo para ui_sgd
+publish_to: none
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  postgres: ^3.5.9
+  shelf: ^1.4.2
+  shelf_router: ^1.1.4

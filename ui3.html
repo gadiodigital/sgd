@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGD - Centro de Escaneo</title>
+<style>
+  :root {
+    --primary: #0f172a;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --border: #334155;
+    --green: #22c55e;
+    --red: #ef4444;
+    --amber: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Top bar */
+  .topbar {
+    height: 48px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+  }
+  .topbar .brand {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+  .topbar .breadcrumb { font-size: 13px; color: var(--muted); }
+  .topbar .status-badge {
+    margin-left: auto;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .status-badge.offline { background: rgba(239,68,68,.15); color: var(--red); }
+  .status-badge.online { background: rgba(34,197,94,.15); color: var(--green); }
+  .status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* Dashboard grid */
+  .dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 16px;
+    padding: 16px;
+    height: calc(100vh - 48px);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .card-header h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .card-header .badge-count {
+    margin-left: auto;
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Card: scanner select */
+  .scanner-option {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .scanner-option:hover { border-color: var(--accent); }
+  .scanner-option.active { border-color: var(--accent); background: rgba(59,130,246,.1); }
+  .scanner-option .sc-radio {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .scanner-option.active .sc-radio {
+    border-color: var(--accent);
+  }
+  .scanner-option.active .sc-radio::after {
+    content: '';
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .sc-info .sc-name { font-size: 13px; font-weight: 600; }
+  .sc-info .sc-detail { font-size: 11px; color: var(--muted); }
+
+  .btn-refresh {
+    width: 100%;
+    padding: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-refresh:hover { color: var(--text); border-color: var(--muted); }
+
+  /* Card: config */
+  .cfg-group { margin-bottom: 14px; }
+  .cfg-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .seg-control {
+    display: flex;
+    background: var(--bg);
+    border-radius: 6px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .seg-btn {
+    flex: 1;
+    padding: 7px 4px;
+    text-align: center;
+    font-size: 12px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all .15s;
+    font-weight: 500;
+  }
+  .seg-btn.active { background: var(--accent); color: white; }
+  .seg-btn:hover:not(.active) { color: var(--text); }
+
+  .dark-select, .dark-input {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+  .dark-select:focus, .dark-input:focus { border-color: var(--accent); }
+
+  .cfg-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cfg-toggle span { font-size: 13px; }
+  .mini-toggle {
+    position: relative;
+    width: 36px; height: 20px;
+    appearance: none; -webkit-appearance: none;
+    background: var(--surface2);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .2s;
+    border: none;
+  }
+  .mini-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: all .2s;
+  }
+  .mini-toggle:checked { background: var(--accent); }
+  .mini-toggle:checked::after { transform: translateX(16px); background: white; }
+
+  /* Scan button */
+  .scan-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+    margin-top: 8px;
+    letter-spacing: .3px;
+  }
+  .scan-btn:hover { background: var(--accent-hover); }
+  .scan-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .scan-btn.scanning {
+    background: var(--amber);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: .7; }
+  }
+
+  /* Card: preview (spans 2 cols) */
+  .preview-card {
+    grid-column: 2 / 4;
+    grid-row: 1 / 3;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .preview-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .tb-btn {
+    padding: 6px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .tb-btn:hover { color: var(--text); border-color: var(--muted); }
+  .tb-btn.danger:hover { color: var(--red); border-color: var(--red); }
+  .tb-btn.success { background: rgba(34,197,94,.15); color: var(--green); border-color: rgba(34,197,94,.3); }
+  .tb-btn.success:hover { background: rgba(34,197,94,.25); }
+
+  .preview-scroll {
+    flex: 1;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    align-content: start;
+  }
+
+  .p-thumb {
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 2px solid transparent;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+  }
+  .p-thumb:hover { border-color: var(--accent); }
+  .p-thumb.sel { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,.3); }
+  .p-thumb img {
+    width: 100%;
+    aspect-ratio: 3/4;
+    object-fit: contain;
+    display: block;
+    background: #1a1a2e;
+  }
+  .p-thumb .p-num {
+    position: absolute;
+    top: 6px; left: 6px;
+    background: rgba(0,0,0,.7);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .p-thumb .p-acts {
+    position: absolute;
+    bottom: 6px; right: 6px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  .p-thumb:hover .p-acts { opacity: 1; }
+  .p-acts button {
+    width: 26px; height: 26px;
+    border-radius: 4px;
+    border: none;
+    background: rgba(0,0,0,.7);
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .p-acts button:hover { background: rgba(0,0,0,.9); }
+  .p-acts button.del:hover { color: var(--red); }
+
+  .empty-preview {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+  }
+  .empty-preview p { margin-top: 8px; font-size: 13px; }
+
+  /* Toast */
+  .toast-area {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .t-msg {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    animation: tIn .3s;
+  }
+  .t-msg.err { border-color: var(--red); color: var(--red); }
+  @keyframes tIn { from { opacity: 0; transform: translateY(10px); } }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .dashboard {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+      height: auto;
+    }
+    .preview-card { grid-column: 1; grid-row: auto; min-height: 400px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="brand">SGD</span>
+  <span class="breadcrumb">/ Centro de Escaneo</span>
+  <div class="status-badge offline" id="statusBadge">
+    <div class="dot"></div>
+    <span id="sText">Desconectado</span>
+  </div>
+</div>
+
+<div class="dashboard">
+  <!-- Scanner select -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Escáner</h3>
+      <span class="badge-count" id="scannerCount">0</span>
+    </div>
+    <div id="scannerArea">
+      <p style="font-size:13px;color:var(--muted)">Buscando...</p>
+    </div>
+    <button class="btn-refresh" onclick="loadScanners()" style="margin-top:10px">Buscar escáneres</button>
+  </div>
+
+  <!-- Preview -->
+  <div class="card preview-card">
+    <div class="card-header">
+      <h3>Vista previa</h3>
+      <span class="badge-count" id="pageCount">0 págs</span>
+    </div>
+    <div class="preview-toolbar" id="pToolbar" style="display:none">
+      <button class="tb-btn" onclick="rotSel(90)">&#x21BB; Rotar 90°</button>
+      <button class="tb-btn" onclick="rotSel(180)">&#x21C6; 180°</button>
+      <button class="tb-btn" onclick="rotSel(270)">&#x21BA; 270°</button>
+      <button class="tb-btn danger" onclick="delSel()">&#x2715; Eliminar</button>
+      <div style="flex:1"></div>
+      <button class="tb-btn success" onclick="getPdf()">&#128229; PDF</button>
+    </div>
+    <div class="preview-scroll" id="pScroll">
+      <div class="empty-preview">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".4">
+          <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/>
+        </svg>
+        <p>Sin páginas escaneadas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Config -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Configuración</h3>
+    </div>
+
+    <div class="cfg-group">
+      <div class="cfg-label">Modo</div>
+      <div class="seg-control" id="modeCtrl">
+        <button class="seg-btn active" onclick="setMode(this,'simplex')">Simple</button>
+        <button class="seg-btn" onclick="setMode(this,'duplex')">Doble faz</button>
+      </div>
+    </div>
+
+    <div class="cfg-group">
+      <div class="cfg-label">Color</div>
+      <div class="seg-control" id="colorCtrl">
+        <button class="seg-btn" onclick="setColor(this,'')">Auto</button>
+        <button class="seg-btn" onclick="setColor(this,'bw')">B/N</button>
+        <button class="seg-btn active" onclick="setColor(this,'gray')">Grises</button>
+        <button class="seg-btn" onclick="setColor(this,'color')">Color</button>
+      </div>
+    </div>
+
+    <div class="cfg-group">
+      <div class="cfg-label">Resolución</div>
+      <select class="dark-select" id="dpi3">
+        <option value="">Auto</option>
+        <option value="100">100 DPI</option>
+        <option value="150">150 DPI</option>
+        <option value="200">200 DPI</option>
+        <option value="300" selected>300 DPI</option>
+        <option value="600">600 DPI</option>
+        <option value="1200">1200 DPI</option>
+      </select>
+    </div>
+
+    <div class="cfg-group">
+      <div class="cfg-label">Timeout (seg)</div>
+      <input class="dark-input" type="number" id="timeout3" value="90" min="15" max="300">
+    </div>
+
+    <div class="cfg-group">
+      <div class="cfg-toggle">
+        <span>Descartar blancas</span>
+        <input type="checkbox" class="mini-toggle" id="blank3">
+      </div>
+    </div>
+
+    <button class="scan-btn" id="scanBtn" onclick="doScan()">
+      INICIAR ESCANEO
+    </button>
+  </div>
+</div>
+
+<div class="toast-area" id="toastArea"></div>
+
+<script>
+const API = 'http://127.0.0.1:43127';
+let scanner = null;
+let mode = 'simplex';
+let color = 'gray';
+let session = null;
+let selPage = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  checkConn();
+  loadScanners();
+});
+
+async function checkConn() {
+  try {
+    const r = await fetch(`${API}/health`);
+    if (r.ok) {
+      const b = document.getElementById('statusBadge');
+      b.classList.remove('offline');
+      b.classList.add('online');
+      document.getElementById('sText').textContent = 'Conectado';
+    }
+  } catch {}
+}
+
+async function loadScanners() {
+  const area = document.getElementById('scannerArea');
+  try {
+    const r = await fetch(`${API}/api/scanners`);
+    const data = await r.json();
+    document.getElementById('scannerCount').textContent = data.length;
+    if (!data.length) {
+      area.innerHTML = '<p style="font-size:13px;color:var(--muted)">Sin escáneres</p>';
+      return;
+    }
+    area.innerHTML = '';
+    data.forEach((s, i) => {
+      const el = document.createElement('div');
+      el.className = 'scanner-option' + (i === 0 ? ' active' : '');
+      el.innerHTML = `<div class="sc-radio"></div><div class="sc-info"><div class="sc-name">${s.name}</div><div class="sc-detail">${s.manufacturer||'N/A'}</div></div>`;
+      el.onclick = () => {
+        document.querySelectorAll('.scanner-option').forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+        scanner = s;
+      };
+      if (i === 0) scanner = s;
+      area.appendChild(el);
+    });
+  } catch {
+    area.innerHTML = '<p style="font-size:13px;color:var(--red)">Error de conexión</p>';
+  }
+}
+
+function setMode(el, m) {
+  document.querySelectorAll('#modeCtrl .seg-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  mode = m;
+}
+
+function setColor(el, c) {
+  document.querySelectorAll('#colorCtrl .seg-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  color = c;
+}
+
+async function doScan() {
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true;
+  btn.textContent = 'ESCANEANDO...';
+  btn.classList.add('scanning');
+
+  const params = {};
+  if (scanner) params.scannerId = scanner.id;
+  const dpi = document.getElementById('dpi3').value;
+  if (dpi) params.dpi = parseInt(dpi);
+  if (color) params.pixelType = color;
+  params.discardBlankPages = document.getElementById('blank3').checked ? 'auto' : 'off';
+  params.timeoutSeconds = parseInt(document.getElementById('timeout3').value) || 90;
+
+  try {
+    const r = await fetch(`${API}/api/scans/adf/${mode}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.message || 'Error');
+    session = data.sessionId || data.SessionId;
+    await poll();
+  } catch (e) {
+    notify(e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'INICIAR ESCANEO';
+    btn.classList.remove('scanning');
+  }
+}
+
+async function poll() {
+  for (let i = 0; i < 120; i++) {
+    try {
+      const r = await fetch(`${API}/api/scans/${session}`);
+      const d = await r.json();
+      const st = d.status || d.Status;
+      const n = d.pageCount || d.PageCount || 0;
+      document.getElementById('scanBtn').textContent = `ESCANEANDO... (${n})`;
+
+      if (st === 'completed' || st === 'empty') {
+        showPages(d);
+        if (n > 0) notify(`${n} página(s) escaneada(s)`);
+        else notify('Sin páginas', true);
+        return;
+      }
+      if (st === 'error' || st === 'canceled') {
+        notify(d.message || 'Error', true);
+        return;
+      }
+    } catch {}
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  notify('Timeout', true);
+}
+
+function showPages(d) {
+  const scroll = document.getElementById('pScroll');
+  const n = d.pageCount || d.PageCount || 0;
+  document.getElementById('pageCount').textContent = `${n} págs`;
+  document.getElementById('pToolbar').style.display = n > 0 ? 'flex' : 'none';
+
+  scroll.innerHTML = '';
+  if (n === 0) {
+    scroll.innerHTML = '<div class="empty-preview"><p>Sin páginas</p></div>';
+    return;
+  }
+  for (let i = 1; i <= n; i++) {
+    const el = document.createElement('div');
+    el.className = 'p-thumb';
+    el.dataset.p = i;
+    el.onclick = (e) => {
+      if (e.target.closest('.p-acts')) return;
+      document.querySelectorAll('.p-thumb').forEach(t => t.classList.remove('sel'));
+      el.classList.add('sel');
+      selPage = i;
+    };
+    el.innerHTML = `
+      <span class="p-num">${i}</span>
+      <img src="${API}/api/scans/${session}/pages/${i}/preview?width=280&quality=70&t=${Date.now()}" alt="${i}">
+      <div class="p-acts">
+        <button onclick="rot(${i},90)">&#x21BB;</button>
+        <button class="del" onclick="del(${i})">&#x2715;</button>
+      </div>
+    `;
+    scroll.appendChild(el);
+  }
+}
+
+async function rot(p, deg) {
+  try {
+    const r = await fetch(`${API}/api/scans/${session}/pages/${p}/rotate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ degrees: deg })
+    });
+    if (r.ok) { showPages(await r.json()); notify(`Pág ${p} rotada`); }
+  } catch { notify('Error', true); }
+}
+
+function rotSel(deg) {
+  if (selPage) rot(selPage, deg);
+  else notify('Seleccione una página', true);
+}
+
+async function del(p) {
+  if (!confirm(`¿Eliminar página ${p}?`)) return;
+  try {
+    const r = await fetch(`${API}/api/scans/${session}/pages/${p}`, { method: 'DELETE' });
+    if (r.ok) { selPage = null; showPages(await r.json()); notify(`Pág ${p} eliminada`); }
+  } catch { notify('Error', true); }
+}
+
+function delSel() {
+  if (selPage) del(selPage);
+  else notify('Seleccione una página', true);
+}
+
+function getPdf() {
+  if (session) window.open(`${API}/api/scans/${session}/pdf`, '_blank');
+}
+
+function notify(msg, err = false) {
+  const el = document.createElement('div');
+  el.className = 't-msg' + (err ? ' err' : '');
+  el.textContent = msg;
+  document.getElementById('toastArea').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+</script>
+</body>
+</html>

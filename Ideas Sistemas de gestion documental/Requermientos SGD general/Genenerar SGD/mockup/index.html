@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Gestión Documental (SGD) - Mockup interactivo con Material Design 3">
+    <title>SGD - Sistema de Gestión Documental</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+
+<body>
+    <!-- ========== LOGIN PAGE ========== -->
+    <div id="loginPage" class="login-page hidden">
+        <div class="login-hero">
+            <div class="login-hero-logo">SGD</div>
+            <h1>Sistema de Gestión Documental</h1>
+            <p>Solución integral para la gestión documental de su organización, cumpliendo con normativas ISO y
+                legislación argentina.</p>
+            <div class="login-features">
+                <div class="login-feature">
+                    <span class="material-icons">verified_user</span>
+                    <span>ISO 27001</span>
+                </div>
+                <div class="login-feature">
+                    <span class="material-icons">draw</span>
+                    <span>Firma Digital</span>
+                </div>
+                <div class="login-feature">
+                    <span class="material-icons">gavel</span>
+                    <span>Ley 25.506</span>
+                </div>
+                <div class="login-feature">
+                    <span class="material-icons">security</span>
+                    <span>Ley 25.326</span>
+                </div>
+            </div>
+        </div>
+        <div class="login-form-container">
+            <div class="login-form-header">
+                <h2>Iniciar Sesión</h2>
+                <p>Ingrese sus credenciales para acceder al sistema</p>
+            </div>
+            <form class="login-form" onsubmit="event.preventDefault(); App.login();">
+                <div class="form-group">
+                    <label class="form-label">Usuario o Correo Electrónico</label>
+                    <input type="text" class="form-input" placeholder="usuario@empresa.com.ar"
+                        value="mgarcia@empresa.com.ar">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-input" placeholder="••••••••••••" value="password123">
+                </div>
+                <div class="flex justify-between items-center mb-16">
+                    <label class="checkbox-wrapper">
+                        <div class="checkbox checked">
+                            <span class="material-icons" style="font-size:16px">check</span>
+                        </div>
+                        <span>Recordar sesión</span>
+                    </label>
+                    <a href="#" style="font-size:14px">¿Olvidó su contraseña?</a>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-icons">login</span>
+                    Iniciar Sesión
+                </button>
+            </form>
+            <div class="login-divider">o continuar con</div>
+            <div class="login-sso">
+                <button class="btn btn-secondary">
+                    <span class="material-icons">business</span>
+                    SSO Corporativo
+                </button>
+                <button class="btn btn-secondary">
+                    <span class="material-icons">fingerprint</span>
+                    Certificado Digital
+                </button>
+            </div>
+            <p style="margin-top:24px;font-size:12px;color:var(--md-sys-color-on-surface-variant);text-align:center">
+                Al ingresar, acepta los términos de uso y la política de privacidad.
+            </p>
+        </div>
+    </div>
+
+    <!-- ========== MAIN APPLICATION ========== -->
+    <div id="appContainer" class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">SGD</div>
+                <span class="sidebar-title">Gestión Documental</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <div class="nav-item active" data-page="dashboard">
+                        <span class="material-icons">dashboard</span>
+                        <span class="nav-item-text">Dashboard</span>
+                    </div>
+                    <div class="nav-item" data-page="documents">
+                        <span class="material-icons">folder</span>
+                        <span class="nav-item-text">Documentos</span>
+                    </div>
+                    <div class="nav-item" data-page="search">
+                        <span class="material-icons">search</span>
+                        <span class="nav-item-text">Búsqueda Avanzada</span>
+                    </div>
+                    <div class="nav-item" data-page="expedientes">
+                        <span class="material-icons">folder_special</span>
+                        <span class="nav-item-text">Expedientes</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Procesos</div>
+                    <div class="nav-item" data-page="workflows">
+                        <span class="material-icons">account_tree</span>
+                        <span class="nav-item-text">Flujos de Trabajo</span>
+                    </div>
+                    <div class="nav-item" data-page="signature">
+                        <span class="material-icons">draw</span>
+                        <span class="nav-item-text">Firma Digital</span>
+                    </div>
+                    <div class="nav-item" data-page="retention">
+                        <span class="material-icons">event_repeat</span>
+                        <span class="nav-item-text">Retención</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Cumplimiento</div>
+                    <div class="nav-item" data-page="audit">
+                        <span class="material-icons">history</span>
+                        <span class="nav-item-text">Auditoría</span>
+                    </div>
+                    <div class="nav-item" data-page="privacy">
+                        <span class="material-icons">privacy_tip</span>
+                        <span class="nav-item-text">Datos Personales</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Sistema</div>
+                    <div class="nav-item" data-page="admin">
+                        <span class="material-icons">settings</span>
+                        <span class="nav-item-text">Administración</span>
+                    </div>
+                </div>
+            </nav>
+            <div style="padding:16px;border-top:1px solid var(--md-sys-color-outline-variant)">
+                <div class="flex items-center gap-16">
+                    <div class="user-avatar">MG</div>
+                    <div class="sidebar-title" style="flex:1;min-width:0">
+                        <div style="font-weight:500;font-size:14px;overflow:hidden;text-overflow:ellipsis">María García
+                        </div>
+                        <div style="font-size:12px;color:var(--md-sys-color-on-surface-variant)">Administrador</div>
+                    </div>
+                    <button class="icon-button" onclick="App.showLogin()" title="Cerrar Sesión">
+                        <span class="material-icons">logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top App Bar -->
+            <header class="top-app-bar">
+                <button class="menu-toggle" id="menuToggle" title="Menú">
+                    <span class="material-icons">menu</span>
+                </button>
+                <div class="search-bar">
+                    <span class="material-icons">search</span>
+                    <input type="text" placeholder="Buscar documentos, expedientes, usuarios...">
+                    <span
+                        style="font-size:12px;color:var(--md-sys-color-on-surface-variant);padding:4px 8px;background:var(--md-sys-color-surface);border-radius:4px">Ctrl+K</span>
+                </div>
+                <div class="app-bar-actions">
+                    <button class="icon-button" title="Ayuda">
+                        <span class="material-icons">help_outline</span>
+                    </button>
+                    <button class="icon-button" title="Notificaciones">
+                        <span class="material-icons">notifications</span>
+                        <span class="badge">5</span>
+                    </button>
+                    <div class="user-avatar" title="Mi perfil" onclick="App.navigate('admin')">MG</div>
+                </div>
+            </header>
+
+            <!-- Page Content Area -->
+            <div class="page-content" id="pageContent">
+                <!-- Dynamic content rendered by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <!-- ========== MODALS ========== -->
+
+    <!-- Upload Document Modal -->
+    <div class="modal-overlay" id="uploadModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title">Cargar Nuevo Documento</h2>
+            </div>
+            <div class="modal-body">
+                <!-- Source Toggle Tabs -->
+                <div class="upload-source-tabs">
+                    <button class="upload-source-tab active" data-source="file" onclick="App.setUploadSource('file')">
+                        <span class="material-icons">cloud_upload</span>
+                        Archivo
+                    </button>
+                    <button class="upload-source-tab" data-source="scanner" onclick="App.setUploadSource('scanner')">
+                        <span class="material-icons">scanner</span>
+                        Escáner
+                    </button>
+                </div>
+
+                <!-- File Upload Area -->
+                <div id="uploadFileArea">
+                    <div class="upload-dropzone" onmouseover="this.classList.add('hover')"
+                        onmouseout="this.classList.remove('hover')">
+                        <span class="material-icons">cloud_upload</span>
+                        <p class="upload-dropzone-title">Arrastra archivos aquí o haz clic para seleccionar</p>
+                        <p class="upload-dropzone-subtitle">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG • Máximo 50MB</p>
+                    </div>
+                </div>
+
+                <!-- Scanner Area -->
+                <div id="uploadScannerArea" style="display:none">
+                    <div class="scanner-interface">
+                        <div class="scanner-controls">
+                            <div class="form-group" style="margin:0;flex:1">
+                                <label class="form-label">Dispositivo de Escaneo</label>
+                                <select class="form-input form-select">
+                                    <option>HP ScanJet Pro 3000 s3</option>
+                                    <option>Canon imageFORMULA DR-C225</option>
+                                    <option>Epson WorkForce DS-530</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0">
+                                <label class="form-label">Resolución</label>
+                                <select class="form-input form-select">
+                                    <option>200 DPI</option>
+                                    <option selected>300 DPI</option>
+                                    <option>600 DPI</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0">
+                                <label class="form-label">Modo</label>
+                                <select class="form-input form-select">
+                                    <option selected>Color</option>
+                                    <option>Escala de Grises</option>
+                                    <option>Blanco y Negro</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin:0">
+                                <label class="form-label">Formato</label>
+                                <select class="form-input form-select">
+                                    <option selected>PDF</option>
+                                    <option>TIFF</option>
+                                    <option>JPEG</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="scanner-preview" id="scanPreview">
+                            <span class="material-icons">document_scanner</span>
+                            <p>Coloque el documento en el escáner</p>
+                            <p style="font-size:12px">y presione el botón para iniciar</p>
+                        </div>
+                        <div class="scanner-actions">
+                            <button class="btn btn-primary" id="scanBtn" onclick="App.simulateScan()">
+                                <span class="material-icons">play_arrow</span>
+                                Iniciar Escaneo
+                            </button>
+                            <div class="checkbox-wrapper">
+                                <div class="checkbox checked"><span class="material-icons"
+                                        style="font-size:16px">check</span></div>
+                                <span>Escaneo doble cara (Duplex)</span>
+                            </div>
+                            <div class="checkbox-wrapper">
+                                <div class="checkbox"><span class="material-icons" style="font-size:16px"></span></div>
+                                <span>Alimentador automático (ADF)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Document Metadata -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px">
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Título del Documento *</label>
+                        <input type="text" class="form-input" id="upDocTitle" placeholder="Ingrese el título">
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Tipo Documental *</label>
+                        <select class="form-input form-select" id="upDocType" onchange="App.onDocTypeChange(this)">
+                            <option value="">Seleccione...</option>
+                            <option value="1">Contrato</option>
+                            <option value="2">Factura</option>
+                            <option value="3">Escritura</option>
+                            <option value="4">Informe</option>
+                            <option value="5">Acta</option>
+                            <option value="6">Correspondencia</option>
+                            <option value="7">Manual/Procedimiento</option>
+                            <option value="8">Otro</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Serie Documental</label>
+                        <select class="form-input form-select" id="upDocSeries">
+                            <option value="">Seleccione...</option>
+                            <option value="1">ADM - Administración</option>
+                            <option value="2">CON - Contabilidad</option>
+                            <option value="8">LEG - Legal</option>
+                            <option value="11">RRHH - Recursos Humanos</option>
+                            <option value="14">COM - Comercial</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Expediente (opcional)</label>
+                        <select class="form-input form-select" id="upDocExpediente">
+                            <option value="">Sin expediente</option>
+                            <option value="1">EXP-2026-0001 - Caso ABC vs DEF</option>
+                            <option value="2">EXP-2026-0002 - Licitación Municipal</option>
+                            <option value="4">EXP-2026-0003 - Sucesión García</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Clasificación de Seguridad *</label>
+                        <select class="form-input form-select" id="upDocClassification">
+                            <option>Público</option>
+                            <option selected>Interno</option>
+                            <option>Confidencial</option>
+                            <option>Estrictamente Confidencial</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Fecha del Documento</label>
+                        <input type="date" class="form-input" id="upDocDate" value="2026-01-21">
+                    </div>
+                    <div class="form-group" style="margin:0;grid-column:1/-1">
+                        <label class="form-label">Palabras Clave</label>
+                        <input type="text" class="form-input" id="upDocTags"
+                            placeholder="Separe las palabras con comas">
+                    </div>
+                    <div class="form-group" style="margin:0;grid-column:1/-1">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-input form-textarea" id="upDocDesc" rows="2"
+                            placeholder="Descripción opcional del documento"></textarea>
+                    </div>
+                </div>
+
+                <!-- Dynamic Fields Container -->
+                <div id="dynamicFieldsContainer"></div>
+
+                <div
+                    style="margin-top:16px;padding:16px;background:var(--md-sys-color-surface-variant);border-radius:12px">
+                    <div class="checkbox-wrapper" style="margin-bottom:12px">
+                        <div class="checkbox">
+                        </div>
+                        <span>Contiene datos personales (Ley 25.326)</span>
+                    </div>
+                    <div class="checkbox-wrapper">
+                        <div class="checkbox">
+                        </div>
+                        <span>Requiere firma digital después de cargar</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.saveDocument()">
+                    <span class="material-icons">upload</span>
+                    Cargar Documento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policy Modal -->
+    <div class="modal-overlay" id="policyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="policyModalTitle">Nueva Política</h2>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="policyId">
+                <div class="form-group">
+                    <label class="form-label">Nombre de la Política *</label>
+                    <input type="text" class="form-input" id="policyName">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-input form-textarea" id="policyDesc" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Años de Retención *</label>
+                    <input type="number" class="form-input" id="policyYears" min="0">
+                    <p style="font-size:12px;color:var(--md-sys-color-on-surface-variant);margin-top:4px">0 = Permanente
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Acción al finalizar *</label>
+                    <select class="form-input form-select" id="policyAction">
+                        <option value="archive">Archivo Permanente (Físico/Digital)</option>
+                        <option value="delete">Eliminación / Destrucción</option>
+                        <option value="review">Revisión Manual</option>
+                        <option value="permanent">Conservación Permanente</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.savePolicy()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workflow Editor Modal -->
+    <div class="modal-overlay" id="workflowModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <div style="flex:1">
+                    <h2 class="modal-title">Editar Flujo de Trabajo</h2>
+                    <p class="modal-subtitle" id="workflowEditorSubtitle">Política: Fiscal</p>
+                </div>
+                <button class="btn btn-secondary" onclick="App.addWorkflowStep()">
+                    <span class="material-icons">add</span> Agregar Paso
+                </button>
+            </div>
+            <div class="modal-body" style="background:var(--md-sys-color-surface-variant);padding:16px;">
+                <input type="hidden" id="workflowPolicyId">
+                <div id="workflowStepsList" class="workflow-steps-list">
+                    <!-- Dynamic Steps -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.saveWorkflow()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Type Modal -->
+    <div class="modal-overlay" id="docTypeModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <div style="flex:1">
+                    <h2 class="modal-title" id="docTypeModalTitle">Nuevo Tipo Documental</h2>
+                </div>
+                <button class="btn btn-secondary" onclick="App.addDocTypeField()">
+                    <span class="material-icons">add</span> Agregar Campo
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="docTypeId">
+                <div
+                    style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--md-sys-color-outline-variant)">
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Nombre *</label>
+                        <input type="text" class="form-input" id="docTypeName" placeholder="Ej. Factura A">
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Código *</label>
+                        <input type="text" class="form-input" id="docTypeCode" placeholder="Ej. FAC-A">
+                    </div>
+                    <div class="form-group" style="margin:0;grid-column:1/-1">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-input form-textarea" id="docTypeDesc" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;margin-bottom:12px;color:var(--md-sys-color-on-surface)">Campos de Metadatos
+                </h3>
+                <div id="docTypeFieldsList" class="workflow-steps-list">
+                    <!-- Dynamic Fields -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.saveDocType()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- List Options Modal -->
+    <div class="modal-overlay" id="listOptionsModal" style="z-index: 1100;">
+        <div class="modal modal-small">
+            <div class="modal-header">
+                <h2 class="modal-title">Configurar Opciones de Lista</h2>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="listOptionsFieldIndex">
+                <div class="form-group">
+                    <label class="form-label">Opciones (una por línea)</label>
+                    <textarea class="form-input form-textarea" id="listOptionsInput" rows="6"
+                        placeholder="Opción 1&#10;Opción 2&#10;Opción 3"></textarea>
+                    <p class="form-hint">Ingrese cada opción en un renglón separado.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeListOptionsModal()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.saveListOptions()">Guardar Opciones</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Series Modal -->
+    <div class="modal-overlay" id="seriesModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="seriesModalTitle">Nueva Serie Documental</h2>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="seriesId">
+                <div class="form-group">
+                    <label class="form-label">Serie Padre</label>
+                    <select class="form-input form-select" id="seriesParentId">
+                        <option value="">(Ninguna - Serie Raíz)</option>
+                        <!-- Options populated via JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nombre *</label>
+                    <input type="text" class="form-input" id="seriesName" placeholder="Ej. Contabilidad">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Código *</label>
+                    <input type="text" class="form-input" id="seriesCode" placeholder="Ej. ADM-01">
+                    <div class="error-message" id="seriesCodeError"></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-input form-textarea" id="seriesDesc" rows="2"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Años de Retención (0 = Permanente)</label>
+                    <input type="number" class="form-input" id="seriesRetention" value="5">
+                    <div class="error-message" id="seriesRetentionError"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.saveSeries()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expediente Modal -->
+    <div class="modal-overlay" id="expedienteModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="expedienteModalTitle">Nuevo Expediente</h2>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="expedienteId">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Título *</label>
+                        <input type="text" class="form-input" id="expTitle" placeholder="Ej. Licitación 2026">
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Número (Autogenerado si vacío)</label>
+                        <input type="text" class="form-input" id="expNumber" placeholder="EXP-YYYY-XXXX">
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Serie Asociada</label>
+                        <select class="form-input form-select" id="expSeries">
+                            <option value="">Seleccione...</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Responsable</label>
+                        <select class="form-input form-select" id="expResponsible">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Prioridad</label>
+                        <select class="form-input form-select" id="expPriority">
+                            <option value="Normal">Normal</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Urgente">Urgente</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0">
+                        <label class="form-label">Estado</label>
+                        <select class="form-input form-select" id="expStatus">
+                            <option value="active">Activo</option>
+                            <option value="pending">Pendiente</option>
+                            <option value="closed">Cerrado</option>
+                            <option value="archived">Archivado</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0;grid-column:1/-1">
+                        <label class="form-label">Descripción</label>
+                        <textarea class="form-input form-textarea" id="expDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group" style="margin:0;grid-column:1/-1">
+                        <label class="form-label">Etiquetas</label>
+                        <input type="text" class="form-input" id="expTags" placeholder="Separadas por comas">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.saveExpediente()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Selection Modal -->
+    <div class="modal-overlay" id="docSelectionModal">
+        <div class="modal modal-large">
+            <div class="modal-header">
+                <h2 class="modal-title">Agregar Documentos al Expediente</h2>
+            </div>
+            <div class="modal-body">
+                <div class="search-bar" style="margin-bottom:16px;">
+                    <span class="material-icons">search</span>
+                    <input type="text" id="docSelectionSearch" placeholder="Buscar documento..."
+                        onkeyup="App.filterStatsDocs(this.value)">
+                </div>
+                <div id="docSelectionList"
+                    style="max-height:300px;overflow-y:auto;border:1px solid var(--md-sys-color-outline-variant);border-radius:8px;">
+                    <!-- List populated via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.addSelectedDocsToExpediente()">Agregar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title" id="userModalTitle">Nuevo Usuario</h2>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label class="form-label">Nombre Completo *</label>
+                    <input type="text" class="form-input" id="userName" placeholder="Ej. Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Correo Electrónico *</label>
+                    <input type="email" class="form-input" id="userEmail" placeholder="usuario@empresa.com.ar">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Rol *</label>
+                    <select class="form-input form-select" id="userRole">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Estado</label>
+                    <select class="form-input form-select" id="userStatus">
+                        <option value="active">Activo</option>
+                        <option value="inactive">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-text" onclick="App.closeModals()">Cancelar</button>
+                <button class="btn btn-primary" onclick="App.saveUser()">Guardar Usuario</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast (hidden by default) -->
+    <div id="toast"
+        style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--md-sys-color-on-surface);color:var(--md-sys-color-surface);padding:16px 24px;border-radius:8px;box-shadow:var(--md-sys-elevation-3);display:none;z-index:2000">
+        <span id="toastMessage">Acción completada</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="scripts/app.js"></script>
+</body>
+
+</html>

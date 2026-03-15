@@ -1,0 +1,356 @@
+# Plan Fase 1 - windows-twain
+
+## Objetivo
+- [x] Construir una app local Windows independiente de `bhsid`.
+- [x] Exponer una API localhost estable.
+- [x] Validar discovery real del escaner.
+- [x] Ejecutar un primer flujo real de escaneo ADF simplex.
+- [x] Completar una sesion editable y exportable a PDF.
+
+## Estado actual
+- [x] App systray .NET 10.
+- [x] Modo `--headless` / `--headeless`.
+- [x] API embebida en el mismo proceso.
+- [x] Una sola instancia por mutex.
+- [x] Logging simple de arranque.
+- [x] Discovery TWAIN con `NTwain 3.7.5`.
+- [x] `EPSON ES-200` detectado por `GET /api/scanners`.
+- [x] `POST /api/scans/adf/simplex` probado con exito.
+- [x] `POST /api/scans/adf/duplex` probado con exito.
+- [x] Parametros de escaneo expuestos en API: `discardBlankPages`, `dpi`, `pixelType`.
+- [x] `GET /api/scans/{sessionId}` devuelve la sesion creada.
+- [x] `GET /api/scans/{sessionId}/pages/{pageNumber}/preview` devuelve un JPEG liviano por pagina.
+- [x] `GET /api/scans/{sessionId}/pdf` exporta y devuelve el PDF.
+- [ ] `POST /api/scans/flatbed/single`.
+- [x] Rotacion de paginas.
+- [x] Eliminacion de paginas.
+- [x] Prueba browser -> localhost para CORS/HTTP.
+
+## Resultado validado hasta ahora
+- [x] `GET /health`
+- [x] `GET /api/status`
+- [x] `GET /api/operations`
+- [x] `GET /api/scanners`
+- [x] `POST /api/scanners/discover`
+- [x] `POST /api/scans/adf/simplex`
+- [x] `POST /api/scans/adf/duplex`
+- [x] `GET /api/scans/{sessionId}`
+- [x] `GET /api/scans/{sessionId}/pages/{pageNumber}/preview`
+- [x] `POST /api/scans/{sessionId}/pages/{pageNumber}/rotate`
+- [x] `DELETE /api/scans/{sessionId}/pages/{pageNumber}`
+- [x] `GET /api/scans/{sessionId}/pdf`
+- [x] `SidWeb/PruebaEscaner.aspx` cargando desde navegador contra `GET /api/scanners`
+- [x] `SidWeb/PruebaEscaner.aspx` dibuja UI completa para seleccionar escaner, parametrizar escaneo, disparar captura y editar paginas
+- [x] `SidWeb/PruebaEscaner1.aspx` disponible como version de presentacion del flujo local
+
+## Evidencia del ultimo paso
+- [x] Escaneo ADF duplex ejecutado sobre `EPSON ES-200`.
+- [x] Sesion validada: `0e16dbe4b11a4e0d8138c8c6d0abc1a5`.
+- [x] Se capturaron `4` paginas con un lote de `2` hojas:
+  - hoja 1 doble faz
+  - hoja 2 simple faz
+- [x] Observacion relevante:
+  - el flujo actual no descarto automaticamente la cara vacia del dorso de la hoja simple
+  - para este lote el resultado practico fue `4` paginas
+- [x] Archivos generados en:
+  - `C:\Compartida\windows-twain\bin\Debug\net10.0-windows\sessions\0e16dbe4b11a4e0d8138c8c6d0abc1a5`
+- [x] Nueva validacion de parametros:
+  - `POST /api/scans/adf/duplex` con `discardBlankPages=auto`, `dpi=300`, `pixelType=color`
+  - sesion validada: `1bc8ceee32b7441da60fbb21037c6ae2`
+  - resultado: `3` paginas con el mismo lote de prueba
+  - conclusion: en el `EPSON ES-200`, `discardBlankPages=auto` descarto la cara vacia esperada
+  - metadatos de imagen observados en `page-001.bmp`: `299.9994 dpi`, `Format24bppRgb`
+- [x] Nueva validacion de preview por pagina:
+  - `GET /api/scans/b5dc738992c74a98bc1aad95123d14bb/pages/1/preview?width=320&quality=75`
+  - respuesta HTTP: `200 image/jpeg`
+  - tamano del preview generado: `9794` bytes
+  - dimensiones del preview: `320x449`
+  - archivo original asociado: `page-001.bmp` de `25891254` bytes
+  - conclusion: el preview es apto como miniatura liviana para navegador
+- [x] Nueva validacion de edicion de paginas:
+  - sesion validada: `378140186ee342e29239b86d6b86be8f`
+  - `POST /api/scans/378140186ee342e29239b86d6b86be8f/pages/1/rotate` con `degrees=90`
+  - resultado observable del preview de pagina 1:
+    - antes: `320x449`, `9734` bytes
+    - despues: `320x228`, `5615` bytes
+  - `DELETE /api/scans/378140186ee342e29239b86d6b86be8f/pages/2`
+  - resultado:
+    - la sesion quedo con `2` paginas
+    - la antigua pagina 3 paso a ser la nueva pagina 2
+    - el preview regenerado de la nueva pagina 2 quedo en `320x450`, `13024` bytes
+  - `GET /api/scans/378140186ee342e29239b86d6b86be8f/pdf`
+  - PDF exportado tras editar: `7146345` bytes, firma `%PDF-1.7`
+- [x] Nueva validacion browser -> localhost:
+  - se agrego `PruebaEscaner.aspx` en `SidWeb` con bypass local de `Session_Start`
+  - la pagina se abrio en `http://localhost:8087/PruebaEscaner.aspx`
+  - el navegador llamo a `http://127.0.0.1:43127/api/scanners`
+  - resultado visible en pagina: `1` escaner detectado
+  - escaner listado: `EPSON ES-200`
+  - conclusion: el flujo `browser -> localhost` funciona en entorno local con origen loopback
+- [x] Nueva validacion de UI de prueba:
+  - `PruebaEscaner.aspx` ahora muestra:
+    - combo de escaner
+    - combo de modo (`ADF simplex` / `ADF duplex`)
+    - combo de DPI
+    - combo de color
+    - check de descarte de hojas en blanco
+    - boton de escanear
+    - boton de actualizar sesion
+    - visor de pagina seleccionada
+    - miniaturas con acciones `Rotar` y `Eliminar`
+  - la UI carga correctamente en navegador con el `EPSON ES-200` seleccionado por defecto
+- [x] Primera prueba real desde `PruebaEscaner.aspx`:
+  - modo: `ADF simplex`
+  - escaner: `EPSON ES-200`
+  - parametros usados:
+    - `dpi=300`
+    - `pixelType=color`
+    - `discardBlankPages=auto`
+  - sesion creada: `37df60187f824b3aa746fe7ba6594a21`
+  - resultado: `empty`
+  - paginas capturadas: `0`
+  - conclusion inicial:
+    - el flujo browser -> localhost -> scan endpoint respondio correctamente
+    - no hubo captura efectiva de pagina en este intento
+    - el siguiente reintento deberia hacerse con `discardBlankPages=off`
+- [x] Reintento real desde `PruebaEscaner.aspx` con descarte desactivado:
+  - modo: `ADF simplex`
+  - escaner: `EPSON ES-200`
+  - parametros usados:
+    - `dpi=300`
+    - `pixelType=color`
+    - `discardBlankPages=off`
+  - sesion creada: `f0445ba81fea4e45ab6dfe3b0c2809c1`
+  - resultado: `completed`
+  - paginas capturadas: `1`
+  - conclusion:
+    - el flujo end-to-end browser -> localhost -> scan endpoint funciona correctamente
+    - la captura desde `PruebaEscaner.aspx` coincide con la captura directa cuando `discardBlankPages=off`
+    - el problema visto con la misma hoja se concentra en el descarte automatico del driver
+  - ajuste aplicado:
+    - `PruebaEscaner.aspx` ahora deja `Ignorar hojas en blanco` desactivado por defecto
+- [x] Prueba directa contra `windows-twain` sin UI web:
+  - endpoint: `POST /api/scans/adf/simplex`
+  - escaner: `EPSON ES-200`
+  - parametros usados:
+    - `dpi=300`
+    - `pixelType=color`
+    - `discardBlankPages=off`
+  - sesion creada: `b46ecf65bc0a4e84a13fd95b490b3673`
+  - resultado: `completed`
+  - paginas capturadas: `1`
+  - conclusion:
+    - la captura directa funciona
+    - el problema del intento anterior no fue CORS ni la pagina web
+    - el candidato principal es el descarte automatico de paginas en blanco (`auto`) sobre este tipo de hoja
+- [x] Confirmacion de descarte automatico agresivo con hoja tenue:
+  - prueba directa con descarte activo:
+    - endpoint: `POST /api/scans/adf/simplex`
+    - sesion creada: `ea7e35bf09b449d5b76ddced901d3a1e`
+    - resultado: `empty`
+    - paginas capturadas: `0`
+  - analisis de la imagen capturada con descarte desactivado:
+    - resolucion real: `2480x3484`
+    - dpi real: `299.9994`
+    - formato: `Format24bppRgb`
+    - luminancia promedio estimada: `254.0454 / 255`
+    - porcentaje de pixeles casi blancos (`>=245` por canal): `97.1596%`
+  - conclusion:
+    - la hoja no esta vacia, pero el contenido es demasiado tenue para confiar en `discardBlankPages=auto`
+    - no parece un problema de resolucion; parece un problema de contraste/luminancia o de sensibilidad del algoritmo del driver
+- [x] Validacion de orientacion fisica de la hoja:
+  - el usuario reinserto la misma hoja en la orientacion inversa
+  - endpoint: `POST /api/scans/adf/simplex`
+  - parametros usados:
+    - `dpi=300`
+    - `pixelType=color`
+    - `discardBlankPages=auto`
+  - sesion creada: `0c3a1b7c7f1442b39819b6f5afad394d`
+  - resultado: `completed`
+  - paginas capturadas: `1`
+  - analisis:
+    - resolucion real: `2480x3481`
+    - dpi real: `299.9994`
+    - luminancia promedio estimada: `250.8443 / 255`
+    - porcentaje de pixeles casi blancos (`>=245` por canal): `92.7982%`
+  - conclusion:
+    - la orientacion fisica de carga cambia el resultado de forma importante
+    - la hipotesis de “cara/orientacion invertida” queda fortalecida
+    - antes de tocar brillo/contraste conviene documentar claramente cual es la cara correcta de carga para cada escaner
+- [x] Validacion punta a punta desde `PruebaEscaner.aspx` con orientacion corregida:
+  - modo: `ADF simplex`
+  - escaner: `EPSON ES-200`
+  - parametros usados:
+    - `dpi=300`
+    - `pixelType=color`
+    - `discardBlankPages=auto`
+  - sesion creada: `f1e79b66d4a944679808556266311b00`
+  - resultado: `completed`
+  - paginas capturadas: `1`
+  - conclusion:
+    - el flujo browser -> localhost -> `windows-twain` funciona tambien con descarte automatico activo
+    - la evidencia apunta a un problema de orientacion fisica de la hoja antes que a un fallo general del algoritmo de blancos
+- [x] Consulta de capabilities TWAIN de orientacion en `EPSON ES-200`:
+  - `ICapOrientation`: soportada, configurable, valores `Rot0/Rot90/Rot180/Rot270`
+  - `ICapFlipRotation`: no soportada
+  - `CapFeederAlignment`: soportada, solo `Center`
+  - `CapFeederOrder`: soportada, no configurable, `FirstPageFirst`
+  - conclusion:
+    - TWAIN permite configurar rotacion estandar
+    - no expone flip/mirror en este driver
+    - la “cara” fisica que lee el ADF no parece resolverse por capability estandar; depende del hardware/driver y de la carga
+- [x] Captura duplex de referencia para mapear orientacion fisica/digital:
+  - hoja: una sola hoja impresa en ambas caras
+  - orientacion fisica declarada: `boca arriba mirando hacia adelante`
+  - endpoint: `POST /api/scans/adf/duplex`
+  - sesion creada: `af75f10ca1d24b8fb4f5f515c24828af`
+  - resultado: `completed`
+  - paginas capturadas: `2`
+  - objetivo:
+    - usar esta sesion como referencia para que el usuario identifique la orientacion digital real respecto de la fisica
+  - lectura confirmada por el usuario:
+    - la salida digital correspondiente a esa carga queda `boca abajo mirando hacia atras`
+    - para normalizarla haria falta un `flip` sobre el eje horizontal de la hoja
+  - conclusion:
+    - no alcanza con rotacion 2D simple
+    - conviene modelar rotacion y espejado como transformaciones independientes
+- [x] Parametrizacion opcional de orientacion en la API:
+  - requests actualizados:
+    - `POST /api/scans/adf/simplex`
+    - `POST /api/scans/adf/duplex`
+  - nuevo parametro: `orientationMode`
+  - modos canonicos actuales:
+    - `driver-default`
+    - `rotate-90`
+    - `rotate-180`
+    - `rotate-270`
+    - `mirror-left-right`
+    - `mirror-top-bottom`
+    - combinaciones como `rotate-180+mirror-top-bottom`
+  - estrategia:
+    - rotacion simple: se intenta delegar al driver via `ICapOrientation`
+    - flip o falta de soporte: fallback por software sobre la imagen capturada
+  - la respuesta de sesion ahora devuelve `settings.orientationMode` y `settings.orientationAppliedBy`
+- [x] UI de prueba actualizada para orientacion:
+  - `PruebaEscaner.aspx` ahora deja elegir orientacion digital y manda `orientationMode` al endpoint local
+- [x] Primera prueba real de `orientationMode`:
+  - endpoint: `POST /api/scans/adf/simplex`
+  - parametros usados:
+    - `dpi=300`
+    - `pixelType=color`
+    - `discardBlankPages=off`
+    - `orientationMode=mirror-top-bottom`
+  - sesion creada: `3b6712da2dfe432fb52c9147316aaba3`
+  - resultado: `completed`
+  - paginas capturadas: `1`
+  - `settings.orientationAppliedBy`: `software`
+  - objetivo:
+    - dejar un artefacto para que el usuario confirme si esta transformacion coincide con su orientacion preferida
+  - estado actual:
+    - toda esta linea experimental de orientacion fue removida del codigo
+    - se conserva en el plan solo como antecedente tecnico
+
+## Operaciones previstas
+- [x] `GET /health`
+- [x] `GET /api/status`
+- [x] `GET /api/operations`
+- [x] `GET /api/scanners`
+- [x] `POST /api/scanners/discover`
+- [ ] `POST /api/scans/flatbed/single`
+- [x] `POST /api/scans/adf/simplex`
+- [x] `POST /api/scans/adf/duplex`
+- [x] `GET /api/scans/{sessionId}`
+- [x] `GET /api/scans/{sessionId}/pages/{pageNumber}/preview`
+- [x] `POST /api/scans/{sessionId}/pages/{pageNumber}/rotate`
+- [x] `DELETE /api/scans/{sessionId}/pages/{pageNumber}`
+- [x] `GET /api/scans/{sessionId}/pdf`
+
+## Modelo de sesion
+- [x] El escaneo genera una `scan session`.
+- [x] La sesion conserva paginas individuales en disco.
+- [x] La API devuelve metadatos de sesion y paginas.
+- [x] La API puede servir previews JPEG chicas generadas on-demand y cacheadas en disco.
+- [x] La sesion soporta exportacion PDF.
+- [x] La sesion soporta edicion de paginas.
+
+## Checklist de trabajo
+
+### Bootstrap local
+- [x] Crear app systray.
+- [x] Levantar API localhost en puerto fijo alto.
+- [x] Asegurar una sola instancia.
+- [x] Exponer `health`, `status` y `operations`.
+
+### Contrato de escaneo
+- [x] Definir responses para discovery.
+- [x] Definir responses para sesiones.
+- [x] Dejar placeholders `501` para operaciones no implementadas.
+- [x] Definir estructura de `sessionId`, paginas y almacenamiento temporal.
+- [x] Exponer parametros opcionales de calidad y descarte de blancos en el contrato de escaneo.
+- [ ] Reintroducir orientacion parametrizable si vuelve a ser necesaria.
+- [x] Exponer preview por pagina en formato navegador.
+
+### Hardware / TWAIN
+- [x] Conectar escaner.
+- [x] Confirmar driver TWAIN usable.
+- [x] Validar discovery.
+- [x] Validar ADF simplex.
+- [x] Validar ADF duplex.
+- [x] Validar descarte automatico de paginas en blanco con TWAIN.
+- [x] Validar DPI y modo de color configurables.
+- [x] Validar preview por pagina para navegador.
+- [ ] Validar flatbed.
+- [x] Validar escaner sin hojas.
+- [x] Validar escaner sin hojas desde `PruebaEscaner.aspx`.
+- [ ] Validar manejo de errores y timeouts.
+
+### Sesion editable
+- [x] Crear sesion de escaneo.
+- [x] Agregar paginas.
+- [x] Consultar paginas.
+- [x] Generar preview por pagina.
+- [x] Exportar PDF.
+- [x] Rotar pagina.
+- [x] Eliminar pagina.
+
+### Browser / localhost
+- [x] Hacer prueba minima browser -> localhost.
+- [ ] Verificar comportamiento con `http/https`.
+- [x] Verificar CORS con pagina de prueba.
+- [x] Crear `PruebaEscaner1.aspx` a `PruebaEscaner5.aspx` como paginas vacias con bypass.
+- [x] Validar `ADF duplex` desde `PruebaEscaner.aspx`.
+
+## Riesgos vigentes
+- Compatibilidad browser -> localhost en el entorno legacy.
+- Diferencias entre modo simplex y duplex del driver.
+- En duplex con hojas mixtas:
+  - sin parametros se obtuvieron `4` paginas
+  - con `discardBlankPages=auto` se obtuvieron `3` paginas
+  - hay que definir el default funcional que se usara luego desde `bhsid`
+- Tamaño de BMPs si no se define luego una compresion/export adecuada.
+- Aunque el preview ya es liviano, las paginas originales siguen quedando en BMP; eso mantiene alto el uso temporal de disco.
+- Hoy la sesion editable no tiene historial ni undo; una rotacion o eliminacion aplica inmediatamente sobre los archivos locales.
+- Posibles diferencias x86/x64 en otros puestos.
+- El escaner de produccion previsto es `Kodak i3400`; hay que revalidar estas capabilities sobre ese driver cuando este disponible.
+- Una cancelacion/abort del browser durante un escaneo puede dejar discovery TWAIN colgado hasta reiniciar `windows-twain`.
+
+## Recomendacion inmediata
+- [x] Revalidar `ADF duplex` con un lote de control mejor definido para entender por que el lote actual devolvio solo `2` paginas.
+- [ ] Endurecer el manejo de cancelaciones/abort del browser para que un request interrumpido no requiera reiniciar `windows-twain`.
+- [ ] Definir el primer contrato de subida final desde browser a `bhsid`.
+
+## Nota para fase 2
+- La integracion con `bhsid` deberia preferir upload binario o `multipart/form-data`.
+- Evitar base64 como formato de intercambio principal entre `windows-twain` y la web.
+
+## Validaciones recientes
+- [x] Corregir `PruebaEscaner.aspx` para no tratar todo `HTTP 200` como exito.
+- [x] Validar `ADF duplex` desde `PruebaEscaner.aspx` con lote controlado de `3` hojas doble cara.
+- [x] Resultado esperado observado: `6` paginas en sesion `aa601fb70394412eb26a3b91c6a1149d`.
+- [x] Validar nuevamente `ADF sin hojas` desde `PruebaEscaner.aspx` con mensaje correcto en UI.
+- [x] Crear `PruebaEscaner1.aspx` con UI mas cercana a presentacion y modal de pagina.
+- [x] Ajustar `GET /api/scans/{sessionId}/pdf` para apertura inline en navegador.
+- [x] Smoke test `ADF simplex` desde `PruebaEscaner1.aspx`:
+  - sesion `019771fcc2e34eab8e1b404b485d01e2`
+  - `3` paginas capturadas
+- [ ] Validar `flatbed` con otro escaner cuando el usuario lo configure.

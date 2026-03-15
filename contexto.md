@@ -80,9 +80,14 @@ La organización documental debe permitir:
     - ajustar brillo/contraste
     - eliminar páginas
     - fusionar una segunda sesión para insertar hojas
-    - exportar PDF temporal
+    - mostrar un PDF temporal dentro de la app sin descargarlo
   - el centro de escaneo permite además capturar metadatos del documento antes de guardar
-  - esos metadatos se basan hoy en los atributos definidos en el tipo del nodo y se persisten como atributos de documento generados para el flujo de escaneo
+  - el centro de escaneo ahora tiene contraste alto, toolbar por iconos con tooltips, panel izquierdo scrollable y secciones colapsables
+  - ahora soporta mover páginas al inicio/final e insertar hojas en la posición seleccionada o al final
+  - el ajuste de brillo/contraste quedó validado contra `windows-twain` sin error 500
+  - la UI ya expone ABM real de `tipos documentales` y de sus `atributos documentales` dentro de la sección `Tipos`
+  - al escanear se puede elegir un tipo documental configurado en el proyecto
+  - si no existe ningún tipo documental configurado, el flujo mantiene fallback a atributos heredados del tipo de nodo
   - corre en web sin depender de `dart:io`
   - los diálogos principales validan en cliente antes de cerrar
   - cuando un campo es inválido el diálogo queda abierto y muestra el error en el campo
@@ -94,7 +99,6 @@ La organización documental debe permitir:
   - si un atributo existe pero todavía no tiene dato cargado, la UI lo marca explícitamente como `Sin valor`
   - las pantallas y acciones visibles dependen del perfil del usuario en el proyecto actual
   - ya puede listar documentos existentes por nodo y guardar documentos escaneados en PostgreSQL
-  - todavía no expone ABM real de tipos de documento ni de sus atributos como módulo independiente
 
 ### API local para UI principal
 
@@ -106,7 +110,9 @@ La organización documental debe permitir:
   - endpoint `auth/me` para refrescar el contexto del usuario actual
   - CRUD de proyectos
   - CRUD de tipos de contenedor
+  - CRUD de tipos documentales
   - sincronización de atributos por tipo de contenedor
+  - sincronización de atributos por tipo documental
   - CRUD de reglas padre-hijo
   - CRUD de nodos jerárquicos
   - CRUD de perfiles y membresías por proyecto
@@ -115,14 +121,15 @@ La organización documental debe permitir:
   - descarga del PDF actual del documento
   - auditoría funcional de lectura/escritura y eventos de autenticación
   - lectura agregada por proyecto (`snapshot`) para hidratar la UI
-  - el `snapshot` normaliza aliases SQL para devolver atributos, reglas y nodos con claves estables en camelCase
+  - el `snapshot` normaliza aliases SQL para devolver atributos, tipos documentales, reglas y nodos con claves estables en camelCase
   - publicación local de `ui1.html`, `ui2.html` y `ui3.html`
   - el guardado documental persiste:
     - `documents`
     - `document_versions`
     - `document_files`
     - `document_attribute_values`
-  - el backend genera un `document_type` técnico por tipo de nodo para el flujo de escaneo y espeja allí los atributos del nodo como atributos de documento
+  - si la UI envía un `documentTypeId`, el backend guarda el documento con ese tipo documental explícito y valida sus atributos contra `document_type_attributes`
+  - si no se envía `documentTypeId`, el backend mantiene el fallback técnico: genera un `document_type` por tipo de nodo y espeja allí los atributos del nodo
   - los PDFs se guardan en `sgd_storage/documents/...` dentro del repo local
 
 ### Seguridad y acceso
@@ -230,19 +237,17 @@ Archivos principales:
 - [V202603151900__add_node_type_icon_key.sql](C:/Users/Gabriel/Desktop/SGD/db/migrations/V202603151900__add_node_type_icon_key.sql)
 - [V202603152130__add_auth_profiles_and_audit_v3.sql](C:/Users/Gabriel/Desktop/SGD/db/migrations/V202603152130__add_auth_profiles_and_audit_v3.sql)
 - [V202603152245__add_document_permissions_v4.sql](C:/Users/Gabriel/Desktop/SGD/db/migrations/V202603152245__add_document_permissions_v4.sql)
-- [V202603152245__add_document_permissions_v4.sql](C:/Users/Gabriel/Desktop/SGD/db/migrations/V202603152245__add_document_permissions_v4.sql)
 - [sgd_dev_snapshot.sql](C:/Users/Gabriel/Desktop/SGD/db/exports/sgd_dev_snapshot.sql)
 
 Estado:
 
 - base `sgd` creada
 - migraciones `V202603151410`, `V202603151730`, `V202603151900`, `V202603152130` y `V202603152245` aplicadas
-- la migración `V202603152245` ya existe en `db/migrations` pero todavía no está aplicada en la base local `sgd`
 - validada la jerarquía por proyecto
 - validados atributos dinámicos en `node_attribute_values` y `document_attribute_values`
 - `hierarchy_node_types` ahora persiste también `icon_key`
 - la base ahora incluye usuarios locales, perfiles por proyecto, permisos, sesiones y auditoría
-- se generó un dump versionable en `db/exports/sgd_dev_snapshot.sql` con el estado actual de desarrollo
+- se regeneró el dump versionable en `db/exports/sgd_dev_snapshot.sql` con el estado actual de desarrollo
 - conservar los datos de prueba actuales salvo necesidad explícita de limpieza
 
 ### Tablas principales de la v1

@@ -339,6 +339,66 @@ Router _buildRouter(SgdRepository repo, ServerConfig config) {
       ),
     )
     ..post(
+      '/projects/<projectId>/document-types',
+      (request, projectId) => _withAuth(
+        request,
+        repo,
+        projectId: projectId,
+        permissionCode: 'types.write',
+        audit: AuditSpec(actionCode: 'document_types.create', accessKind: 'write', resourceType: 'document_type', resourceId: projectId),
+        handler: (_) async {
+          final body = await _readJsonMap(request);
+          final id = await repo.createDocumentType(projectId, body);
+          return _jsonResponse({'id': id}, statusCode: 201);
+        },
+      ),
+    )
+    ..put(
+      '/projects/<projectId>/document-types/<typeId>',
+      (request, projectId, typeId) => _withAuth(
+        request,
+        repo,
+        projectId: projectId,
+        permissionCode: 'types.write',
+        audit: AuditSpec(actionCode: 'document_types.update', accessKind: 'write', resourceType: 'document_type', resourceId: typeId),
+        handler: (_) async {
+          final body = await _readJsonMap(request);
+          await repo.updateDocumentType(projectId, typeId, body);
+          return _jsonResponse({'status': 'ok'});
+        },
+      ),
+    )
+    ..delete(
+      '/projects/<projectId>/document-types/<typeId>',
+      (request, projectId, typeId) => _withAuth(
+        request,
+        repo,
+        projectId: projectId,
+        permissionCode: 'types.write',
+        audit: AuditSpec(actionCode: 'document_types.delete', accessKind: 'write', resourceType: 'document_type', resourceId: typeId),
+        handler: (_) async {
+          await repo.deleteDocumentType(projectId, typeId);
+          return _jsonResponse({'status': 'ok'});
+        },
+      ),
+    )
+    ..put(
+      '/projects/<projectId>/document-types/<typeId>/attributes/sync',
+      (request, projectId, typeId) => _withAuth(
+        request,
+        repo,
+        projectId: projectId,
+        permissionCode: 'types.write',
+        audit: AuditSpec(actionCode: 'document_types.attributes.sync', accessKind: 'write', resourceType: 'document_type', resourceId: typeId),
+        handler: (_) async {
+          final body = await _readJsonMap(request);
+          final items = (body['items'] as List?) ?? const [];
+          await repo.syncDocumentTypeAttributes(projectId, typeId, items);
+          return _jsonResponse({'status': 'ok'});
+        },
+      ),
+    )
+    ..post(
       '/projects/<projectId>/rules',
       (request, projectId) => _withAuth(
         request,
@@ -1485,6 +1545,40 @@ class SgdRepository {
       '''),
       parameters: {'projectId': projectId},
     );
+    final documentTypeRows = await connection.execute(
+      Sql.named('''
+        SELECT
+          id::text AS id,
+          project_id::text AS "projectId",
+          code,
+          name,
+          COALESCE(description, '') AS description
+        FROM document_types
+        WHERE project_id = @projectId
+          AND is_active = true
+        ORDER BY name, code
+      '''),
+      parameters: {'projectId': projectId},
+    );
+    final documentAttributeRows = await connection.execute(
+      Sql.named('''
+        SELECT
+          dta.document_type_id::text AS "documentTypeId",
+          ad.id::text AS id,
+          ad.code,
+          ad.name,
+          ad.data_type AS "dataType",
+          COALESCE(ad.type_extension::text, '') AS extension,
+          COALESCE(ad.validation_regex, '') AS regex
+        FROM document_type_attributes dta
+        JOIN attribute_definitions ad
+          ON ad.project_id = dta.project_id
+         AND ad.id = dta.attribute_definition_id
+        WHERE dta.project_id = @projectId
+        ORDER BY dta.document_type_id, dta.display_order, ad.name
+      '''),
+      parameters: {'projectId': projectId},
+    );
     final optionRows = await connection.execute(
       Sql.named('''
         SELECT
@@ -1567,6 +1661,21 @@ class SgdRepository {
         'options': optionsByAttribute[attributeId] ?? const [],
       });
     }
+    final attributesByDocumentType = <String, List<Map<String, dynamic>>>{};
+    for (final row in documentAttributeRows) {
+      final map = _rowMap(row);
+      final attributeId = _requiredColumnString(map, 'id');
+      final documentTypeId = _requiredColumnString(map, 'documentTypeId');
+      attributesByDocumentType.putIfAbsent(documentTypeId, () => []).add({
+        'id': attributeId,
+        'code': _requiredColumnString(map, 'code'),
+        'name': _requiredColumnString(map, 'name'),
+        'dataType': _requiredColumnString(map, 'dataType'),
+        'extension': _columnValue(map, 'extension')?.toString() ?? '',
+        'regex': _columnValue(map, 'regex')?.toString() ?? '',
+        'options': optionsByAttribute[attributeId] ?? const [],
+      });
+    }
     final valuesByNode = <String, Map<String, String>>{};
     for (final row in valueRows) {
       final map = _rowMap(row);
@@ -1591,6 +1700,18 @@ class SgdRepository {
           'iconKey': _columnValue(map, 'iconKey')?.toString() ?? 'folder',
           'order': _columnInt(map, 'order'),
           'attributes': attributesByType[id] ?? const [],
+        };
+      }).toList(),
+      'documentTypes': documentTypeRows.map((row) {
+        final map = _rowMap(row);
+        final id = _requiredColumnString(map, 'id');
+        return {
+          'id': id,
+          'projectId': _requiredColumnString(map, 'projectId'),
+          'code': _requiredColumnString(map, 'code'),
+          'name': _requiredColumnString(map, 'name'),
+          'description': _columnValue(map, 'description')?.toString() ?? '',
+          'attributes': attributesByDocumentType[id] ?? const [],
         };
       }).toList(),
       'rules': ruleRows.map((row) {
@@ -1721,6 +1842,7 @@ class SgdRepository {
     final title = _requiredString(body, 'title');
     final description = _optionalString(body, 'description') ?? '';
     final sessionId = _requiredString(body, 'sessionId');
+    final requestedDocumentTypeId = _optionalString(body, 'documentTypeId');
     final attributeValues = _readDocumentAttributeValues(body);
 
     final scanSession = await _fetchScannerSession(sessionId);
@@ -1740,7 +1862,9 @@ class SgdRepository {
     try {
       return await connection.runTx((tx) async {
         final nodeTarget = await _loadNodeDocumentTarget(projectId, nodeId, session: tx);
-        final binding = await _ensureScanDocumentType(tx, projectId, nodeTarget);
+        final binding = requestedDocumentTypeId == null || requestedDocumentTypeId.isEmpty
+            ? await _ensureScanDocumentType(tx, projectId, nodeTarget)
+            : await _loadConfiguredDocumentTypeBinding(tx, projectId, requestedDocumentTypeId);
 
         final documentRows = await tx.execute(
           Sql.named('''
@@ -1900,6 +2024,18 @@ class SgdRepository {
     return rows.first[0] as String;
   }
 
+  Future<String> createDocumentType(String projectId, Map<String, dynamic> body) async {
+    final rows = await connection.execute(
+      Sql.named('''
+        INSERT INTO document_types (project_id, code, name, description)
+        VALUES (@projectId, @code, @name, @description)
+        RETURNING id::text AS id
+      '''),
+      parameters: _documentTypeParams(projectId, body),
+    );
+    return rows.first[0] as String;
+  }
+
   Future<void> updateNodeType(String projectId, String typeId, Map<String, dynamic> body) async {
     final rows = await connection.execute(
       Sql.named('''
@@ -1921,6 +2057,23 @@ class SgdRepository {
     _ensureFound(rows, 'Tipo no encontrado.');
   }
 
+  Future<void> updateDocumentType(String projectId, String typeId, Map<String, dynamic> body) async {
+    final rows = await connection.execute(
+      Sql.named('''
+        UPDATE document_types
+        SET
+          code = @code,
+          name = @name,
+          description = @description
+        WHERE project_id = @projectId
+          AND id = @typeId
+        RETURNING id::text AS id
+      '''),
+      parameters: {..._documentTypeParams(projectId, body), 'typeId': typeId},
+    );
+    _ensureFound(rows, 'Tipo documental no encontrado.');
+  }
+
   Map<String, dynamic> _typeParams(String projectId, Map<String, dynamic> body) {
     final name = _requiredString(body, 'name');
     return {
@@ -1935,6 +2088,16 @@ class SgdRepository {
     };
   }
 
+  Map<String, dynamic> _documentTypeParams(String projectId, Map<String, dynamic> body) {
+    final name = _requiredString(body, 'name');
+    return {
+      'projectId': projectId,
+      'code': _optionalString(body, 'code') ?? _slugify(name),
+      'name': name,
+      'description': _nullIfBlank(_optionalString(body, 'description')),
+    };
+  }
+
   Future<void> deleteNodeType(String projectId, String typeId) async {
     await connection.runTx((tx) async {
       final attributeRows = await tx.execute(
@@ -1946,6 +2109,23 @@ class SgdRepository {
         parameters: {'projectId': projectId, 'typeId': typeId},
       );
       _ensureFound(deletedType, 'Tipo no encontrado.');
+      for (final row in attributeRows) {
+        await _deleteAttributeIfUnused(tx, projectId, row[0] as String);
+      }
+    });
+  }
+
+  Future<void> deleteDocumentType(String projectId, String typeId) async {
+    await connection.runTx((tx) async {
+      final attributeRows = await tx.execute(
+        Sql.named('SELECT attribute_definition_id::text AS id FROM document_type_attributes WHERE project_id = @projectId AND document_type_id = @typeId'),
+        parameters: {'projectId': projectId, 'typeId': typeId},
+      );
+      final deletedType = await tx.execute(
+        Sql.named('DELETE FROM document_types WHERE project_id = @projectId AND id = @typeId RETURNING id::text AS id'),
+        parameters: {'projectId': projectId, 'typeId': typeId},
+      );
+      _ensureFound(deletedType, 'Tipo documental no encontrado.');
       for (final row in attributeRows) {
         await _deleteAttributeIfUnused(tx, projectId, row[0] as String);
       }
@@ -1969,7 +2149,9 @@ class SgdRepository {
         final item = Map<String, dynamic>.from((items[i] as Map).cast<String, dynamic>());
         final name = _requiredString(item, 'name');
         final attrId = _optionalString(item, 'id');
-        final activeId = attrId != null && existingIds.contains(attrId) ? attrId : await _insertAttribute(tx, projectId, item, name);
+        final activeId = attrId != null && existingIds.contains(attrId)
+            ? attrId
+            : await _insertScopedAttribute(tx, projectId, scope: 'node', body: item, name: name);
         if (attrId != null && existingIds.contains(attrId)) {
           await tx.execute(
             Sql.named('''
@@ -2036,17 +2218,111 @@ class SgdRepository {
     });
   }
 
-  Future<String> _insertAttribute(TxSession tx, String projectId, Map<String, dynamic> body, String name) async {
+  Future<void> syncDocumentTypeAttributes(String projectId, String typeId, List<dynamic> items) async {
+    await connection.runTx((tx) async {
+      final existingRows = await tx.execute(
+        Sql.named('SELECT attribute_definition_id::text AS id FROM document_type_attributes WHERE project_id = @projectId AND document_type_id = @typeId'),
+        parameters: {'projectId': projectId, 'typeId': typeId},
+      );
+      final existingIds = existingRows.map((row) => row[0] as String).toSet();
+      final keptIds = <String>{};
+      await tx.execute(
+        Sql.named('DELETE FROM document_type_attributes WHERE project_id = @projectId AND document_type_id = @typeId'),
+        parameters: {'projectId': projectId, 'typeId': typeId},
+      );
+
+      for (var i = 0; i < items.length; i++) {
+        final item = Map<String, dynamic>.from((items[i] as Map).cast<String, dynamic>());
+        final name = _requiredString(item, 'name');
+        final attrId = _optionalString(item, 'id');
+        final activeId = attrId != null && existingIds.contains(attrId)
+            ? attrId
+            : await _insertScopedAttribute(tx, projectId, scope: 'document', body: item, name: name);
+        if (attrId != null && existingIds.contains(attrId)) {
+          await tx.execute(
+            Sql.named('''
+              UPDATE attribute_definitions
+              SET
+                code = @code,
+                name = @name,
+                data_type = @dataType,
+                type_extension = @typeExtension,
+                validation_regex = @validationRegex,
+                validation_message = NULL,
+                is_active = true
+              WHERE project_id = @projectId
+                AND id = @attributeId
+            '''),
+            parameters: {
+              'projectId': projectId,
+              'attributeId': activeId,
+              'code': _optionalString(item, 'code') ?? _slugify(name),
+              'name': name,
+              'dataType': _requiredString(item, 'dataType'),
+              'typeExtension': _parseNullableInt(item['extension']),
+              'validationRegex': _nullIfBlank(_optionalString(item, 'regex')),
+            },
+          );
+          await tx.execute(
+            Sql.named('DELETE FROM attribute_options WHERE project_id = @projectId AND attribute_definition_id = @attributeId'),
+            parameters: {'projectId': projectId, 'attributeId': activeId},
+          );
+        }
+
+        keptIds.add(activeId);
+        await tx.execute(
+          Sql.named('''
+            INSERT INTO document_type_attributes (project_id, document_type_id, attribute_definition_id, display_order)
+            VALUES (@projectId, @typeId, @attributeId, @displayOrder)
+          '''),
+          parameters: {'projectId': projectId, 'typeId': typeId, 'attributeId': activeId, 'displayOrder': i * 10},
+        );
+
+        if (_requiredString(item, 'dataType') == 'list') {
+          final options = (item['options'] as List?) ?? const [];
+          for (var j = 0; j < options.length; j++) {
+            final option = Map<String, dynamic>.from((options[j] as Map).cast<String, dynamic>());
+            await tx.execute(
+              Sql.named('''
+                INSERT INTO attribute_options (project_id, attribute_definition_id, code, label, sort_order)
+                VALUES (@projectId, @attributeId, @code, @label, @sortOrder)
+              '''),
+              parameters: {
+                'projectId': projectId,
+                'attributeId': activeId,
+                'code': _requiredString(option, 'code'),
+                'label': _requiredString(option, 'label'),
+                'sortOrder': j * 10,
+              },
+            );
+          }
+        }
+      }
+
+      for (final removedId in existingIds.difference(keptIds)) {
+        await _deleteAttributeIfUnused(tx, projectId, removedId);
+      }
+    });
+  }
+
+  Future<String> _insertScopedAttribute(
+    TxSession tx,
+    String projectId, {
+    required String scope,
+    required Map<String, dynamic> body,
+    required String name,
+  }) async {
     final rows = await tx.execute(
       Sql.named('''
         INSERT INTO attribute_definitions (
           project_id, scope, code, name, data_type, type_extension, validation_regex
         )
-        VALUES (@projectId, 'node', @code, @name, @dataType, @typeExtension, @validationRegex)
+        VALUES (@projectId, @scope, @code, @name, @dataType, @typeExtension, @validationRegex)
         RETURNING id::text AS id
       '''),
       parameters: {
         'projectId': projectId,
+        'scope': scope,
         'code': _optionalString(body, 'code') ?? _slugify(name),
         'name': name,
         'dataType': _requiredString(body, 'dataType'),
@@ -2559,6 +2835,54 @@ class SgdRepository {
           'attributeId': generated.documentAttributeId,
           'displayOrder': _columnInt(map, 'displayOrder'),
         },
+      );
+    }
+
+    return ScanDocumentTypeBinding(
+      documentTypeId: documentTypeId,
+      attributesBySourceNodeAttributeId: binding,
+    );
+  }
+
+  Future<ScanDocumentTypeBinding> _loadConfiguredDocumentTypeBinding(
+    TxSession tx,
+    String projectId,
+    String documentTypeId,
+  ) async {
+    final documentTypeRows = await tx.execute(
+      Sql.named('''
+        SELECT id::text AS id
+        FROM document_types
+        WHERE project_id = @projectId
+          AND id = @documentTypeId
+          AND is_active = true
+      '''),
+      parameters: {'projectId': projectId, 'documentTypeId': documentTypeId},
+    );
+    _ensureFound(documentTypeRows, 'Tipo documental no encontrado.');
+
+    final attributeRows = await tx.execute(
+      Sql.named('''
+        SELECT
+          ad.id::text AS "attributeId",
+          ad.data_type AS "dataType"
+        FROM document_type_attributes dta
+        JOIN attribute_definitions ad
+          ON ad.project_id = dta.project_id
+         AND ad.id = dta.attribute_definition_id
+        WHERE dta.project_id = @projectId
+          AND dta.document_type_id = @documentTypeId
+      '''),
+      parameters: {'projectId': projectId, 'documentTypeId': documentTypeId},
+    );
+
+    final binding = <String, GeneratedDocumentAttributeBinding>{};
+    for (final row in attributeRows) {
+      final map = _rowMap(row);
+      final attributeId = _requiredColumnString(map, 'attributeId');
+      binding[attributeId] = GeneratedDocumentAttributeBinding(
+        documentAttributeId: attributeId,
+        dataType: _requiredColumnString(map, 'dataType'),
       );
     }
 

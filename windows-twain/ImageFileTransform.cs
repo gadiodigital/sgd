@@ -36,10 +36,21 @@ internal static class ImageFileTransform
         brightness = Math.Clamp(brightness, -100, 100);
         contrast = Math.Clamp(contrast, -100, 100);
 
-        using var sourceImage = Image.FromFile(filePath);
-        using var targetBitmap = new Bitmap(sourceImage.Width, sourceImage.Height);
-        targetBitmap.SetResolution(sourceImage.HorizontalResolution, sourceImage.VerticalResolution);
+        Bitmap sourceBitmap;
+        float horizontalResolution;
+        float verticalResolution;
 
+        using (var sourceImage = Image.FromFile(filePath))
+        {
+            sourceBitmap = new Bitmap(sourceImage);
+            horizontalResolution = sourceImage.HorizontalResolution;
+            verticalResolution = sourceImage.VerticalResolution;
+        }
+
+        using var targetBitmap = new Bitmap(sourceBitmap.Width, sourceBitmap.Height);
+        targetBitmap.SetResolution(horizontalResolution, verticalResolution);
+
+        using (sourceBitmap)
         using (var graphics = Graphics.FromImage(targetBitmap))
         using (var attributes = new ImageAttributes())
         {
@@ -58,12 +69,12 @@ internal static class ImageFileTransform
 
             attributes.SetColorMatrix(matrix);
             graphics.DrawImage(
-                sourceImage,
+                sourceBitmap,
                 new Rectangle(0, 0, targetBitmap.Width, targetBitmap.Height),
                 0,
                 0,
-                sourceImage.Width,
-                sourceImage.Height,
+                sourceBitmap.Width,
+                sourceBitmap.Height,
                 GraphicsUnit.Pixel,
                 attributes);
         }
@@ -92,7 +103,11 @@ internal static class ImageFileTransform
 
         image.Save(tempPath, ResolveImageFormat(filePath));
 
-        File.Delete(filePath);
-        File.Move(tempPath, filePath);
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+
+        File.Move(tempPath, filePath, overwrite: true);
     }
 }

@@ -297,6 +297,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final projects = <Project>[];
   final types = <NodeTypeItem>[];
+  final documentTypes = <DocumentTypeItem>[];
   final rules = <RuleItem>[];
   final nodes = <NodeItem>[];
   final securityPermissions = <PermissionDefinition>[];
@@ -349,6 +350,7 @@ class _HomePageState extends State<HomePage> {
         currentProjectId = nextProjectId;
         if (nextProjectId == null) {
           types.clear();
+          documentTypes.clear();
           rules.clear();
           nodes.clear();
           securityPermissions.clear();
@@ -391,6 +393,7 @@ class _HomePageState extends State<HomePage> {
       setState(() {
         loadError = _friendlyLoadError(error);
         types.clear();
+        documentTypes.clear();
         rules.clear();
         nodes.clear();
         securityPermissions.clear();
@@ -426,6 +429,10 @@ class _HomePageState extends State<HomePage> {
         types
           ..clear()
           ..addAll(((snapshot['types'] as List?) ?? const []).map((item) => NodeTypeItem.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>()))));
+        documentTypes
+          ..clear()
+          ..addAll(((snapshot['documentTypes'] as List?) ?? const [])
+              .map((item) => DocumentTypeItem.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>()))));
         rules
           ..clear()
           ..addAll(((snapshot['rules'] as List?) ?? const []).map((item) => RuleItem.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>()))));
@@ -627,6 +634,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   List<NodeTypeItem> get projectTypes => _sorted(types.where((t) => t.projectId == currentProjectId).toList(), (a, b) => a.order != b.order ? a.order.compareTo(b.order) : a.name.compareTo(b.name));
+  List<DocumentTypeItem> get projectDocumentTypes =>
+      _sorted(documentTypes.where((t) => t.projectId == currentProjectId).toList(), (a, b) => a.name.compareTo(b.name));
   List<RuleItem> get projectRules => rules.where((r) => r.projectId == currentProjectId).toList();
   List<NodeItem> get projectNodes => _sorted(nodes.where((n) => n.projectId == currentProjectId).toList(), (a, b) => a.order != b.order ? a.order.compareTo(b.order) : a.name.compareTo(b.name));
 
@@ -1304,6 +1313,91 @@ class _HomePageState extends State<HomePage> {
     }, selectProjectId: currentProjectId);
   }
 
+  Future<void> addDocumentType([DocumentTypeItem? existing]) async {
+    if (currentProject == null) return snack('Selecciona un proyecto.');
+    final name = TextEditingController(text: existing?.name ?? '');
+    final code = TextEditingController(text: existing?.code ?? '');
+    final description = TextEditingController(text: existing?.description ?? '');
+    final formKey = GlobalKey<FormState>();
+    final data = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (dialogContext, _) {
+          void submit() {
+            if (!(formKey.currentState?.validate() ?? false)) {
+              return;
+            }
+            Navigator.pop(dialogContext, {
+              'name': name.text.trim(),
+              'code': code.text.trim(),
+              'description': description.text.trim(),
+            });
+          }
+
+          return AlertDialog(
+            title: Text(existing == null ? 'Nuevo tipo documental' : 'Editar tipo documental'),
+            content: SizedBox(
+              width: 420,
+              child: Form(
+                key: formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: name,
+                      decoration: const InputDecoration(labelText: 'Nombre'),
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) => _focusNext(dialogContext),
+                      validator: (value) => _validateRequired(value, 'nombre'),
+                    ),
+                    TextFormField(
+                      controller: code,
+                      decoration: const InputDecoration(labelText: 'Código'),
+                      textInputAction: TextInputAction.next,
+                      onFieldSubmitted: (_) => _focusNext(dialogContext),
+                      validator: (value) {
+                        final base = _validateIdentifierCode(value);
+                        if (base != null) {
+                          return base;
+                        }
+                        final text = value!.trim();
+                        if (projectDocumentTypes.any((type) => type.code == text && type.id != existing?.id)) {
+                          return 'Ese código ya existe.';
+                        }
+                        return null;
+                      },
+                    ),
+                    TextFormField(
+                      controller: description,
+                      decoration: const InputDecoration(labelText: 'Descripción'),
+                      minLines: 2,
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('Cancelar')),
+              FilledButton(onPressed: submit, child: const Text('Guardar')),
+            ],
+          );
+        },
+      ),
+    );
+    if (data == null) return;
+    if (existing == null) {
+      await _mutate(() async {
+        await widget.api.createDocumentType(currentProjectId!, data);
+      }, selectProjectId: currentProjectId);
+      return;
+    }
+    await _mutate(() async {
+      await widget.api.updateDocumentType(currentProjectId!, existing.id, data);
+    }, selectProjectId: currentProjectId);
+  }
+
   Future<void> addRule() async {
     if (projectTypes.length < 2) return snack('Necesitas al menos dos tipos.');
     String parent = projectTypes.first.id;
@@ -1728,6 +1822,364 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> editDocumentAttributes(DocumentTypeItem type) async {
+    final attrs = List<AttributeItem>.from(type.attributes);
+
+    Future<void> openAttributeForm([AttributeItem? existing]) async {
+      final name = TextEditingController(text: existing?.name ?? '');
+      final code = TextEditingController(text: existing?.code ?? '');
+      final extension = TextEditingController(text: existing?.extension ?? '');
+      final regex = TextEditingController(text: existing?.regex ?? '');
+      final attributeFormKey = GlobalKey<FormState>();
+      String dataType = existing?.dataType ?? 'string';
+      final options = List<AttributeOptionItem>.from(existing?.options ?? const []);
+      final data = await showDialog<Map<String, dynamic>>(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setInner) {
+            Future<void> openOptionForm([AttributeOptionItem? existingOption]) async {
+              final code = TextEditingController(text: existingOption?.code ?? '');
+              final label = TextEditingController(text: existingOption?.label ?? '');
+              final optionFormKey = GlobalKey<FormState>();
+              final optionData = await showDialog<Map<String, String>>(
+                context: context,
+                builder: (optionContext) {
+                  void submit() {
+                    if (!(optionFormKey.currentState?.validate() ?? false)) {
+                      return;
+                    }
+                    Navigator.pop(optionContext, {
+                      'label': label.text.trim(),
+                      'code': code.text.trim(),
+                    });
+                  }
+
+                  return AlertDialog(
+                    title: Text(existingOption == null ? 'Nueva opción' : 'Editar opción'),
+                    content: SizedBox(
+                      width: 360,
+                      child: Form(
+                        key: optionFormKey,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextFormField(
+                              controller: label,
+                              decoration: const InputDecoration(labelText: 'Etiqueta visible'),
+                              textInputAction: TextInputAction.next,
+                              onFieldSubmitted: (_) => _focusNext(optionContext),
+                              validator: (value) => _validateRequired(value, 'etiqueta'),
+                            ),
+                            TextFormField(
+                              controller: code,
+                              decoration: const InputDecoration(labelText: 'Código interno'),
+                              textInputAction: TextInputAction.done,
+                              onFieldSubmitted: (_) => submit(),
+                              validator: (value) {
+                                final base = _validateIdentifierCode(value);
+                                if (base != null) {
+                                  return base;
+                                }
+                                final text = value!.trim();
+                                if (options.any((item) => item.code == text && item.id != existingOption?.id)) {
+                                  return 'Ese código ya existe.';
+                                }
+                                return null;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(optionContext), child: const Text('Cancelar')),
+                      FilledButton(onPressed: submit, child: const Text('Guardar')),
+                    ],
+                  );
+                },
+              );
+              if (optionData == null) {
+                return;
+              }
+              setInner(() {
+                final option = AttributeOptionItem(
+                  id: existingOption?.id ?? _id(),
+                  code: optionData['code']!,
+                  label: optionData['label']!,
+                );
+                if (existingOption == null) {
+                  options.add(option);
+                } else {
+                  options[options.indexWhere((item) => item.id == existingOption.id)] = option;
+                }
+              });
+            }
+
+            return AlertDialog(
+              title: Text(existing == null ? 'Nuevo atributo documental' : 'Editar atributo documental'),
+              content: SizedBox(
+                width: 460,
+                child: Form(
+                  key: attributeFormKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextFormField(
+                          controller: name,
+                          decoration: const InputDecoration(labelText: 'Nombre'),
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) => _focusNext(context),
+                          validator: (value) => _validateRequired(value, 'nombre'),
+                        ),
+                        TextFormField(
+                          controller: code,
+                          decoration: const InputDecoration(
+                            labelText: 'Código',
+                            helperText: 'Debe ser único dentro del proyecto para atributos documentales.',
+                          ),
+                          textInputAction: TextInputAction.next,
+                          onFieldSubmitted: (_) => _focusNext(context),
+                          validator: (value) {
+                            final base = _validateIdentifierCode(value);
+                            if (base != null) {
+                              return base;
+                            }
+                            final text = value!.trim();
+                            final duplicatedInCurrentType = attrs.any((item) => item.code == text && item.id != existing?.id);
+                            final duplicatedInOtherTypes = projectDocumentTypes
+                                .where((item) => item.id != type.id)
+                                .expand((item) => item.attributes)
+                                .any((item) => item.code == text);
+                            if (duplicatedInCurrentType || duplicatedInOtherTypes) {
+                              return 'Ese código ya existe en el proyecto.';
+                            }
+                            return null;
+                          },
+                        ),
+                        DropdownButtonFormField<String>(
+                          initialValue: dataType,
+                          decoration: const InputDecoration(labelText: 'Tipo de dato'),
+                          items: attributeDataTypes
+                              .map((item) => DropdownMenuItem(value: item, child: Text(attributeTypeLabel(item))))
+                              .toList(),
+                          onChanged: (value) => setInner(() => dataType = value ?? 'string'),
+                        ),
+                        if (dataType == 'string')
+                          TextFormField(
+                            controller: extension,
+                            decoration: const InputDecoration(
+                              labelText: 'Largo máximo',
+                              helperText: 'Si queda vacío, la UI no valida longitud.',
+                            ),
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              final text = value?.trim() ?? '';
+                              if (text.isEmpty) {
+                                return null;
+                              }
+                              final parsed = int.tryParse(text);
+                              if (parsed == null || parsed <= 0) {
+                                return 'Debe ser un entero positivo.';
+                              }
+                              return null;
+                            },
+                          ),
+                        if (dataType != 'list')
+                          TextFormField(
+                            controller: regex,
+                            decoration: const InputDecoration(
+                              labelText: 'Validación regex',
+                              helperText: 'Se usa al cargar valores documentales en la UI.',
+                            ),
+                            validator: (value) {
+                              final text = value?.trim() ?? '';
+                              if (text.isEmpty) {
+                                return null;
+                              }
+                              return _isValidRegex(text) ? null : 'La expresión regular no es válida.';
+                            },
+                          ),
+                        if (dataType == 'list') ...[
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              const Expanded(child: Text('Opciones del combo')),
+                              FilledButton.tonalIcon(
+                                onPressed: () => openOptionForm(),
+                                icon: const Icon(Icons.add),
+                                label: const Text('Agregar'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          if (options.isEmpty)
+                            const Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text('Este combo todavía no tiene opciones.'),
+                            )
+                          else
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 220),
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                itemCount: options.length,
+                                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                                itemBuilder: (_, index) {
+                                  final option = options[index];
+                                  return ListTile(
+                                    tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                                    title: Text(option.label),
+                                    subtitle: Text(option.code),
+                                    trailing: Wrap(
+                                      spacing: 4,
+                                      children: [
+                                        IconButton(
+                                          onPressed: () => openOptionForm(option),
+                                          icon: const Icon(Icons.edit_outlined),
+                                        ),
+                                        IconButton(
+                                          onPressed: () => setInner(() => options.removeAt(index)),
+                                          icon: const Icon(Icons.delete_outline),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                FilledButton(
+                  onPressed: () {
+                    if (!(attributeFormKey.currentState?.validate() ?? false)) {
+                      return;
+                    }
+                    if (dataType == 'list' && options.isEmpty) {
+                      snack('El atributo lista necesita al menos una opción.');
+                      return;
+                    }
+                    Navigator.pop(context, {
+                      'name': name.text.trim(),
+                      'code': code.text.trim(),
+                      'dataType': dataType,
+                      'extension': dataType == 'string' ? extension.text.trim() : '',
+                      'regex': dataType == 'list' ? '' : regex.text.trim(),
+                      'options': List<AttributeOptionItem>.from(options),
+                    });
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+      if (data == null) {
+        return;
+      }
+      final attribute = AttributeItem(
+        id: existing?.id ?? _id(),
+        name: data['name'],
+        code: data['code'],
+        dataType: data['dataType'],
+        extension: data['extension'],
+        regex: data['regex'],
+        options: List<AttributeOptionItem>.from(data['options'] as List<AttributeOptionItem>),
+      );
+      if (existing == null) {
+        attrs.add(attribute);
+      } else {
+        attrs[attrs.indexWhere((item) => item.id == existing.id)] = attribute;
+      }
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setInner) => AlertDialog(
+          title: Text('Atributos documentales de ${type.name}'),
+          content: SizedBox(
+            width: 520,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: FilledButton.tonalIcon(
+                    onPressed: () async {
+                      await openAttributeForm();
+                      setInner(() {});
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text('Nuevo atributo'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 320),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: attrs.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (_, i) {
+                      final attr = attrs[i];
+                      return ListTile(
+                        tileColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        title: Text(attr.name),
+                        subtitle: Text('${attr.code} • ${attributeSummary(attr)}'),
+                        trailing: Wrap(
+                          spacing: 4,
+                          children: [
+                            IconButton(onPressed: () async { await openAttributeForm(attr); setInner(() {}); }, icon: const Icon(Icons.edit_outlined)),
+                            IconButton(onPressed: () => setInner(() => attrs.removeAt(i)), icon: const Icon(Icons.delete_outline)),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  await widget.api.syncDocumentTypeAttributes(
+                    type.projectId,
+                    type.id,
+                    attrs.map((item) => item.toJson()).toList(),
+                  );
+                  await _reloadCurrentProject(showLoader: false);
+                } catch (error) {
+                  if (mounted) {
+                    snack(_errorText(error));
+                  }
+                  return;
+                }
+                if (!mounted || !context.mounted) {
+                  return;
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('Aplicar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> addNode([NodeItem? parent, NodeItem? existing]) async {
     if (currentProject == null) return snack('Selecciona un proyecto.');
     final available = parent == null ? projectTypes.where((t) => t.root).toList() : childTypesOf(parent.typeId);
@@ -2055,8 +2507,8 @@ class _HomePageState extends State<HomePage> {
         children: [
           _header(
             'Contenedores del proyecto',
-            'Define tipos de contenedor, atributos y relaciones para ${currentProject?.name}.',
-            'Nuevo tipo',
+            'Define tipos de contenedor, tipos documentales, atributos y relaciones para ${currentProject?.name}.',
+            'Nuevo contenedor',
             can('types.write') ? () => addType() : null,
           ),
           const SizedBox(height: 20),
@@ -2065,78 +2517,181 @@ class _HomePageState extends State<HomePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: projectTypes.isEmpty
-                      ? _empty(
-                          'No hay tipos',
-                          'Crea tipos como caja, carpeta o expediente.',
-                          'Crear tipo',
-                          can('types.write') ? () => addType() : null,
-                        )
-                      : ListView.separated(
-                          itemCount: projectTypes.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 16),
-                          itemBuilder: (_, i) {
-                            final t = projectTypes[i];
-                            return Card(
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.all(18),
-                                title: Row(
-                                  children: [
-                                    Icon(iconFor(t.iconKey), size: 18),
-                                    const SizedBox(width: 8),
-                                    Expanded(child: Text(t.name)),
-                                  ],
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 8),
-                                    Text(t.code),
-                                    if (t.description.isNotEmpty) ...[
-                                      const SizedBox(height: 8),
-                                      Text(t.description),
-                                    ],
-                                    const SizedBox(height: 8),
-                                    Wrap(
-                                      spacing: 8,
-                                      children: [
-                                        Chip(label: Text(t.root ? 'Raíz' : 'No raíz')),
-                                        Chip(
-                                          label: Text(
-                                            t.acceptsDocs
-                                                ? 'Acepta docs'
-                                                : 'Solo estructura',
+                  child: ListView(
+                    children: [
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Tipos de contenedor',
+                                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                                    ),
+                                  ),
+                                  FilledButton.tonalIcon(
+                                    onPressed: can('types.write') ? () => addType() : null,
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Agregar'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              if (projectTypes.isEmpty)
+                                _empty(
+                                  'No hay contenedores',
+                                  'Crea tipos como caja, carpeta o expediente.',
+                                  'Crear contenedor',
+                                  can('types.write') ? () => addType() : null,
+                                )
+                              else
+                                ...projectTypes.map((t) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 16),
+                                      child: Card(
+                                        margin: EdgeInsets.zero,
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.all(18),
+                                          title: Row(
+                                            children: [
+                                              Icon(iconFor(t.iconKey), size: 18),
+                                              const SizedBox(width: 8),
+                                              Expanded(child: Text(t.name)),
+                                            ],
+                                          ),
+                                          subtitle: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const SizedBox(height: 8),
+                                              Text(t.code),
+                                              if (t.description.isNotEmpty) ...[
+                                                const SizedBox(height: 8),
+                                                Text(t.description),
+                                              ],
+                                              const SizedBox(height: 8),
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  Chip(label: Text(t.root ? 'Raíz' : 'No raíz')),
+                                                  Chip(label: Text(t.acceptsDocs ? 'Acepta docs' : 'Solo estructura')),
+                                                  Chip(label: Text('Atributos: ${t.attributes.length}')),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                          trailing: Wrap(
+                                            spacing: 6,
+                                            children: [
+                                              if (can('types.write'))
+                                                IconButton(
+                                                  onPressed: () => editAttributes(t),
+                                                  icon: const Icon(Icons.tune_outlined),
+                                                ),
+                                              if (can('types.write'))
+                                                IconButton(
+                                                  onPressed: () => addType(t),
+                                                  icon: const Icon(Icons.edit_outlined),
+                                                ),
+                                              if (can('types.write'))
+                                                IconButton(
+                                                  onPressed: () => _removeType(t),
+                                                  icon: const Icon(Icons.delete_outline),
+                                                ),
+                                            ],
                                           ),
                                         ),
-                                        Chip(label: Text('Atributos: ${t.attributes.length}')),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                trailing: Wrap(
-                                  spacing: 6,
-                                  children: [
-                                    if (can('types.write'))
-                                      IconButton(
-                                        onPressed: () => editAttributes(t),
-                                        icon: const Icon(Icons.tune_outlined),
                                       ),
-                                    if (can('types.write'))
-                                      IconButton(
-                                        onPressed: () => addType(t),
-                                        icon: const Icon(Icons.edit_outlined),
-                                      ),
-                                    if (can('types.write'))
-                                      IconButton(
-                                        onPressed: () => _removeType(t),
-                                        icon: const Icon(Icons.delete_outline),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
+                                    )),
+                            ],
+                          ),
                         ),
+                      ),
+                      const SizedBox(height: 16),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Tipos documentales',
+                                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                                    ),
+                                  ),
+                                  FilledButton.tonalIcon(
+                                    onPressed: can('types.write') ? () => addDocumentType() : null,
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Agregar'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              const Text('Definen los atributos propios del documento que se carga o escanea.'),
+                              const SizedBox(height: 16),
+                              if (projectDocumentTypes.isEmpty)
+                                _empty(
+                                  'No hay tipos documentales',
+                                  'Define al menos uno para capturar atributos documentales propios.',
+                                  'Crear tipo documental',
+                                  can('types.write') ? () => addDocumentType() : null,
+                                )
+                              else
+                                ...projectDocumentTypes.map((t) => Padding(
+                                      padding: const EdgeInsets.only(bottom: 16),
+                                      child: Card(
+                                        margin: EdgeInsets.zero,
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.all(18),
+                                          title: Text(t.name),
+                                          subtitle: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              const SizedBox(height: 8),
+                                              Text(t.code),
+                                              if (t.description.isNotEmpty) ...[
+                                                const SizedBox(height: 8),
+                                                Text(t.description),
+                                              ],
+                                              const SizedBox(height: 8),
+                                              Chip(label: Text('Atributos: ${t.attributes.length}')),
+                                            ],
+                                          ),
+                                          trailing: Wrap(
+                                            spacing: 6,
+                                            children: [
+                                              if (can('types.write'))
+                                                IconButton(
+                                                  onPressed: () => editDocumentAttributes(t),
+                                                  icon: const Icon(Icons.fact_check_outlined),
+                                                ),
+                                              if (can('types.write'))
+                                                IconButton(
+                                                  onPressed: () => addDocumentType(t),
+                                                  icon: const Icon(Icons.edit_outlined),
+                                                ),
+                                              if (can('types.write'))
+                                                IconButton(
+                                                  onPressed: () => _removeDocumentType(t),
+                                                  icon: const Icon(Icons.delete_outline),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    )),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 20),
                 Expanded(
@@ -2471,7 +3026,7 @@ class _HomePageState extends State<HomePage> {
           nodeTypeName: type.name,
           canReadDocuments: can('documents.read'),
           canWriteDocuments: can('documents.write'),
-          attributes: type.attributes
+          fallbackAttributes: type.attributes
               .map(
                 (attr) => ScanAttributeDefinition(
                   id: attr.id,
@@ -2482,6 +3037,31 @@ class _HomePageState extends State<HomePage> {
                   regex: attr.regex,
                   options: attr.options
                       .map((option) => ScanAttributeOption(code: option.code, label: option.label))
+                      .toList(),
+                ),
+              )
+              .toList(),
+          documentTypes: projectDocumentTypes
+              .map(
+                (documentType) => ScanDocumentTypeDefinition(
+                  id: documentType.id,
+                  name: documentType.name,
+                  code: documentType.code,
+                  description: documentType.description,
+                  attributes: documentType.attributes
+                      .map(
+                        (attr) => ScanAttributeDefinition(
+                          id: attr.id,
+                          name: attr.name,
+                          code: attr.code,
+                          dataType: attr.dataType,
+                          extension: attr.extension,
+                          regex: attr.regex,
+                          options: attr.options
+                              .map((option) => ScanAttributeOption(code: option.code, label: option.label))
+                              .toList(),
+                        ),
+                      )
                       .toList(),
                 ),
               )
@@ -2498,6 +3078,10 @@ class _HomePageState extends State<HomePage> {
   Future<void> _removeType(NodeTypeItem t) async {
     if (projectNodes.any((n) => n.typeId == t.id)) return snack('Ese tipo ya tiene nodos.');
     await _mutate(() => widget.api.deleteNodeType(t.projectId, t.id), selectProjectId: currentProjectId);
+  }
+
+  Future<void> _removeDocumentType(DocumentTypeItem t) async {
+    await _mutate(() => widget.api.deleteDocumentType(t.projectId, t.id), selectProjectId: currentProjectId);
   }
 
   Future<void> _removeProfile(ProjectProfileItem profile) async {
@@ -2583,6 +3167,35 @@ class NodeTypeItem {
   final String iconKey;
   final List<AttributeItem> attributes;
   final int order;
+}
+
+class DocumentTypeItem {
+  DocumentTypeItem({
+    required this.id,
+    required this.projectId,
+    required this.code,
+    required this.name,
+    required this.description,
+    required this.attributes,
+  });
+
+  factory DocumentTypeItem.fromJson(Map<String, dynamic> json) => DocumentTypeItem(
+        id: json['id'].toString(),
+        projectId: (json['projectId'] ?? json['projectid']).toString(),
+        code: json['code'].toString(),
+        name: json['name'].toString(),
+        description: (json['description'] ?? '').toString(),
+        attributes: ((json['attributes'] as List?) ?? const [])
+            .map((item) => AttributeItem.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>())))
+            .toList(),
+      );
+
+  final String id;
+  final String projectId;
+  final String code;
+  final String name;
+  final String description;
+  final List<AttributeItem> attributes;
 }
 
 class RuleItem {

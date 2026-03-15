@@ -111,6 +111,27 @@ class SgdApiClient {
     );
   }
 
+  Future<String> createDocumentType(String projectId, Map<String, dynamic> body) async {
+    final response = await _send('POST', '/projects/$projectId/document-types', body: body);
+    return response['id'] as String;
+  }
+
+  Future<void> updateDocumentType(String projectId, String typeId, Map<String, dynamic> body) {
+    return _sendWithoutResult('PUT', '/projects/$projectId/document-types/$typeId', body: body);
+  }
+
+  Future<void> deleteDocumentType(String projectId, String typeId) {
+    return _sendWithoutResult('DELETE', '/projects/$projectId/document-types/$typeId');
+  }
+
+  Future<void> syncDocumentTypeAttributes(String projectId, String typeId, List<Map<String, dynamic>> items) {
+    return _sendWithoutResult(
+      'PUT',
+      '/projects/$projectId/document-types/$typeId/attributes/sync',
+      body: {'items': items},
+    );
+  }
+
   Future<void> createRule(String projectId, Map<String, dynamic> body) {
     return _sendWithoutResult('POST', '/projects/$projectId/rules', body: body);
   }

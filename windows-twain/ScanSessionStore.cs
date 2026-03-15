@@ -102,7 +102,9 @@ internal sealed class ScanSessionStore
 
         public string Message { get; set; }
 
-        public string PdfPath => Path.Combine(SessionPath, $"{SessionId}.pdf");
+        public int ArtifactRevision { get; private set; } = 1;
+
+        public string PdfPath => Path.Combine(SessionPath, $"{SessionId}.r{ArtifactRevision}.pdf");
 
         public IReadOnlyList<ScanPageDescriptor> Pages => pages;
 
@@ -111,6 +113,7 @@ internal sealed class ScanSessionStore
             lock (syncRoot)
             {
                 pages.Add(page);
+                InvalidateDerivedArtifacts();
             }
         }
 
@@ -402,15 +405,31 @@ internal sealed class ScanSessionStore
 
         private void InvalidateDerivedArtifacts()
         {
-            if (File.Exists(PdfPath))
-            {
-                File.Delete(PdfPath);
-            }
+            ArtifactRevision++;
+            CleanupOldPdfArtifacts();
+        }
 
-            var previewDirectory = Path.Combine(SessionPath, "previews");
-            if (Directory.Exists(previewDirectory))
+        private void CleanupOldPdfArtifacts()
+        {
+            foreach (var file in Directory.EnumerateFiles(SessionPath, $"{SessionId}.r*.pdf"))
             {
-                Directory.Delete(previewDirectory, recursive: true);
+                if (string.Equals(file, PdfPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (IOException)
+                {
+                    // Si el visor mantiene un handle abierto, se limpia en la próxima mutación.
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Puede quedar abierto por el host o por otra app; no debe romper la sesión.
+                }
             }
         }
 

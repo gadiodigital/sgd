@@ -30,11 +30,11 @@ internal static class PagePreviewExporter
         var previewDirectory = Path.Combine(session.SessionPath, "previews");
         Directory.CreateDirectory(previewDirectory);
 
-        var previewFileName = $"page-{pageNumber:000}.w{options.WidthToken}.h{options.HeightToken}.q{options.Quality}.jpg";
+        var previewFileName =
+            $"page-{pageNumber:000}.r{session.ArtifactRevision}.w{options.WidthToken}.h{options.HeightToken}.q{options.Quality}.jpg";
         var previewPath = Path.Combine(previewDirectory, previewFileName);
-        var sourceInfo = new FileInfo(page.FilePath);
 
-        if (!File.Exists(previewPath) || File.GetLastWriteTimeUtc(previewPath) < sourceInfo.LastWriteTimeUtc)
+        if (!File.Exists(previewPath))
         {
             RenderPreview(page.FilePath, previewPath, options);
         }
@@ -75,7 +75,12 @@ internal static class PagePreviewExporter
         var codec = GetJpegCodec();
         using var encoderParameters = new EncoderParameters(1);
         encoderParameters.Param[0] = new EncoderParameter(Encoder.Quality, options.Quality);
-        targetBitmap.Save(previewPath, codec, encoderParameters);
+        var tempPath = Path.Combine(
+            Path.GetDirectoryName(previewPath) ?? AppContext.BaseDirectory,
+            $"preview-{Guid.NewGuid():N}.jpg");
+
+        targetBitmap.Save(tempPath, codec, encoderParameters);
+        File.Move(tempPath, previewPath, overwrite: true);
     }
 
     private static Size ComputeTargetSize(int sourceWidth, int sourceHeight, PagePreviewOptions options)

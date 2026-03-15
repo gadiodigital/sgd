@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict pWmi47ao53gTnIPgINyAZbUlIcuszsOL0DrrbBrSjFiXRFAMrlecZkQ19AMe3am
+\restrict SftWkUb67xIrigOyJcimirhkZfklCHSzfoaEIOvMxaUZjhHYHCGbWlQUF5vLAvA
 
 -- Dumped from database version 18.3
 -- Dumped by pg_dump version 18.3
@@ -19,174 +19,6 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-ALTER TABLE IF EXISTS ONLY public.project_profiles DROP CONSTRAINT IF EXISTS fk_project_profiles_project;
-ALTER TABLE IF EXISTS ONLY public.project_profile_permissions DROP CONSTRAINT IF EXISTS fk_project_profile_permissions_project;
-ALTER TABLE IF EXISTS ONLY public.project_profile_permissions DROP CONSTRAINT IF EXISTS fk_project_profile_permissions_profile;
-ALTER TABLE IF EXISTS ONLY public.project_profile_permissions DROP CONSTRAINT IF EXISTS fk_project_profile_permissions_permission;
-ALTER TABLE IF EXISTS ONLY public.project_memberships DROP CONSTRAINT IF EXISTS fk_project_memberships_user;
-ALTER TABLE IF EXISTS ONLY public.project_memberships DROP CONSTRAINT IF EXISTS fk_project_memberships_project;
-ALTER TABLE IF EXISTS ONLY public.project_memberships DROP CONSTRAINT IF EXISTS fk_project_memberships_profile;
-ALTER TABLE IF EXISTS ONLY public.node_type_attributes DROP CONSTRAINT IF EXISTS fk_node_type_attributes_project;
-ALTER TABLE IF EXISTS ONLY public.node_type_attributes DROP CONSTRAINT IF EXISTS fk_node_type_attributes_node_type;
-ALTER TABLE IF EXISTS ONLY public.node_type_attributes DROP CONSTRAINT IF EXISTS fk_node_type_attributes_attribute;
-ALTER TABLE IF EXISTS ONLY public.node_attribute_values DROP CONSTRAINT IF EXISTS fk_node_attribute_values_project;
-ALTER TABLE IF EXISTS ONLY public.node_attribute_values DROP CONSTRAINT IF EXISTS fk_node_attribute_values_node;
-ALTER TABLE IF EXISTS ONLY public.node_attribute_values DROP CONSTRAINT IF EXISTS fk_node_attribute_values_attribute;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_type_rules DROP CONSTRAINT IF EXISTS fk_hierarchy_type_rules_project;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_type_rules DROP CONSTRAINT IF EXISTS fk_hierarchy_type_rules_parent_type;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_type_rules DROP CONSTRAINT IF EXISTS fk_hierarchy_type_rules_child_type;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_nodes DROP CONSTRAINT IF EXISTS fk_hierarchy_nodes_project;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_nodes DROP CONSTRAINT IF EXISTS fk_hierarchy_nodes_parent;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_nodes DROP CONSTRAINT IF EXISTS fk_hierarchy_nodes_node_type;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_node_types DROP CONSTRAINT IF EXISTS fk_hierarchy_node_types_project;
-ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS fk_documents_project;
-ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS fk_documents_node;
-ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS fk_documents_document_type;
-ALTER TABLE IF EXISTS ONLY public.document_versions DROP CONSTRAINT IF EXISTS fk_document_versions_project;
-ALTER TABLE IF EXISTS ONLY public.document_versions DROP CONSTRAINT IF EXISTS fk_document_versions_document;
-ALTER TABLE IF EXISTS ONLY public.document_types DROP CONSTRAINT IF EXISTS fk_document_types_project;
-ALTER TABLE IF EXISTS ONLY public.document_type_attributes DROP CONSTRAINT IF EXISTS fk_document_type_attributes_project;
-ALTER TABLE IF EXISTS ONLY public.document_type_attributes DROP CONSTRAINT IF EXISTS fk_document_type_attributes_document_type;
-ALTER TABLE IF EXISTS ONLY public.document_type_attributes DROP CONSTRAINT IF EXISTS fk_document_type_attributes_attribute;
-ALTER TABLE IF EXISTS ONLY public.document_files DROP CONSTRAINT IF EXISTS fk_document_files_project;
-ALTER TABLE IF EXISTS ONLY public.document_files DROP CONSTRAINT IF EXISTS fk_document_files_document_version;
-ALTER TABLE IF EXISTS ONLY public.document_attribute_values DROP CONSTRAINT IF EXISTS fk_document_attribute_values_project;
-ALTER TABLE IF EXISTS ONLY public.document_attribute_values DROP CONSTRAINT IF EXISTS fk_document_attribute_values_document;
-ALTER TABLE IF EXISTS ONLY public.document_attribute_values DROP CONSTRAINT IF EXISTS fk_document_attribute_values_attribute;
-ALTER TABLE IF EXISTS ONLY public.auth_sessions DROP CONSTRAINT IF EXISTS fk_auth_sessions_user;
-ALTER TABLE IF EXISTS ONLY public.auth_sessions DROP CONSTRAINT IF EXISTS fk_auth_sessions_provider;
-ALTER TABLE IF EXISTS ONLY public.auth_sessions DROP CONSTRAINT IF EXISTS fk_auth_sessions_identity;
-ALTER TABLE IF EXISTS ONLY public.auth_identities DROP CONSTRAINT IF EXISTS fk_auth_identities_user;
-ALTER TABLE IF EXISTS ONLY public.auth_identities DROP CONSTRAINT IF EXISTS fk_auth_identities_provider;
-ALTER TABLE IF EXISTS ONLY public.audit_events DROP CONSTRAINT IF EXISTS fk_audit_events_user;
-ALTER TABLE IF EXISTS ONLY public.audit_events DROP CONSTRAINT IF EXISTS fk_audit_events_session;
-ALTER TABLE IF EXISTS ONLY public.audit_events DROP CONSTRAINT IF EXISTS fk_audit_events_project;
-ALTER TABLE IF EXISTS ONLY public.attribute_options DROP CONSTRAINT IF EXISTS fk_attribute_options_project;
-ALTER TABLE IF EXISTS ONLY public.attribute_options DROP CONSTRAINT IF EXISTS fk_attribute_options_attribute;
-ALTER TABLE IF EXISTS ONLY public.attribute_definitions DROP CONSTRAINT IF EXISTS fk_attribute_definitions_project;
-DROP TRIGGER IF EXISTS trg_projects_updated_at ON public.projects;
-DROP TRIGGER IF EXISTS trg_project_profiles_updated_at ON public.project_profiles;
-DROP TRIGGER IF EXISTS trg_project_memberships_updated_at ON public.project_memberships;
-DROP TRIGGER IF EXISTS trg_node_type_attributes_validate_before_write ON public.node_type_attributes;
-DROP TRIGGER IF EXISTS trg_node_attribute_values_validate_before_write ON public.node_attribute_values;
-DROP TRIGGER IF EXISTS trg_node_attribute_values_updated_at ON public.node_attribute_values;
-DROP TRIGGER IF EXISTS trg_hierarchy_nodes_updated_at ON public.hierarchy_nodes;
-DROP TRIGGER IF EXISTS trg_hierarchy_nodes_before_write ON public.hierarchy_nodes;
-DROP TRIGGER IF EXISTS trg_hierarchy_node_types_updated_at ON public.hierarchy_node_types;
-DROP TRIGGER IF EXISTS trg_documents_updated_at ON public.documents;
-DROP TRIGGER IF EXISTS trg_document_types_updated_at ON public.document_types;
-DROP TRIGGER IF EXISTS trg_document_type_attributes_validate_before_write ON public.document_type_attributes;
-DROP TRIGGER IF EXISTS trg_document_attribute_values_validate_before_write ON public.document_attribute_values;
-DROP TRIGGER IF EXISTS trg_document_attribute_values_updated_at ON public.document_attribute_values;
-DROP TRIGGER IF EXISTS trg_auth_providers_updated_at ON public.auth_providers;
-DROP TRIGGER IF EXISTS trg_auth_identities_updated_at ON public.auth_identities;
-DROP TRIGGER IF EXISTS trg_attribute_options_validate_before_write ON public.attribute_options;
-DROP TRIGGER IF EXISTS trg_attribute_options_updated_at ON public.attribute_options;
-DROP TRIGGER IF EXISTS trg_attribute_definitions_validate_before_write ON public.attribute_definitions;
-DROP TRIGGER IF EXISTS trg_attribute_definitions_updated_at ON public.attribute_definitions;
-DROP TRIGGER IF EXISTS trg_app_users_updated_at ON public.app_users;
-DROP INDEX IF EXISTS public.uq_auth_identities_provider_login;
-DROP INDEX IF EXISTS public.idx_project_memberships_user;
-DROP INDEX IF EXISTS public.idx_project_memberships_project;
-DROP INDEX IF EXISTS public.idx_node_attribute_values_attribute_text;
-DROP INDEX IF EXISTS public.idx_node_attribute_values_attribute_number;
-DROP INDEX IF EXISTS public.idx_node_attribute_values_attribute_date;
-DROP INDEX IF EXISTS public.idx_hierarchy_type_rules_parent;
-DROP INDEX IF EXISTS public.idx_hierarchy_nodes_project_type;
-DROP INDEX IF EXISTS public.idx_hierarchy_nodes_project_parent;
-DROP INDEX IF EXISTS public.idx_hierarchy_node_types_project_order;
-DROP INDEX IF EXISTS public.idx_documents_project_node;
-DROP INDEX IF EXISTS public.idx_document_versions_project_document;
-DROP INDEX IF EXISTS public.idx_document_attribute_values_attribute_text;
-DROP INDEX IF EXISTS public.idx_document_attribute_values_attribute_number;
-DROP INDEX IF EXISTS public.idx_document_attribute_values_attribute_date;
-DROP INDEX IF EXISTS public.idx_auth_sessions_user;
-DROP INDEX IF EXISTS public.idx_audit_events_user_created_at;
-DROP INDEX IF EXISTS public.idx_audit_events_project_created_at;
-DROP INDEX IF EXISTS public.idx_audit_events_action_created_at;
-DROP INDEX IF EXISTS public.idx_attribute_options_project_attribute;
-DROP INDEX IF EXISTS public.idx_attribute_definitions_project_scope_active;
-ALTER TABLE IF EXISTS ONLY public.project_profiles DROP CONSTRAINT IF EXISTS uq_project_profiles_project_id;
-ALTER TABLE IF EXISTS ONLY public.project_profiles DROP CONSTRAINT IF EXISTS uq_project_profiles_project_code;
-ALTER TABLE IF EXISTS ONLY public.node_attribute_values DROP CONSTRAINT IF EXISTS uq_node_attribute_values;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_nodes DROP CONSTRAINT IF EXISTS uq_hierarchy_nodes_sibling_name;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_nodes DROP CONSTRAINT IF EXISTS uq_hierarchy_nodes_sibling_code;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_nodes DROP CONSTRAINT IF EXISTS uq_hierarchy_nodes_project_id;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_node_types DROP CONSTRAINT IF EXISTS uq_hierarchy_node_types_project_id;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_node_types DROP CONSTRAINT IF EXISTS uq_hierarchy_node_types_project_code;
-ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS uq_documents_project_id;
-ALTER TABLE IF EXISTS ONLY public.document_versions DROP CONSTRAINT IF EXISTS uq_document_versions_project_version;
-ALTER TABLE IF EXISTS ONLY public.document_versions DROP CONSTRAINT IF EXISTS uq_document_versions_project_id;
-ALTER TABLE IF EXISTS ONLY public.document_types DROP CONSTRAINT IF EXISTS uq_document_types_project_id;
-ALTER TABLE IF EXISTS ONLY public.document_types DROP CONSTRAINT IF EXISTS uq_document_types_project_code;
-ALTER TABLE IF EXISTS ONLY public.document_attribute_values DROP CONSTRAINT IF EXISTS uq_document_attribute_values;
-ALTER TABLE IF EXISTS ONLY public.auth_identities DROP CONSTRAINT IF EXISTS uq_auth_identities_provider_subject;
-ALTER TABLE IF EXISTS ONLY public.attribute_options DROP CONSTRAINT IF EXISTS uq_attribute_options_project_id;
-ALTER TABLE IF EXISTS ONLY public.attribute_options DROP CONSTRAINT IF EXISTS uq_attribute_options_code;
-ALTER TABLE IF EXISTS ONLY public.attribute_definitions DROP CONSTRAINT IF EXISTS uq_attribute_definitions_project_scope_code;
-ALTER TABLE IF EXISTS ONLY public.attribute_definitions DROP CONSTRAINT IF EXISTS uq_attribute_definitions_project_id;
-ALTER TABLE IF EXISTS ONLY public.schema_migrations DROP CONSTRAINT IF EXISTS schema_migrations_pkey;
-ALTER TABLE IF EXISTS ONLY public.projects DROP CONSTRAINT IF EXISTS projects_slug_key;
-ALTER TABLE IF EXISTS ONLY public.projects DROP CONSTRAINT IF EXISTS projects_pkey;
-ALTER TABLE IF EXISTS ONLY public.project_profiles DROP CONSTRAINT IF EXISTS project_profiles_pkey;
-ALTER TABLE IF EXISTS ONLY public.project_profile_permissions DROP CONSTRAINT IF EXISTS project_profile_permissions_pkey;
-ALTER TABLE IF EXISTS ONLY public.project_memberships DROP CONSTRAINT IF EXISTS project_memberships_pkey;
-ALTER TABLE IF EXISTS ONLY public.permission_catalog DROP CONSTRAINT IF EXISTS permission_catalog_pkey;
-ALTER TABLE IF EXISTS ONLY public.node_type_attributes DROP CONSTRAINT IF EXISTS node_type_attributes_pkey;
-ALTER TABLE IF EXISTS ONLY public.node_attribute_values DROP CONSTRAINT IF EXISTS node_attribute_values_pkey;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_type_rules DROP CONSTRAINT IF EXISTS hierarchy_type_rules_pkey;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_nodes DROP CONSTRAINT IF EXISTS hierarchy_nodes_pkey;
-ALTER TABLE IF EXISTS ONLY public.hierarchy_node_types DROP CONSTRAINT IF EXISTS hierarchy_node_types_pkey;
-ALTER TABLE IF EXISTS ONLY public.documents DROP CONSTRAINT IF EXISTS documents_pkey;
-ALTER TABLE IF EXISTS ONLY public.document_versions DROP CONSTRAINT IF EXISTS document_versions_pkey;
-ALTER TABLE IF EXISTS ONLY public.document_types DROP CONSTRAINT IF EXISTS document_types_pkey;
-ALTER TABLE IF EXISTS ONLY public.document_type_attributes DROP CONSTRAINT IF EXISTS document_type_attributes_pkey;
-ALTER TABLE IF EXISTS ONLY public.document_files DROP CONSTRAINT IF EXISTS document_files_pkey;
-ALTER TABLE IF EXISTS ONLY public.document_attribute_values DROP CONSTRAINT IF EXISTS document_attribute_values_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_sessions DROP CONSTRAINT IF EXISTS auth_sessions_session_token_key;
-ALTER TABLE IF EXISTS ONLY public.auth_sessions DROP CONSTRAINT IF EXISTS auth_sessions_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_providers DROP CONSTRAINT IF EXISTS auth_providers_pkey;
-ALTER TABLE IF EXISTS ONLY public.auth_providers DROP CONSTRAINT IF EXISTS auth_providers_code_key;
-ALTER TABLE IF EXISTS ONLY public.auth_identities DROP CONSTRAINT IF EXISTS auth_identities_pkey;
-ALTER TABLE IF EXISTS ONLY public.audit_events DROP CONSTRAINT IF EXISTS audit_events_pkey;
-ALTER TABLE IF EXISTS ONLY public.attribute_options DROP CONSTRAINT IF EXISTS attribute_options_pkey;
-ALTER TABLE IF EXISTS ONLY public.attribute_definitions DROP CONSTRAINT IF EXISTS attribute_definitions_pkey;
-ALTER TABLE IF EXISTS ONLY public.app_users DROP CONSTRAINT IF EXISTS app_users_pkey;
-DROP TABLE IF EXISTS public.schema_migrations;
-DROP TABLE IF EXISTS public.projects;
-DROP TABLE IF EXISTS public.project_profiles;
-DROP TABLE IF EXISTS public.project_profile_permissions;
-DROP TABLE IF EXISTS public.project_memberships;
-DROP TABLE IF EXISTS public.permission_catalog;
-DROP TABLE IF EXISTS public.node_type_attributes;
-DROP TABLE IF EXISTS public.node_attribute_values;
-DROP TABLE IF EXISTS public.hierarchy_type_rules;
-DROP TABLE IF EXISTS public.hierarchy_nodes;
-DROP TABLE IF EXISTS public.hierarchy_node_types;
-DROP TABLE IF EXISTS public.documents;
-DROP TABLE IF EXISTS public.document_versions;
-DROP TABLE IF EXISTS public.document_types;
-DROP TABLE IF EXISTS public.document_type_attributes;
-DROP TABLE IF EXISTS public.document_files;
-DROP TABLE IF EXISTS public.document_attribute_values;
-DROP TABLE IF EXISTS public.auth_sessions;
-DROP TABLE IF EXISTS public.auth_providers;
-DROP TABLE IF EXISTS public.auth_identities;
-DROP TABLE IF EXISTS public.audit_events;
-DROP TABLE IF EXISTS public.attribute_options;
-DROP TABLE IF EXISTS public.attribute_definitions;
-DROP TABLE IF EXISTS public.app_users;
-DROP FUNCTION IF EXISTS public.validate_node_type_attribute();
-DROP FUNCTION IF EXISTS public.validate_node_attribute_value();
-DROP FUNCTION IF EXISTS public.validate_dynamic_attribute_value(p_project_id uuid, p_attribute_definition_id uuid, p_data_type character varying, p_type_extension integer, p_validation_regex text, p_value_text text, p_value_number numeric, p_value_date date, p_value_boolean boolean, p_value_json jsonb);
-DROP FUNCTION IF EXISTS public.validate_document_type_attribute();
-DROP FUNCTION IF EXISTS public.validate_document_attribute_value();
-DROP FUNCTION IF EXISTS public.validate_attribute_option();
-DROP FUNCTION IF EXISTS public.validate_attribute_definition();
-DROP FUNCTION IF EXISTS public.set_updated_at();
-DROP FUNCTION IF EXISTS public.hierarchy_nodes_before_write();
-DROP FUNCTION IF EXISTS public.ensure_default_project_security(p_project_id uuid, p_admin_user_id uuid);
-DROP EXTENSION IF EXISTS pgcrypto;
 --
 -- Name: pgcrypto; Type: EXTENSION; Schema: -; Owner: -
 --
@@ -1205,14 +1037,40 @@ INSERT INTO public.audit_events VALUES ('a8c1f10e-40cb-4a17-b758-853127cc76e9', 
 INSERT INTO public.audit_events VALUES ('1388ec12-efff-4488-ac5e-7d484fd2a1d9', '9485448d-831d-49d7-a5c7-fd18552cb238', '69ad2981-cfba-4545-a564-7dfc07cec4a5', NULL, 'project.list', 'read', 'project_collection', NULL, 'success', NULL, '{}', '127.0.0.1', 'Dart/3.11 (dart:io)', '2026-03-15 18:18:16.279291-03');
 INSERT INTO public.audit_events VALUES ('4341ca03-69bc-49de-a781-7dc0c5e73242', '9485448d-831d-49d7-a5c7-fd18552cb238', '69ad2981-cfba-4545-a564-7dfc07cec4a5', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'project.snapshot', 'read', 'project', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Dart/3.11 (dart:io)', '2026-03-15 18:18:16.287541-03');
 INSERT INTO public.audit_events VALUES ('ffcfb93d-967b-4ccd-bf6a-cd1a34a1c135', '9485448d-831d-49d7-a5c7-fd18552cb238', '69ad2981-cfba-4545-a564-7dfc07cec4a5', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'project.snapshot', 'read', 'project', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Dart/3.11 (dart:io)', '2026-03-15 18:18:18.820409-03');
+INSERT INTO public.audit_events VALUES ('32f637db-6a48-4b59-ad98-ded1382dd39e', '053084b9-442c-4d22-a3e6-699d0b919077', '9b57830a-490c-4303-85e8-b07613413b72', NULL, 'auth.login', 'write', 'auth_session', '9b57830a-490c-4303-85e8-b07613413b72', 'success', NULL, '{"login": "admin", "provider": "local"}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 18:47:12.651451-03');
+INSERT INTO public.audit_events VALUES ('23994581-b99f-4a36-aadf-7517df5df9a8', '053084b9-442c-4d22-a3e6-699d0b919077', '9b57830a-490c-4303-85e8-b07613413b72', NULL, 'project.list', 'read', 'project_collection', NULL, 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 18:47:12.679817-03');
+INSERT INTO public.audit_events VALUES ('376dde2a-671c-40f4-a7b1-1a82ba37bc3e', '053084b9-442c-4d22-a3e6-699d0b919077', '9b57830a-490c-4303-85e8-b07613413b72', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'project.snapshot', 'read', 'project', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 18:47:12.702716-03');
+INSERT INTO public.audit_events VALUES ('6d471342-aee7-43dd-bda1-2d6436f3a58c', '053084b9-442c-4d22-a3e6-699d0b919077', '9b57830a-490c-4303-85e8-b07613413b72', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'documents.list', 'read', 'document_collection', '78b0ec01-7dc4-4acc-8ff9-e60c0fed905c', 'error', 'El nodo seleccionado no acepta documentos.', '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 18:47:12.710715-03');
+INSERT INTO public.audit_events VALUES ('8636a5ee-e745-4ec0-8f3f-c39fd272ccc1', '053084b9-442c-4d22-a3e6-699d0b919077', '3504bfb1-5324-4568-ab38-c4f5290fa8bc', NULL, 'auth.login', 'write', 'auth_session', '3504bfb1-5324-4568-ab38-c4f5290fa8bc', 'success', NULL, '{"login": "admin", "provider": "local"}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 18:47:20.929813-03');
+INSERT INTO public.audit_events VALUES ('5643f329-6fb7-4740-b2be-f8ce34f4283c', '053084b9-442c-4d22-a3e6-699d0b919077', '3504bfb1-5324-4568-ab38-c4f5290fa8bc', NULL, 'project.list', 'read', 'project_collection', NULL, 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 18:47:20.944388-03');
+INSERT INTO public.audit_events VALUES ('40730f7a-c51d-4b77-a15f-8119bf66413d', '053084b9-442c-4d22-a3e6-699d0b919077', '3504bfb1-5324-4568-ab38-c4f5290fa8bc', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'project.snapshot', 'read', 'project', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 18:47:20.955177-03');
+INSERT INTO public.audit_events VALUES ('4f4c8b59-6d20-4f42-9efb-079ec07acd82', '053084b9-442c-4d22-a3e6-699d0b919077', '3504bfb1-5324-4568-ab38-c4f5290fa8bc', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'documents.list', 'read', 'document_collection', '151a0f9b-09fc-47df-8dae-a78c2a4b6b29', 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 18:47:20.985343-03');
+INSERT INTO public.audit_events VALUES ('7bd4ccb7-bcf8-42f6-bbb2-f55d7c4a347e', '053084b9-442c-4d22-a3e6-699d0b919077', '8d5c5bb1-a594-4a12-89f0-3bc87ba68445', NULL, 'auth.login', 'write', 'auth_session', '8d5c5bb1-a594-4a12-89f0-3bc87ba68445', 'success', NULL, '{"login": "admin", "provider": "local"}', '127.0.0.1', 'Dart/3.11 (dart:io)', '2026-03-15 18:53:17.368222-03');
+INSERT INTO public.audit_events VALUES ('b1db03f8-f5e6-44f7-bea3-240a32af1ac2', '053084b9-442c-4d22-a3e6-699d0b919077', '8d5c5bb1-a594-4a12-89f0-3bc87ba68445', NULL, 'project.list', 'read', 'project_collection', NULL, 'success', NULL, '{}', '127.0.0.1', 'Dart/3.11 (dart:io)', '2026-03-15 18:53:17.442149-03');
+INSERT INTO public.audit_events VALUES ('b93bfc1e-01b2-45c5-af65-d76970bfd3a7', '053084b9-442c-4d22-a3e6-699d0b919077', '8d5c5bb1-a594-4a12-89f0-3bc87ba68445', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'project.snapshot', 'read', 'project', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Dart/3.11 (dart:io)', '2026-03-15 18:53:17.455005-03');
+INSERT INTO public.audit_events VALUES ('2cc1a349-a509-40e6-960e-34f9dd901940', '053084b9-442c-4d22-a3e6-699d0b919077', '8d5c5bb1-a594-4a12-89f0-3bc87ba68445', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'documents.list', 'read', 'document_collection', '151a0f9b-09fc-47df-8dae-a78c2a4b6b29', 'success', NULL, '{}', '127.0.0.1', 'Dart/3.11 (dart:io)', '2026-03-15 18:53:30.201508-03');
+INSERT INTO public.audit_events VALUES ('bfea7fca-585c-4fe5-9284-577308296183', '053084b9-442c-4d22-a3e6-699d0b919077', '8d5c5bb1-a594-4a12-89f0-3bc87ba68445', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'documents.list', 'read', 'document_collection', '151a0f9b-09fc-47df-8dae-a78c2a4b6b29', 'success', NULL, '{}', '127.0.0.1', 'Dart/3.11 (dart:io)', '2026-03-15 19:00:07.827049-03');
+INSERT INTO public.audit_events VALUES ('3306da7c-ab80-40fd-8871-fbab183bfd29', '053084b9-442c-4d22-a3e6-699d0b919077', '5e4e6d20-8477-4ad2-9cec-8d5e65f43df5', NULL, 'auth.login', 'write', 'auth_session', '5e4e6d20-8477-4ad2-9cec-8d5e65f43df5', 'success', NULL, '{"login": "admin", "provider": "local"}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:22:16.816676-03');
+INSERT INTO public.audit_events VALUES ('7f1d924f-b7ba-45a2-bce1-3e2a8d03cad4', '053084b9-442c-4d22-a3e6-699d0b919077', '5e4e6d20-8477-4ad2-9cec-8d5e65f43df5', NULL, 'project.list', 'read', 'project_collection', NULL, 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:22:16.83184-03');
+INSERT INTO public.audit_events VALUES ('ce84fa8c-69a3-4d7f-b9fd-18cef06df14d', '053084b9-442c-4d22-a3e6-699d0b919077', '5e4e6d20-8477-4ad2-9cec-8d5e65f43df5', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'project.snapshot', 'read', 'project', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:22:16.84783-03');
+INSERT INTO public.audit_events VALUES ('0411fbaa-4aa9-4332-b014-351b1517dc2c', '053084b9-442c-4d22-a3e6-699d0b919077', '7b1f1f38-a7a6-45ad-b0c2-71af9c57d3fa', NULL, 'auth.login', 'write', 'auth_session', '7b1f1f38-a7a6-45ad-b0c2-71af9c57d3fa', 'success', NULL, '{"login": "admin", "provider": "local"}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:22:28.384033-03');
+INSERT INTO public.audit_events VALUES ('9e60bd9a-6796-4d70-bb02-1f69346b19aa', '053084b9-442c-4d22-a3e6-699d0b919077', '7b1f1f38-a7a6-45ad-b0c2-71af9c57d3fa', NULL, 'project.list', 'read', 'project_collection', NULL, 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:22:28.401831-03');
+INSERT INTO public.audit_events VALUES ('ff0c2c69-4960-49af-b36c-3489a4557851', '053084b9-442c-4d22-a3e6-699d0b919077', '7b1f1f38-a7a6-45ad-b0c2-71af9c57d3fa', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'project.snapshot', 'read', 'project', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:22:28.418059-03');
+INSERT INTO public.audit_events VALUES ('65607080-8ea4-4511-bdaf-f6a6c3ea0bcb', '053084b9-442c-4d22-a3e6-699d0b919077', '2c64e489-b19f-480e-8a39-3d7095a5163f', NULL, 'auth.login', 'write', 'auth_session', '2c64e489-b19f-480e-8a39-3d7095a5163f', 'success', NULL, '{"login": "admin", "provider": "local"}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:23:04.926412-03');
+INSERT INTO public.audit_events VALUES ('2ad9f818-30bb-4362-bcc3-591bd6acbf14', '053084b9-442c-4d22-a3e6-699d0b919077', '2c64e489-b19f-480e-8a39-3d7095a5163f', NULL, 'project.list', 'read', 'project_collection', NULL, 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:23:04.953291-03');
+INSERT INTO public.audit_events VALUES ('70121a1d-7356-46d4-9893-96f0698856b2', '053084b9-442c-4d22-a3e6-699d0b919077', '2c64e489-b19f-480e-8a39-3d7095a5163f', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'project.snapshot', 'read', 'project', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:23:04.983176-03');
+INSERT INTO public.audit_events VALUES ('745971e4-3308-45e7-b0da-f108fa4e50a1', '053084b9-442c-4d22-a3e6-699d0b919077', 'fd50525e-b267-4301-b5f3-b37f2751ca47', NULL, 'auth.login', 'write', 'auth_session', 'fd50525e-b267-4301-b5f3-b37f2751ca47', 'success', NULL, '{"login": "admin", "provider": "local"}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:23:11.697491-03');
+INSERT INTO public.audit_events VALUES ('98ccfdb6-4aca-4b50-b3d7-a3e9eff10862', '053084b9-442c-4d22-a3e6-699d0b919077', 'fd50525e-b267-4301-b5f3-b37f2751ca47', NULL, 'project.list', 'read', 'project_collection', NULL, 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:23:11.71519-03');
+INSERT INTO public.audit_events VALUES ('6996ac89-c15a-46b3-9703-632d57f74711', '053084b9-442c-4d22-a3e6-699d0b919077', 'fd50525e-b267-4301-b5f3-b37f2751ca47', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'document_types.create', 'write', 'document_type', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:23:11.726517-03');
+INSERT INTO public.audit_events VALUES ('90b189ab-0874-4698-a987-10e85e16818f', '053084b9-442c-4d22-a3e6-699d0b919077', 'fd50525e-b267-4301-b5f3-b37f2751ca47', 'd1ef6180-a49e-4cf9-986c-920377200d48', 'document_types.delete', 'write', 'document_type', '2bddd4e5-a7a0-4a5a-869b-e415203fea1d', 'success', NULL, '{}', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5', '2026-03-15 19:23:11.739969-03');
 
 
 --
 -- Data for Name: auth_identities; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-INSERT INTO public.auth_identities VALUES ('90d8739d-34fb-465b-b021-510fcf941746', '053084b9-442c-4d22-a3e6-699d0b919077', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'admin', 'admin', '$2a$12$CBfjAXfnvMaxM90KeAL1mO2f5ufMnJ8lx3wm9CK4L30z6aMKKfObO', '{"seeded": true}', true, '2026-03-15 18:15:52.41328-03', '2026-03-15 18:00:06.522718-03', '2026-03-15 18:15:52.41328-03');
 INSERT INTO public.auth_identities VALUES ('b4395db7-2359-4c4e-9316-68269e118e97', '9485448d-831d-49d7-a5c7-fd18552cb238', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'gasuarez', 'gasuarez', '$2a$12$/mSZUc/f/4kjGoKozy2.qeX7w2RtcFv7uuLfPKMFNZIW.am8gW7VC', '{}', true, '2026-03-15 18:18:16.253365-03', '2026-03-15 18:14:54.715037-03', '2026-03-15 18:18:16.253365-03');
+INSERT INTO public.auth_identities VALUES ('90d8739d-34fb-465b-b021-510fcf941746', '053084b9-442c-4d22-a3e6-699d0b919077', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'admin', 'admin', '$2a$12$CBfjAXfnvMaxM90KeAL1mO2f5ufMnJ8lx3wm9CK4L30z6aMKKfObO', '{"seeded": true}', true, '2026-03-15 19:23:11.693173-03', '2026-03-15 18:00:06.522718-03', '2026-03-15 19:23:11.693173-03');
 
 
 --
@@ -1227,6 +1085,7 @@ INSERT INTO public.auth_providers VALUES ('c460e2db-4f34-4411-8a5f-e47cdb6b020c'
 --
 
 INSERT INTO public.auth_sessions VALUES ('21240d0f-8b8b-4026-906c-5d380fdb5eb0', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '7c1857bbe98bf87b5da8ae32af0c4bd131b6fcea8b9c1509a1b9276859a2f124', '2026-03-15 18:06:52.991781-03', '2026-03-16 06:06:52.991781-03', NULL, NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
+INSERT INTO public.auth_sessions VALUES ('8d5c5bb1-a594-4a12-89f0-3bc87ba68445', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '99d524374cb9398e841f4c3346c8802ee415b6baedd30d5307dc89a302a410f9', '2026-03-15 18:53:17.36056-03', '2026-03-16 06:53:17.36056-03', NULL, '2026-03-15 19:00:07.82095-03', '127.0.0.1', 'Dart/3.11 (dart:io)');
 INSERT INTO public.auth_sessions VALUES ('7dabe901-f425-44d7-a44b-70db136feebf', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'e9e0d17bdb31ce3c06d4b8eb688dc10496b9a5ab0f12a0a008c90e86dd8e8c9b', '2026-03-15 18:06:52.987681-03', '2026-03-16 06:06:52.987681-03', NULL, '2026-03-15 18:06:53.045537-03', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
 INSERT INTO public.auth_sessions VALUES ('af858da6-1c00-43f2-8cc2-745fa99ff897', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '970e9191e63b7c19a847f0cb370bdeb8ba3d3beb76b1d33c7d2e71293de8886a', '2026-03-15 18:06:52.993331-03', '2026-03-16 06:06:52.993331-03', NULL, '2026-03-15 18:06:53.062098-03', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
 INSERT INTO public.auth_sessions VALUES ('3ab42827-3205-4d24-a6ad-7db38f7c1e9e', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '0483e76e8448890fba7aa5e57f95f2fede8c5f06e2803dfb8eb69ef08233399e', '2026-03-15 18:13:16.611734-03', '2026-03-16 06:13:16.611734-03', '2026-03-15 18:15:00.958155-03', '2026-03-15 18:15:00.955782-03', '127.0.0.1', 'Dart/3.11 (dart:io)');
@@ -1234,9 +1093,15 @@ INSERT INTO public.auth_sessions VALUES ('d2375323-4139-47c1-be42-220fbb3e4ce5',
 INSERT INTO public.auth_sessions VALUES ('a1222f16-c193-43ac-9db6-46b99ac75e1c', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '0ac180a4d6e7df02db1f38edc006e028106c626d317e7246952ef48c33720734', '2026-03-15 18:09:53.147235-03', '2026-03-16 06:09:53.147235-03', NULL, NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
 INSERT INTO public.auth_sessions VALUES ('c3aaa442-0be3-4382-a205-0bf809bd96ac', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '4cb83ca37e5e0c9ab18c2790574135c77bd750ee8cf7326e0b96903faec98014', '2026-03-15 18:15:52.410683-03', '2026-03-16 06:15:52.410683-03', '2026-03-15 18:18:07.438121-03', '2026-03-15 18:18:07.435822-03', '127.0.0.1', 'Dart/3.11 (dart:io)');
 INSERT INTO public.auth_sessions VALUES ('72e2fcf2-e15f-4b49-8a30-42ed780fd542', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '7da678e32ebd86163a70fe467e52c35ff5b4fc15b81e4009daa3ade122723c23', '2026-03-15 18:12:43.979738-03', '2026-03-16 06:12:43.979738-03', '2026-03-15 18:12:59.997355-03', '2026-03-15 18:12:59.996258-03', '127.0.0.1', 'Dart/3.11 (dart:io)');
+INSERT INTO public.auth_sessions VALUES ('fd50525e-b267-4301-b5f3-b37f2751ca47', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'da2011c5bdc83422b66443ce9246c151882bcb25978284e6a276d3b653622863', '2026-03-15 19:23:11.691181-03', '2026-03-16 07:23:11.691181-03', NULL, '2026-03-15 19:23:11.733776-03', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
+INSERT INTO public.auth_sessions VALUES ('5e4e6d20-8477-4ad2-9cec-8d5e65f43df5', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '1b8ca2af8e97f587596a47dcecb1681b7672a70720b37bb06af020d1ff10c4c6', '2026-03-15 19:22:16.810117-03', '2026-03-16 07:22:16.810117-03', NULL, '2026-03-15 19:22:16.840845-03', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
 INSERT INTO public.auth_sessions VALUES ('fa5cf280-402f-411b-b156-7f0a7a1c81b3', '9485448d-831d-49d7-a5c7-fd18552cb238', 'b4395db7-2359-4c4e-9316-68269e118e97', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'ea08b072006682d7a9425401df3343074a413b9fef89cde3cec333dd04ab67c4', '2026-03-15 18:15:11.323049-03', '2026-03-16 06:15:11.323049-03', '2026-03-15 18:15:50.474369-03', '2026-03-15 18:15:50.472526-03', '127.0.0.1', 'Dart/3.11 (dart:io)');
 INSERT INTO public.auth_sessions VALUES ('36d41e3d-eabe-4f93-9c2a-3cfd69e6f9f5', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'edfff433af9290b85317b8fffbecbe1536ad7ea8ffcb2d8360b9dce210f7c58c', '2026-03-15 18:13:01.939019-03', '2026-03-16 06:13:01.939019-03', '2026-03-15 18:13:06.892076-03', '2026-03-15 18:13:06.891343-03', '127.0.0.1', 'Dart/3.11 (dart:io)');
 INSERT INTO public.auth_sessions VALUES ('69ad2981-cfba-4545-a564-7dfc07cec4a5', '9485448d-831d-49d7-a5c7-fd18552cb238', 'b4395db7-2359-4c4e-9316-68269e118e97', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'c81f49f2a2361793c7dfdd6c4f59041b4feab41a2230a56a41627973b1d885ee', '2026-03-15 18:18:16.251313-03', '2026-03-16 06:18:16.251313-03', NULL, '2026-03-15 18:18:18.813196-03', '127.0.0.1', 'Dart/3.11 (dart:io)');
+INSERT INTO public.auth_sessions VALUES ('9b57830a-490c-4303-85e8-b07613413b72', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '4a3247e7cf8e204e6f64c5b63fbee3f747f2e190a1045169b623d78128b6293a', '2026-03-15 18:47:12.638778-03', '2026-03-16 06:47:12.638778-03', NULL, '2026-03-15 18:47:12.708346-03', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
+INSERT INTO public.auth_sessions VALUES ('7b1f1f38-a7a6-45ad-b0c2-71af9c57d3fa', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'a50f13563f3201a8711d28f7ce840e856bc9fc4885557862cbb6b94b85339105', '2026-03-15 19:22:28.379291-03', '2026-03-16 07:22:28.379291-03', NULL, '2026-03-15 19:22:28.411043-03', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
+INSERT INTO public.auth_sessions VALUES ('3504bfb1-5324-4568-ab38-c4f5290fa8bc', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', '8703d496fcaf6207305f5a722ec26f09a2b27a7468ca8922e32f51e73c9495a5', '2026-03-15 18:47:20.923576-03', '2026-03-16 06:47:20.923576-03', NULL, '2026-03-15 18:47:20.979524-03', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
+INSERT INTO public.auth_sessions VALUES ('2c64e489-b19f-480e-8a39-3d7095a5163f', '053084b9-442c-4d22-a3e6-699d0b919077', '90d8739d-34fb-465b-b021-510fcf941746', 'c460e2db-4f34-4411-8a5f-e47cdb6b020c', 'a5f1757ad8a4054541ae3006a9098543f7588a7cac277d84a651470213d321ee', '2026-03-15 19:23:04.91286-03', '2026-03-16 07:23:04.91286-03', NULL, '2026-03-15 19:23:04.965151-03', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26100; es-AR) PowerShell/7.5.5');
 
 
 --
@@ -1332,6 +1197,8 @@ INSERT INTO public.permission_catalog VALUES ('hierarchy.read', 'Leer jerarquía
 INSERT INTO public.permission_catalog VALUES ('hierarchy.write', 'Modificar jerarquía', 'Permite crear, editar y eliminar nodos reales en la jerarquía.', 'write', '2026-03-15 18:00:06.522718-03');
 INSERT INTO public.permission_catalog VALUES ('security.read', 'Leer seguridad', 'Permite consultar perfiles, permisos y membresías del proyecto.', 'read', '2026-03-15 18:00:06.522718-03');
 INSERT INTO public.permission_catalog VALUES ('security.write', 'Modificar seguridad', 'Permite crear perfiles y administrar accesos del proyecto.', 'write', '2026-03-15 18:00:06.522718-03');
+INSERT INTO public.permission_catalog VALUES ('documents.read', 'Ver documentos', 'Permite consultar documentos del proyecto y descargar sus PDFs.', 'read', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.permission_catalog VALUES ('documents.write', 'Gestionar documentos', 'Permite escanear, crear documentos y guardar nuevas capturas.', 'write', '2026-03-15 18:45:50.733277-03');
 
 
 --
@@ -1379,6 +1246,16 @@ INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-
 INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-0f779a783b83', '0b152008-ccb1-4329-8d56-ff9b7e9e458d', 'project.read', '2026-03-15 18:17:29.264709-03');
 INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-0f779a783b83', '0b152008-ccb1-4329-8d56-ff9b7e9e458d', 'types.read', '2026-03-15 18:17:29.264709-03');
 INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-0f779a783b83', '0b152008-ccb1-4329-8d56-ff9b7e9e458d', 'hierarchy.read', '2026-03-15 18:17:29.264709-03');
+INSERT INTO public.project_profile_permissions VALUES ('d1ef6180-a49e-4cf9-986c-920377200d48', '5d904f04-d81a-4767-9fcf-574e2e7129d1', 'documents.read', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('d1ef6180-a49e-4cf9-986c-920377200d48', '24834a17-5a1e-4277-ba80-98fdb35ff0bf', 'documents.read', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('d1ef6180-a49e-4cf9-986c-920377200d48', 'a47c0f81-815a-4dd0-8936-e7561caf1698', 'documents.read', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-0f779a783b83', '12713629-e024-4a2e-9d89-3fe1ad1ee635', 'documents.read', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-0f779a783b83', '584c7265-61ac-4fa9-ae80-fba7683f964c', 'documents.read', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-0f779a783b83', '0b152008-ccb1-4329-8d56-ff9b7e9e458d', 'documents.read', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('d1ef6180-a49e-4cf9-986c-920377200d48', '5d904f04-d81a-4767-9fcf-574e2e7129d1', 'documents.write', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('d1ef6180-a49e-4cf9-986c-920377200d48', '24834a17-5a1e-4277-ba80-98fdb35ff0bf', 'documents.write', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-0f779a783b83', '12713629-e024-4a2e-9d89-3fe1ad1ee635', 'documents.write', '2026-03-15 18:45:50.733277-03');
+INSERT INTO public.project_profile_permissions VALUES ('7b99518e-8b2c-44cf-9019-0f779a783b83', '584c7265-61ac-4fa9-ae80-fba7683f964c', 'documents.write', '2026-03-15 18:45:50.733277-03');
 
 
 --
@@ -1409,6 +1286,7 @@ INSERT INTO public.schema_migrations VALUES ('V202603151410', 'init_projects_hie
 INSERT INTO public.schema_migrations VALUES ('V202603151730', 'extend_dynamic_attributes_v2', 'sha256:pending', '2026-03-15 16:15:59.815032-03');
 INSERT INTO public.schema_migrations VALUES ('V202603151900', 'add_node_type_icon_key', 'sha256:pending', '2026-03-15 16:29:45.492386-03');
 INSERT INTO public.schema_migrations VALUES ('V202603152130', 'add_auth_profiles_and_audit_v3', 'sha256:pending', '2026-03-15 18:00:06.522718-03');
+INSERT INTO public.schema_migrations VALUES ('V202603152245', 'add_document_permissions_v4', 'sha256:pending', '2026-03-15 18:45:50.733277-03');
 
 
 --
@@ -2437,5 +2315,5 @@ ALTER TABLE ONLY public.project_profiles
 -- PostgreSQL database dump complete
 --
 
-\unrestrict pWmi47ao53gTnIPgINyAZbUlIcuszsOL0DrrbBrSjFiXRFAMrlecZkQ19AMe3am
+\unrestrict SftWkUb67xIrigOyJcimirhkZfklCHSzfoaEIOvMxaUZjhHYHCGbWlQUF5vLAvA
 

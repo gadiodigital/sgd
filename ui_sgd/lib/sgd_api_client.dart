@@ -1,20 +1,24 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class SgdApiClient {
   SgdApiClient({
     String? baseUrl,
-    http.Client? client,
+    Dio? dio,
   })  : baseUrl = baseUrl ??
             const String.fromEnvironment(
               'SGD_API_URL',
               defaultValue: 'http://127.0.0.1:8081',
             ),
-        _client = client ?? http.Client();
+        _dio = dio ??
+            Dio(
+              BaseOptions(
+                connectTimeout: const Duration(seconds: 15),
+                receiveTimeout: const Duration(seconds: 30),
+              ),
+            );
 
   final String baseUrl;
-  final http.Client _client;
+  final Dio _dio;
   String? _authToken;
 
   String get acquisitionUrl => '$baseUrl/ui/ui1.html';
@@ -192,41 +196,57 @@ class SgdApiClient {
     String path, {
     Map<String, dynamic>? body,
   }) async {
-    final uri = Uri.parse('$baseUrl$path');
-    late final http.Response response;
     final headers = <String, String>{'content-type': 'application/json'};
     if (_authToken != null && _authToken!.isNotEmpty) {
       headers['authorization'] = 'Bearer $_authToken';
     }
-    final encodedBody = body == null ? null : jsonEncode(body);
+    final url = '$baseUrl$path';
 
-    switch (method) {
-      case 'GET':
-        response = await _client.get(uri, headers: headers);
-      case 'POST':
-        response = await _client.post(uri, headers: headers, body: encodedBody);
-      case 'PUT':
-        response = await _client.put(uri, headers: headers, body: encodedBody);
-      case 'DELETE':
-        response = await _client.delete(uri, headers: headers);
-      default:
-        throw ApiException('Método no soportado: $method');
-    }
-
-    final text = response.body.trim();
-    final decoded = text.isEmpty ? <String, dynamic>{} : jsonDecode(text);
-    final json = decoded is Map<String, dynamic>
-        ? decoded
-        : <String, dynamic>{'data': decoded};
-
-    if (response.statusCode >= 400) {
-      throw ApiException(
-        (json['error'] ?? 'Error HTTP ${response.statusCode}').toString(),
-        statusCode: response.statusCode,
+    try {
+      final response = await _dio.request<dynamic>(
+        url,
+        data: body,
+        options: Options(
+          method: method,
+          headers: headers,
+          responseType: ResponseType.json,
+          validateStatus: (_) => true,
+        ),
       );
-    }
 
-    return json;
+      final raw = response.data;
+      final json = raw is Map<String, dynamic>
+          ? raw
+          : raw is Map
+              ? Map<String, dynamic>.from(raw)
+              : <String, dynamic>{'data': raw};
+      final status = response.statusCode ?? 500;
+
+      if (status >= 400) {
+        throw ApiException(
+          (json['error'] ?? 'Error HTTP $status').toString(),
+          statusCode: status,
+        );
+      }
+
+      return json;
+    } on DioException catch (error) {
+      final response = error.response;
+      if (response != null) {
+        final raw = response.data;
+        final json = raw is Map<String, dynamic>
+            ? raw
+            : raw is Map
+                ? Map<String, dynamic>.from(raw)
+                : <String, dynamic>{};
+        final status = response.statusCode;
+        throw ApiException(
+          (json['error'] ?? error.message ?? 'Error de red').toString(),
+          statusCode: status,
+        );
+      }
+      throw ApiException(error.message ?? error.toString());
+    }
   }
 }
 

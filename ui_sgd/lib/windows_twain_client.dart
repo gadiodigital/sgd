@@ -1,20 +1,24 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class WindowsTwainClient {
   WindowsTwainClient({
     String? baseUrl,
-    http.Client? client,
+    Dio? dio,
   })  : baseUrl = baseUrl ??
             const String.fromEnvironment(
               'WINDOWS_TWAIN_URL',
               defaultValue: 'http://127.0.0.1:43127',
             ),
-        _client = client ?? http.Client();
+        _dio = dio ??
+            Dio(
+              BaseOptions(
+                connectTimeout: const Duration(seconds: 15),
+                receiveTimeout: const Duration(seconds: 120),
+              ),
+            );
 
   final String baseUrl;
-  final http.Client _client;
+  final Dio _dio;
 
   Future<List<TwainScannerDescriptor>> listScanners() async {
     final payload = await _send('GET', '/api/scanners');
@@ -132,44 +136,60 @@ class WindowsTwainClient {
     String path, {
     Map<String, dynamic>? body,
   }) async {
-    final uri = Uri.parse('$baseUrl$path');
-    late final http.Response response;
     final headers = <String, String>{'content-type': 'application/json'};
-    final encodedBody = body == null ? null : jsonEncode(body);
+    final url = '$baseUrl$path';
 
-    switch (method) {
-      case 'GET':
-        response = await _client.get(uri, headers: headers);
-      case 'POST':
-        response = await _client.post(uri, headers: headers, body: encodedBody);
-      case 'DELETE':
-        response = await _client.delete(uri, headers: headers);
-      default:
-        throw TwainApiException('Método no soportado: $method');
-    }
-
-    final text = response.body.trim();
-    final decoded = text.isEmpty ? <String, dynamic>{} : jsonDecode(text);
-    final json = decoded is Map<String, dynamic>
-        ? decoded
-        : <String, dynamic>{'data': decoded};
-
-    if (response.statusCode >= 400) {
-      throw TwainApiException(
-        (json['message'] ?? json['error'] ?? 'Error HTTP ${response.statusCode}').toString(),
-        statusCode: response.statusCode,
+    try {
+      final response = await _dio.request<dynamic>(
+        url,
+        data: body,
+        options: Options(
+          method: method,
+          headers: headers,
+          responseType: ResponseType.json,
+          validateStatus: (_) => true,
+        ),
       );
-    }
+      final raw = response.data;
+      final json = raw is Map<String, dynamic>
+          ? raw
+          : raw is Map
+              ? Map<String, dynamic>.from(raw)
+              : <String, dynamic>{'data': raw};
+      final status = response.statusCode ?? 500;
 
-    final result = (json['result'] ?? '').toString().toLowerCase();
-    if (result == 'error' || result == 'not-ready') {
-      throw TwainApiException(
-        (json['message'] ?? 'windows-twain devolvió un error.').toString(),
-        statusCode: response.statusCode,
-      );
-    }
+      if (status >= 400) {
+        throw TwainApiException(
+          (json['message'] ?? json['error'] ?? 'Error HTTP $status').toString(),
+          statusCode: status,
+        );
+      }
 
-    return json;
+      final result = (json['result'] ?? '').toString().toLowerCase();
+      if (result == 'error' || result == 'not-ready') {
+        throw TwainApiException(
+          (json['message'] ?? 'windows-twain devolvió un error.').toString(),
+          statusCode: status,
+        );
+      }
+
+      return json;
+    } on DioException catch (error) {
+      final response = error.response;
+      if (response != null) {
+        final raw = response.data;
+        final json = raw is Map<String, dynamic>
+            ? raw
+            : raw is Map
+                ? Map<String, dynamic>.from(raw)
+                : <String, dynamic>{};
+        throw TwainApiException(
+          (json['message'] ?? json['error'] ?? error.message ?? 'Error de red').toString(),
+          statusCode: response.statusCode,
+        );
+      }
+      throw TwainApiException(error.message ?? error.toString());
+    }
   }
 }
 

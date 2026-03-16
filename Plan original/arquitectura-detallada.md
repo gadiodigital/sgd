@@ -19,9 +19,6 @@
   - Ecosystem maduro para microservicios
 
 #### Frontend
-Dos opciones disponibles según necesidades específicas:
-
-##### Opción A: Flutter (Recomendada para máxima cobertura)
 - **Framework**: Flutter 3.x
 - **Ventajas**:
   - Single codebase para 6 plataformas (Web, Android, iOS, Windows, Linux, macOS)
@@ -33,21 +30,6 @@ Dos opciones disponibles según necesidades específicas:
 - **Navegación**: go_router
 - **HTTP**: Dio + Retrofit
 - **DI**: GetIt + Injectable
-
-##### Opción B: Kotlin Multiplatform + Jetpack Compose
-- **Lógica compartida**: Kotlin Multiplatform
-- **UI**: 
-  - Android/Desktop: Jetpack Compose Desktop
-  - iOS: SwiftUI (nativo) con shared ViewModels
-  - Web: Compose for Web
-- **Ventajas**:
-  - Código compartido a nivel de lógica de negocio
-  - UIs nativas optimizadas por plataforma
-  - Integración perfecta con ecosistema Android
-  - Type safety total con Kotlin
-- **DI**: Koin Multiplatform
-- **HTTP**: Ktor Client
-- **Serialización**: kotlinx.serialization
 
 ### 1.2 Patrones Arquitectónicos
 
@@ -77,7 +59,6 @@ Reglas de dependencia:
 ```
 
 **Flutter**: Provider/Riverpod para binding reactivo  
-**KMP**: StateFlow/SharedFlow para reactive state
 
 ---
 
@@ -373,57 +354,6 @@ sgd-frontend/
 ├── pubspec.yaml
 └── README.md
 ```
-
-### 2.3 Frontend (Kotlin Multiplatform - Alternativa)
-
-```
-sgd-kmp/
-├── shared/                         # Código compartido KMP
-│   ├── src/
-│   │   ├── commonMain/kotlin/
-│   │   │   ├── core/
-│   │   │   │   ├── di/
-│   │   │   │   │   └── Koin.kt
-│   │   │   │   ├── network/
-│   │   │   │   │   └── HttpClient.kt    # Ktor
-│   │   │   │   └── utils/
-│   │   │   ├── features/
-│   │   │   │   ├── authentication/
-│   │   │   │   │   ├── domain/
-│   │   │   │   │   ├── data/
-│   │   │   │   │   └── presentation/
-│   │   │   │   │       └── AuthViewModel.kt
-│   │   │   │   └── document/
-│   │   │   │       └── ...
-│   │   │   └── Platform.kt
-│   │   ├── androidMain/kotlin/
-│   │   ├── iosMain/kotlin/
-│   │   └── jsMain/kotlin/
-│   └── build.gradle.kts
-│
-├── androidApp/                     # Android específico
-│   ├── src/main/kotlin/
-│   │   └── ui/
-│   │       └── screens/            # Jetpack Compose
-│   └── build.gradle.kts
-│
-├── iosApp/                         # iOS específico
-│   └── iosApp/
-│       └── ContentView.swift       # SwiftUI
-│
-├── webApp/                         # Web específico
-│   └── src/jsMain/kotlin/
-│       └── App.kt                  # Compose for Web
-│
-├── desktopApp/                     # Desktop (Windows/Linux/Mac)
-│   └── src/jvmMain/kotlin/
-│       └── Main.kt                 # Compose Desktop
-│
-└── build.gradle.kts
-```
-
----
-
 ## 3. PLUGIN CONVENTIONS - IMPLEMENTACIÓN
 
 ### 3.1 Backend (Golang)
@@ -936,4 +866,4 @@ spec:
    - Sprint 4: Workflows + Retention
 
 **Versión**: 1.0  
-**Fecha**: Enero 2026
+**Fecha**: Enero 2026s

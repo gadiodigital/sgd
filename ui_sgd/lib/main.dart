@@ -1,7 +1,11 @@
 import 'dart:convert';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
+import 'domain/scan_entities.dart';
+import 'domain/sgd_entities.dart';
 import 'external_launcher_stub.dart'
     if (dart.library.html) 'external_launcher_web.dart'
     if (dart.library.io) 'external_launcher_io.dart';
@@ -10,9 +14,25 @@ import 'local_api_runtime_stub.dart'
 import 'scan_center_page.dart';
 import 'sgd_api_client.dart';
 
-void main() => runApp(const UiSgdApp());
+part 'home_page_state_helpers.dart';
 
-class UiSgdApp extends StatelessWidget {
+void main() => runApp(const ProviderScope(child: UiSgdApp()));
+
+final sgdApiProvider = Provider<SgdApiClient>((ref) => SgdApiClient());
+
+final appRouterProvider = Provider<GoRouter>((ref) {
+  final api = ref.watch(sgdApiProvider);
+  return GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => AppShell(api: api),
+      ),
+    ],
+  );
+});
+
+class UiSgdApp extends ConsumerWidget {
   const UiSgdApp({
     super.key,
     this.api,
@@ -21,12 +41,22 @@ class UiSgdApp extends StatelessWidget {
   final SgdApiClient? api;
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = api == null
+        ? ref.watch(appRouterProvider)
+        : GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (context, state) => AppShell(api: api!),
+              ),
+            ],
+          );
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'ui-sgd',
       theme: ThemeData(useMaterial3: true, colorSchemeSeed: Colors.teal),
-      home: AppShell(api: api ?? SgdApiClient()),
+      routerConfig: router,
     );
   }
 }
@@ -634,29 +664,9 @@ class _HomePageState extends State<HomePage> {
     return null;
   }
 
-  CurrentUser get currentUser => widget.session.user;
-
-  List<String> permissionCodesForProject(String? projectId) {
-    if (currentUser.isPlatformAdmin) {
-      return widget.session.allPermissionCodes;
-    }
-    if (projectId == null) {
-      return const [];
-    }
-    for (final membership in widget.session.memberships) {
-      if (membership.projectId == projectId) {
-        return membership.permissionCodes;
-      }
-    }
-    return const [];
-  }
-
-  bool can(String permissionCode, [String? projectId]) {
-    if (currentUser.isPlatformAdmin) {
-      return true;
-    }
-    return permissionCodesForProject(projectId ?? currentProjectId).contains(permissionCode);
-  }
+  CurrentUser get currentUser => readCurrentUser(this);
+  List<String> permissionCodesForProject(String? projectId) => readPermissionCodesForProject(this, projectId);
+  bool can(String permissionCode, [String? projectId]) => hasPermission(this, permissionCode, projectId);
 
   List<Section> get availableSections {
     final items = <Section>[Section.proyectos];
@@ -672,25 +682,8 @@ class _HomePageState extends State<HomePage> {
     return items;
   }
 
-  void _ensureSectionAvailable() {
-    final options = availableSections;
-    if (!options.contains(section)) {
-      section = options.first;
-    }
-  }
-
-  Section preferredSectionForProject(String projectId) {
-    if (can('types.read', projectId)) {
-      return Section.tipos;
-    }
-    if (can('hierarchy.read', projectId)) {
-      return Section.arbol;
-    }
-    if (can('security.read', projectId)) {
-      return Section.seguridad;
-    }
-    return Section.proyectos;
-  }
+  void _ensureSectionAvailable() => ensureSectionAvailable(this);
+  Section preferredSectionForProject(String projectId) => preferredSectionFor(this, projectId);
 
   List<NodeTypeItem> get projectTypes => _sorted(types.where((t) => t.projectId == currentProjectId).toList(), (a, b) => a.order != b.order ? a.order.compareTo(b.order) : a.name.compareTo(b.name));
   List<DocumentTypeItem> get projectDocumentTypes =>
@@ -698,10 +691,7 @@ class _HomePageState extends State<HomePage> {
   List<RuleItem> get projectRules => rules.where((r) => r.projectId == currentProjectId).toList();
   List<NodeItem> get projectNodes => _sorted(nodes.where((n) => n.projectId == currentProjectId).toList(), (a, b) => a.order != b.order ? a.order.compareTo(b.order) : a.name.compareTo(b.name));
 
-  List<T> _sorted<T>(List<T> items, int Function(T a, T b) sorter) {
-    items.sort(sorter);
-    return items;
-  }
+  List<T> _sorted<T>(List<T> items, int Function(T a, T b) sorter) => sortItems(items, sorter);
 
   static const iconChoices = <String, IconData>{
     'folder': Icons.folder,
@@ -724,27 +714,12 @@ class _HomePageState extends State<HomePage> {
     'json',
   ];
 
-  void snack(String text) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
-  String _errorText(Object error) => error is ApiException ? error.message : error.toString();
-  bool _shouldAutoStartApi(Object error) {
-    final text = _errorText(error).toLowerCase();
-    return text.contains('127.0.0.1:8081') &&
-        (text.contains('connection refused') || text.contains('rechazó la conexión') || text.contains('socketexception'));
-  }
-
-  String _friendlyLoadError(Object error) {
-    if (_shouldAutoStartApi(error)) {
-      final command = localApiStartCommand();
-      final commandText = command == null ? '' : '\n\nComando sugerido:\n$command';
-      return 'No se pudo conectar con la API local SGD en http://127.0.0.1:8081.'
-          '\n\nLa UI ahora necesita que `sgd_api` esté levantada para leer y guardar datos.'
-          '$commandText';
-    }
-    return _errorText(error);
-  }
-
-  String _id() => DateTime.now().microsecondsSinceEpoch.toString();
-  void _focusNext(BuildContext context) => FocusScope.of(context).nextFocus();
+  void snack(String text) => showSnack(this, text);
+  String _errorText(Object error) => homeErrorText(error);
+  bool _shouldAutoStartApi(Object error) => shouldAutoStartApi(error, _errorText);
+  String _friendlyLoadError(Object error) => friendlyLoadError(error, _shouldAutoStartApi, _errorText);
+  String _id() => nextId();
+  void _focusNext(BuildContext context) => focusNext(context);
   IconData iconFor(String key) => iconChoices[key] ?? Icons.folder;
   String attributeTypeLabel(String dataType) => switch (dataType) {
         'string' => 'string',
@@ -756,167 +731,22 @@ class _HomePageState extends State<HomePage> {
         'json' => 'json',
         _ => dataType,
       };
-  String attributeValueLabel(AttributeItem attr, String? rawValue) {
-    if (rawValue == null || rawValue.isEmpty) {
-      return '-';
-    }
-    if (attr.dataType != 'list') {
-      return rawValue;
-    }
-    for (final option in attr.options) {
-      if (option.code == rawValue) {
-        return option.label;
-      }
-    }
-    return rawValue;
-  }
-  bool _hasAttributeValue(String? rawValue) => rawValue != null && rawValue.trim().isNotEmpty;
-  String attributeSummary(AttributeItem attr) {
-    final parts = <String>[attributeTypeLabel(attr.dataType)];
-    if (attr.dataType == 'list') {
-      parts.add(attr.options.isEmpty ? 'sin opciones' : '${attr.options.length} opciones');
-      return parts.join(' • ');
-    }
-    if (attr.extension.isNotEmpty) {
-      parts.add('ext ${attr.extension}');
-    }
-    if (attr.regex.isNotEmpty) {
-      parts.add('regex');
-    }
-    return parts.join(' • ');
-  }
-  int documentCountForNode(String nodeId) => nodeDocumentsByNodeId[nodeId]?.length ?? 0;
-  TextInputType keyboardTypeForAttribute(String dataType) => switch (dataType) {
-        'integer' => TextInputType.number,
-        'decimal' => const TextInputType.numberWithOptions(decimal: true),
-        _ => TextInputType.text,
-      };
-  String? _validateRequired(String? value, String label) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Ingresa $label.';
-    }
-    return null;
-  }
-
-  String? _validateProjectSlug(String? value, String? excludeProjectId) {
-    final text = value?.trim() ?? '';
-    if (text.isEmpty) {
-      return 'Ingresa slug.';
-    }
-    if (!RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$').hasMatch(text)) {
-      return 'Usa minúsculas, números y guiones.';
-    }
-    if (projects.any((project) => project.slug == text && project.id != excludeProjectId)) {
-      return 'Ese slug ya existe.';
-    }
-    return null;
-  }
-
-  String? _validateIdentifierCode(String? value, {String label = 'código'}) {
-    final text = value?.trim() ?? '';
-    if (text.isEmpty) {
-      return 'Ingresa $label.';
-    }
-    if (!RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(text)) {
-      return 'Usa letras, números, guion o guion bajo.';
-    }
-    return null;
-  }
-
-  String? _validateLoginName(String? value) {
-    final text = value?.trim() ?? '';
-    if (text.isEmpty) {
-      return 'Ingresa usuario.';
-    }
-    if (!RegExp(r'^[a-z0-9._-]+$').hasMatch(text)) {
-      return 'Usa minúsculas, números, punto, guion o guion bajo.';
-    }
-    return null;
-  }
-
-  String? _validateOrder(String? value) {
-    final text = value?.trim() ?? '';
-    if (text.isEmpty) {
-      return 'Ingresa orden.';
-    }
-    final parsed = int.tryParse(text);
-    if (parsed == null) {
-      return 'Debe ser un número entero.';
-    }
-    if (parsed < 0) {
-      return 'No puede ser negativo.';
-    }
-    return null;
-  }
-
-  bool _isValidRegex(String value) {
-    try {
-      RegExp(value);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  String? _validateAttributeRawValue(AttributeItem attr, String value) {
-    if (value.isEmpty) {
-      return null;
-    }
-    switch (attr.dataType) {
-      case 'integer':
-        return int.tryParse(value) == null ? 'Debe ser un entero.' : null;
-      case 'decimal':
-        return num.tryParse(value) == null ? 'Debe ser un decimal válido.' : null;
-      case 'date':
-        return DateTime.tryParse(value) == null ? 'Usa una fecha válida, por ejemplo 2026-03-15.' : null;
-      case 'boolean':
-        final normalized = value.toLowerCase();
-        return const {'true', 'false', '1', '0', 'si', 'sí', 'no'}.contains(normalized)
-            ? null
-            : 'Usa true/false, 1/0 o si/no.';
-      case 'json':
-        try {
-          jsonDecode(value);
-          return null;
-        } catch (_) {
-          return 'Ingresa JSON válido.';
-        }
-      default:
-        if (attr.extension.isNotEmpty) {
-          final maxLength = int.tryParse(attr.extension);
-          if (maxLength != null && value.length > maxLength) {
-            return 'Máximo $maxLength caracteres.';
-          }
-        }
-        if (attr.regex.isNotEmpty && !RegExp(attr.regex).hasMatch(value)) {
-          return 'No cumple la validación.';
-        }
-        return null;
-    }
-  }
-
-  NodeTypeItem? typeById(String id) {
-    for (final item in projectTypes) {
-      if (item.id == id) {
-        return item;
-      }
-    }
-    return null;
-  }
-
-  NodeItem? nodeById(String id) {
-    for (final item in projectNodes) {
-      if (item.id == id) {
-        return item;
-      }
-    }
-    return null;
-  }
-  List<NodeItem> childrenOf(String? parentId) => projectNodes.where((n) => n.parentId == parentId).toList();
-  List<NodeTypeItem> childTypesOf(String parentTypeId) {
-    final ids = projectRules.where((r) => r.parentTypeId == parentTypeId).map((r) => r.childTypeId).toSet();
-    return projectTypes.where((t) => ids.contains(t.id)).toList();
-  }
+  String attributeValueLabel(AttributeItem attr, String? rawValue) => renderAttributeValueLabel(attr, rawValue);
+  bool _hasAttributeValue(String? rawValue) => hasAttributeValue(rawValue);
+  String attributeSummary(AttributeItem attr) => renderAttributeSummary(attr, attributeTypeLabel);
+  int documentCountForNode(String nodeId) => readDocumentCount(nodeDocumentsByNodeId, nodeId);
+  TextInputType keyboardTypeForAttribute(String dataType) => keyboardTypeFor(dataType);
+  String? _validateRequired(String? value, String label) => validateRequired(value, label);
+  String? _validateProjectSlug(String? value, String? excludeProjectId) => validateProjectSlug(value, excludeProjectId, projects);
+  String? _validateIdentifierCode(String? value, {String label = 'código'}) => validateIdentifierCode(value, label: label);
+  String? _validateLoginName(String? value) => validateLoginName(value);
+  String? _validateOrder(String? value) => validateOrder(value);
+  bool _isValidRegex(String value) => isValidRegex(value);
+  String? _validateAttributeRawValue(AttributeItem attr, String value) => validateAttributeRawValue(attr, value);
+  NodeTypeItem? typeById(String id) => findTypeById(projectTypes, id);
+  NodeItem? nodeById(String id) => findNodeById(projectNodes, id);
+  List<NodeItem> childrenOf(String? parentId) => findChildrenByParent(projectNodes, parentId);
+  List<NodeTypeItem> childTypesOf(String parentTypeId) => findChildTypes(projectRules, projectTypes, parentTypeId);
 
   Future<void> addProject([Project? existing]) async {
     final name = TextEditingController(text: existing?.name ?? '');
@@ -3235,423 +3065,4 @@ class _HomePageState extends State<HomePage> {
     if (projectNodes.any((x) => x.parentId == n.id)) return snack('El nodo tiene hijos.');
     await _mutate(() => widget.api.deleteNode(n.projectId, n.id), selectProjectId: currentProjectId);
   }
-}
-
-class Project {
-  Project({
-    required this.id,
-    required this.name,
-    required this.slug,
-    required this.description,
-  });
-
-  factory Project.fromJson(Map<String, dynamic> json) => Project(
-        id: json['id'].toString(),
-        name: json['name'].toString(),
-        slug: json['slug'].toString(),
-        description: (json['description'] ?? '').toString(),
-      );
-
-  final String id;
-  final String name;
-  final String slug;
-  final String description;
-}
-
-class NodeTypeItem {
-  NodeTypeItem({
-    required this.id,
-    required this.projectId,
-    required this.code,
-    required this.name,
-    required this.description,
-    required this.root,
-    required this.acceptsDocs,
-    required this.iconKey,
-    required this.attributes,
-    required this.order,
-  });
-
-  factory NodeTypeItem.fromJson(Map<String, dynamic> json) => NodeTypeItem(
-        id: json['id'].toString(),
-        projectId: (json['projectId'] ?? json['projectid']).toString(),
-        code: json['code'].toString(),
-        name: json['name'].toString(),
-        description: (json['description'] ?? '').toString(),
-        root: json['root'] == true,
-        acceptsDocs: (json['acceptsDocs'] ?? json['acceptsdocs']) == true,
-        iconKey: (json['iconKey'] ?? json['iconkey'] ?? 'folder').toString(),
-        attributes: ((json['attributes'] as List?) ?? const [])
-            .map((item) => AttributeItem.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>())))
-            .toList(),
-        order: (json['order'] as num?)?.toInt() ?? 0,
-      );
-
-  final String id;
-  final String projectId;
-  final String code;
-  final String name;
-  final String description;
-  final bool root;
-  final bool acceptsDocs;
-  final String iconKey;
-  final List<AttributeItem> attributes;
-  final int order;
-}
-
-class DocumentTypeItem {
-  DocumentTypeItem({
-    required this.id,
-    required this.projectId,
-    required this.code,
-    required this.name,
-    required this.description,
-    required this.attributes,
-  });
-
-  factory DocumentTypeItem.fromJson(Map<String, dynamic> json) => DocumentTypeItem(
-        id: json['id'].toString(),
-        projectId: (json['projectId'] ?? json['projectid']).toString(),
-        code: json['code'].toString(),
-        name: json['name'].toString(),
-        description: (json['description'] ?? '').toString(),
-        attributes: ((json['attributes'] as List?) ?? const [])
-            .map((item) => AttributeItem.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>())))
-            .toList(),
-      );
-
-  final String id;
-  final String projectId;
-  final String code;
-  final String name;
-  final String description;
-  final List<AttributeItem> attributes;
-}
-
-class RuleItem {
-  RuleItem({
-    required this.id,
-    required this.projectId,
-    required this.parentTypeId,
-    required this.childTypeId,
-  });
-
-  factory RuleItem.fromJson(Map<String, dynamic> json) => RuleItem(
-        id: (json['id'] ?? '${json['parentTypeId'] ?? json['parenttypeid']}|${json['childTypeId'] ?? json['childtypeid']}').toString(),
-        projectId: (json['projectId'] ?? json['projectid']).toString(),
-        parentTypeId: (json['parentTypeId'] ?? json['parenttypeid']).toString(),
-        childTypeId: (json['childTypeId'] ?? json['childtypeid']).toString(),
-      );
-
-  final String id;
-  final String projectId;
-  final String parentTypeId;
-  final String childTypeId;
-}
-
-class NodeItem {
-  NodeItem({
-    required this.id,
-    required this.projectId,
-    required this.typeId,
-    required this.parentId,
-    required this.code,
-    required this.name,
-    required this.description,
-    required this.values,
-    required this.depth,
-    required this.order,
-  });
-
-  factory NodeItem.fromJson(Map<String, dynamic> json) => NodeItem(
-        id: json['id'].toString(),
-        projectId: (json['projectId'] ?? json['projectid']).toString(),
-        typeId: (json['typeId'] ?? json['typeid']).toString(),
-        parentId: ((json['parentId'] ?? json['parentid']) as String?)?.isEmpty == true ? null : (json['parentId'] ?? json['parentid'])?.toString(),
-        code: (json['code'] ?? '').toString(),
-        name: json['name'].toString(),
-        description: (json['description'] ?? '').toString(),
-        values: ((json['values'] as Map?) ?? const {})
-            .map((key, value) => MapEntry(key.toString(), value.toString())),
-        depth: (json['depth'] as num?)?.toInt() ?? 0,
-        order: (json['order'] as num?)?.toInt() ?? 0,
-      );
-
-  final String id;
-  final String projectId;
-  final String typeId;
-  final String? parentId;
-  final String code;
-  final String name;
-  final String description;
-  final Map<String, String> values;
-  final int depth;
-  final int order;
-}
-
-class NodeDocumentSummary {
-  const NodeDocumentSummary({
-    required this.id,
-    required this.title,
-    required this.documentTypeName,
-    required this.currentVersionNumber,
-    required this.pageCount,
-    required this.updatedAtLabel,
-  });
-
-  factory NodeDocumentSummary.fromJson(Map<String, dynamic> json) => NodeDocumentSummary(
-        id: json['id'].toString(),
-        title: (json['title'] ?? '').toString(),
-        documentTypeName: (json['documentTypeName'] ?? '').toString(),
-        currentVersionNumber: (json['currentVersionNumber'] as num?)?.toInt() ?? 1,
-        pageCount: (json['pageCount'] as num?)?.toInt() ?? 0,
-        updatedAtLabel: _formatDateTimeLabel((json['updatedAt'] ?? '').toString()),
-      );
-
-  final String id;
-  final String title;
-  final String documentTypeName;
-  final int currentVersionNumber;
-  final int pageCount;
-  final String updatedAtLabel;
-}
-
-class AttributeItem {
-  AttributeItem({
-    required this.id,
-    required this.name,
-    required this.code,
-    required this.dataType,
-    required this.extension,
-    required this.regex,
-    required this.options,
-  });
-
-  factory AttributeItem.fromJson(Map<String, dynamic> json) => AttributeItem(
-        id: json['id'].toString(),
-        name: json['name'].toString(),
-        code: json['code'].toString(),
-        dataType: (json['dataType'] ?? json['datatype']).toString(),
-        extension: (json['extension'] ?? '').toString(),
-        regex: (json['regex'] ?? '').toString(),
-        options: ((json['options'] as List?) ?? const [])
-            .map((item) => AttributeOptionItem.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>())))
-            .toList(),
-      );
-
-  final String id;
-  final String name;
-  final String code;
-  final String dataType;
-  final String extension;
-  final String regex;
-  final List<AttributeOptionItem> options;
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'code': code,
-        'dataType': dataType,
-        'extension': extension,
-        'regex': regex,
-        'options': options.map((item) => item.toJson()).toList(),
-      };
-}
-
-class AttributeOptionItem {
-  const AttributeOptionItem({
-    required this.id,
-    required this.code,
-    required this.label,
-  });
-
-  factory AttributeOptionItem.fromJson(Map<String, dynamic> json) => AttributeOptionItem(
-        id: json['id'].toString(),
-        code: json['code'].toString(),
-        label: json['label'].toString(),
-      );
-
-  final String id;
-  final String code;
-  final String label;
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'code': code,
-        'label': label,
-      };
-}
-
-class CurrentUser {
-  const CurrentUser({
-    required this.id,
-    required this.displayName,
-    required this.email,
-    required this.loginName,
-    required this.isPlatformAdmin,
-  });
-
-  factory CurrentUser.fromJson(Map<String, dynamic> json) => CurrentUser(
-        id: json['id'].toString(),
-        displayName: (json['displayName'] ?? '').toString(),
-        email: (json['email'] ?? '').toString(),
-        loginName: (json['loginName'] ?? '').toString(),
-        isPlatformAdmin: json['isPlatformAdmin'] == true,
-      );
-
-  final String id;
-  final String displayName;
-  final String email;
-  final String loginName;
-  final bool isPlatformAdmin;
-}
-
-class ProjectMembershipAccess {
-  const ProjectMembershipAccess({
-    required this.projectId,
-    required this.profileId,
-    required this.profileCode,
-    required this.profileName,
-    required this.permissionCodes,
-  });
-
-  factory ProjectMembershipAccess.fromJson(Map<String, dynamic> json) => ProjectMembershipAccess(
-        projectId: json['projectId'].toString(),
-        profileId: json['profileId'].toString(),
-        profileCode: json['profileCode'].toString(),
-        profileName: json['profileName'].toString(),
-        permissionCodes: ((json['permissionCodes'] as List?) ?? const []).map((item) => item.toString()).toList(),
-      );
-
-  final String projectId;
-  final String profileId;
-  final String profileCode;
-  final String profileName;
-  final List<String> permissionCodes;
-}
-
-class AuthSessionState {
-  const AuthSessionState({
-    required this.token,
-    required this.user,
-    required this.memberships,
-    required this.allPermissionCodes,
-  });
-
-  factory AuthSessionState.fromJson(Map<String, dynamic> json, {required String token}) => AuthSessionState(
-        token: token,
-        user: CurrentUser.fromJson(Map<String, dynamic>.from((json['user'] as Map).cast<String, dynamic>())),
-        memberships: ((json['memberships'] as List?) ?? const [])
-            .map((item) => ProjectMembershipAccess.fromJson(Map<String, dynamic>.from((item as Map).cast<String, dynamic>())))
-            .toList(),
-        allPermissionCodes: ((json['allPermissions'] as List?) ?? const []).map((item) => item.toString()).toList(),
-      );
-
-  final String token;
-  final CurrentUser user;
-  final List<ProjectMembershipAccess> memberships;
-  final List<String> allPermissionCodes;
-}
-
-String _formatDateTimeLabel(String value) {
-  if (value.trim().isEmpty) {
-    return 'sin fecha';
-  }
-  final parsed = DateTime.tryParse(value);
-  if (parsed == null) {
-    return value;
-  }
-  final local = parsed.toLocal();
-  String two(int number) => number.toString().padLeft(2, '0');
-  return '${two(local.day)}/${two(local.month)}/${local.year} ${two(local.hour)}:${two(local.minute)}';
-}
-
-class PermissionDefinition {
-  const PermissionDefinition({
-    required this.code,
-    required this.name,
-    required this.description,
-    required this.accessKind,
-  });
-
-  factory PermissionDefinition.fromJson(Map<String, dynamic> json) => PermissionDefinition(
-        code: json['code'].toString(),
-        name: json['name'].toString(),
-        description: (json['description'] ?? '').toString(),
-        accessKind: (json['accessKind'] ?? json['accesskind'] ?? '').toString(),
-      );
-
-  final String code;
-  final String name;
-  final String description;
-  final String accessKind;
-}
-
-class ProjectProfileItem {
-  const ProjectProfileItem({
-    required this.id,
-    required this.projectId,
-    required this.code,
-    required this.name,
-    required this.description,
-    required this.isSystem,
-    required this.isActive,
-    required this.permissionCodes,
-  });
-
-  factory ProjectProfileItem.fromJson(Map<String, dynamic> json) => ProjectProfileItem(
-        id: json['id'].toString(),
-        projectId: (json['projectId'] ?? json['projectid']).toString(),
-        code: json['code'].toString(),
-        name: json['name'].toString(),
-        description: (json['description'] ?? '').toString(),
-        isSystem: (json['isSystem'] ?? json['issystem']) == true,
-        isActive: (json['isActive'] ?? json['isactive']) != false,
-        permissionCodes: ((json['permissionCodes'] as List?) ?? const []).map((item) => item.toString()).toList(),
-      );
-
-  final String id;
-  final String projectId;
-  final String code;
-  final String name;
-  final String description;
-  final bool isSystem;
-  final bool isActive;
-  final List<String> permissionCodes;
-}
-
-class ProjectUserMembershipItem {
-  const ProjectUserMembershipItem({
-    required this.userId,
-    required this.profileId,
-    required this.profileCode,
-    required this.profileName,
-    required this.displayName,
-    required this.loginName,
-    required this.email,
-    required this.isActive,
-    this.userActive = true,
-  });
-
-  factory ProjectUserMembershipItem.fromJson(Map<String, dynamic> json) => ProjectUserMembershipItem(
-        userId: (json['userId'] ?? json['userid']).toString(),
-        profileId: (json['profileId'] ?? json['profileid']).toString(),
-        profileCode: (json['profileCode'] ?? json['profilecode']).toString(),
-        profileName: (json['profileName'] ?? json['profilename']).toString(),
-        displayName: (json['displayName'] ?? json['displayname']).toString(),
-        loginName: (json['loginName'] ?? json['loginname']).toString(),
-        email: (json['email'] ?? '').toString(),
-        isActive: (json['isActive'] ?? json['isactive']) != false,
-        userActive: (json['userActive'] ?? json['useractive']) != false,
-      );
-
-  final String userId;
-  final String profileId;
-  final String profileCode;
-  final String profileName;
-  final String displayName;
-  final String loginName;
-  final String email;
-  final bool isActive;
-  final bool userActive;
 }

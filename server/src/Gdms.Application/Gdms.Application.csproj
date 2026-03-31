@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gdms.Domain\Gdms.Domain.csproj" />
+    <ProjectReference Include="..\Gdms.Contracts\Gdms.Contracts.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <AssemblyName>Gdms.Application</AssemblyName>
+    <RootNamespace>Gdms.Application</RootNamespace>
+  </PropertyGroup>
+
+</Project>

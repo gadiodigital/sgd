@@ -97,14 +97,60 @@ internal sealed class LocalApiHost : IDisposable
             RunMode: appState.RunMode,
             StartupLogPath: appState.StartupLogPath,
             Scanner: scannerService.GetStatus(),
+            Sessions: scannerService.GetSessionStoreStatus(),
             Operations: scannerService.GetOperations(),
             Notes: "Host local inicial listo. La integracion con escaner y el flujo con SID se completaran en fases posteriores.")));
 
         app.MapGet("/api/operations", () => Results.Json(scannerService.GetOperations()));
+        app.MapGet("/api/sessions", () => Results.Json(scannerService.GetActiveSessions()));
+        app.MapDelete("/api/sessions", () => Results.Json(new ApiStatusResponse(
+            Application: appState.ApplicationName,
+            Version: appState.Version,
+            BaseUrl: BaseUrl,
+            StartedAtUtc: appState.StartedAtUtc,
+            RunMode: appState.RunMode,
+            StartupLogPath: appState.StartupLogPath,
+            Scanner: scannerService.GetStatus(),
+            Sessions: scannerService.ClearActiveSessions(),
+            Operations: scannerService.GetOperations(),
+            Notes: "Se vaciaron las sesiones activas del host local.")));
+        app.MapDelete("/api/sessions/stale", () => Results.Json(new ApiStatusResponse(
+            Application: appState.ApplicationName,
+            Version: appState.Version,
+            BaseUrl: BaseUrl,
+            StartedAtUtc: appState.StartedAtUtc,
+            RunMode: appState.RunMode,
+            StartupLogPath: appState.StartupLogPath,
+            Scanner: scannerService.GetStatus(),
+            Sessions: scannerService.ClearStaleSessions(),
+            Operations: scannerService.GetOperations(),
+            Notes: "Se vaciaron las sesiones inactivas del host local.")));
+        app.MapDelete("/api/sessions/rehydrated", () => Results.Json(new ApiStatusResponse(
+            Application: appState.ApplicationName,
+            Version: appState.Version,
+            BaseUrl: BaseUrl,
+            StartedAtUtc: appState.StartedAtUtc,
+            RunMode: appState.RunMode,
+            StartupLogPath: appState.StartupLogPath,
+            Scanner: scannerService.GetStatus(),
+            Sessions: scannerService.ClearRehydratedSessions(),
+            Operations: scannerService.GetOperations(),
+            Notes: "Se vaciaron las sesiones rehidratadas del host local.")));
+        app.MapPost("/api/sessions/cleanup", () => Results.Json(new ApiStatusResponse(
+            Application: appState.ApplicationName,
+            Version: appState.Version,
+            BaseUrl: BaseUrl,
+            StartedAtUtc: appState.StartedAtUtc,
+            RunMode: appState.RunMode,
+            StartupLogPath: appState.StartupLogPath,
+            Scanner: scannerService.GetStatus(),
+            Sessions: scannerService.CleanupSessionArtifacts(),
+            Operations: scannerService.GetOperations(),
+            Notes: "Se ejecuto una limpieza de artefactos de sesiones locales.")));
 
         app.MapGet("/api/scanners", () => Results.Json(scannerService.DiscoverScanners()));
         app.MapPost("/api/scanners/discover", () => Results.Json(scannerService.DiscoverScanners()));
-        app.MapPost("/api/scans/flatbed/single", () => NotImplemented("scan-flatbed-single"));
+        app.MapPost("/api/scans/flatbed/single", (ScanFlatbedSingleRequest? request) => Results.Json(scannerService.ScanFlatbedSingle(request)));
         app.MapPost("/api/scans/adf/simplex", (ScanAdfSimplexRequest? request) => Results.Json(scannerService.ScanAdfSimplex(request)));
         app.MapPost("/api/scans/adf/duplex", (ScanAdfDuplexRequest? request) => Results.Json(scannerService.ScanAdfDuplex(request)));
         app.MapGet("/api/scans/{sessionId}/pages/{pageNumber:int}/preview", (string sessionId, int pageNumber, int? width, int? height, int? quality) =>
@@ -329,6 +375,32 @@ internal sealed class LocalApiHost : IDisposable
                     message = "No existe una sesion con ese identificador."
                 })
                 : Results.Json(session);
+        });
+        app.MapDelete("/api/scans/{sessionId}", (string sessionId) =>
+        {
+            try
+            {
+                scannerService.DeleteSession(sessionId);
+                return Results.NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return Results.NotFound(new
+                {
+                    result = "not-found",
+                    sessionId,
+                    message = ex.Message
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.BadRequest(new
+                {
+                    result = "error",
+                    sessionId,
+                    message = ex.Message
+                });
+            }
         });
         app.MapGet("/api/scans/{sessionId}/pdf", (string sessionId) =>
         {

@@ -9,7 +9,11 @@ internal sealed class TwainScannerService : IScannerService
     private static readonly IReadOnlyList<ScanOperationDescriptor> Operations =
     [
         new("list-scanners", "Listar escaneres detectados por el host local via TWAIN.", "ready", "json"),
-        new("scan-flatbed-single", "Escanear una hoja desde cama plana.", "planned", "scan-session"),
+        new("clear-active-sessions", "Vaciar todas las sesiones activas del host local.", "ready", "json"),
+        new("clear-stale-sessions", "Vaciar sesiones inactivas del host local.", "ready", "json"),
+        new("clear-rehydrated-sessions", "Vaciar sesiones rehidratadas del host local.", "ready", "json"),
+        new("cleanup-session-artifacts", "Limpiar carpetas huerfanas de sesiones locales.", "ready", "json"),
+        new("scan-flatbed-single", "Escanear una hoja desde cama plana con parametros opcionales de dpi y pixelType.", "ready", "scan-session"),
         new("scan-adf-simplex", "Escanear todo el ADF de un solo lado con parametros opcionales de dpi, pixelType y descarte de paginas en blanco.", "ready", "scan-session"),
         new("scan-adf-duplex", "Escanear todo el ADF en doble faz con parametros opcionales de dpi, pixelType y descarte de paginas en blanco.", "ready", "scan-session"),
         new("get-session", "Consultar el estado y las paginas de una sesion de escaneo.", "ready", "json"),
@@ -30,12 +34,42 @@ internal sealed class TwainScannerService : IScannerService
             DriversReady: true,
             DeviceDiscoveryImplemented: true,
             ScanImplemented: true,
-            Message: $"Discovery TWAIN habilitado. Escaneo ADF simplex/duplex inicial habilitado. Arquitectura del proceso: {Environment.Is64BitProcess switch { true => "x64", false => "x86" }}.");
+            Message: $"Discovery TWAIN habilitado. Escaneo ADF simplex/duplex y flatbed single habilitado. Arquitectura del proceso: {Environment.Is64BitProcess switch { true => "x64", false => "x86" }}.");
+    }
+
+    public SessionStoreStatusResponse GetSessionStoreStatus()
+    {
+        return sessionStore.GetStatus();
+    }
+
+    public IReadOnlyList<ActiveScanSessionSummary> GetActiveSessions()
+    {
+        return sessionStore.ListActiveSessions();
     }
 
     public IReadOnlyList<ScanOperationDescriptor> GetOperations()
     {
         return Operations;
+    }
+
+    public SessionStoreStatusResponse CleanupSessionArtifacts()
+    {
+        return sessionStore.CleanupStaleArtifacts();
+    }
+
+    public SessionStoreStatusResponse ClearActiveSessions()
+    {
+        return sessionStore.ClearActiveSessions();
+    }
+
+    public SessionStoreStatusResponse ClearStaleSessions()
+    {
+        return sessionStore.ClearStaleSessions();
+    }
+
+    public SessionStoreStatusResponse ClearRehydratedSessions()
+    {
+        return sessionStore.ClearRehydratedSessions();
     }
 
     public ScannerDiscoveryResponse DiscoverScanners()
@@ -160,9 +194,60 @@ internal sealed class TwainScannerService : IScannerService
         }
     }
 
+    public ScanSessionResponse ScanFlatbedSingle(ScanFlatbedSingleRequest? request)
+    {
+        request ??= new ScanFlatbedSingleRequest(null, null);
+        var options = NormalizeRequest(request.TimeoutSeconds, request.Dpi, request.PixelType, request.DiscardBlankPages);
+
+        try
+        {
+            return twainThread.Invoke(() => ScanCore(
+                scannerId: request.ScannerId,
+                scannerName: request.ScannerName,
+                options: options,
+                mode: "flatbed-single",
+                useFeeder: false,
+                duplex: false));
+        }
+        catch (Exception ex)
+        {
+            StartupLog.Write("Error al ejecutar scan-flatbed-single: " + ex);
+
+            return new ScanSessionResponse(
+                Result: "error",
+                SessionId: string.Empty,
+                Status: "error",
+                CreatedAtUtc: DateTimeOffset.UtcNow,
+                ScannerName: request.ScannerName ?? "(no resuelto)",
+                Mode: "flatbed-single",
+                Settings: options.ToResponse(),
+                PageCount: 0,
+                Pages: [],
+                SessionPath: string.Empty,
+                Message: ex.Message);
+        }
+    }
+
     public ScanSessionResponse? GetSession(string sessionId)
     {
         return sessionStore.Get(sessionId);
+    }
+
+    public void DeleteSession(string sessionId)
+    {
+        try
+        {
+            sessionStore.DeleteSession(sessionId);
+        }
+        catch (KeyNotFoundException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            StartupLog.Write($"Error al eliminar la sesion {sessionId}: " + ex);
+            throw;
+        }
     }
 
     public ScanSessionResponse RotatePage(string sessionId, int pageNumber, RotatePageRequest? request)
@@ -312,6 +397,23 @@ internal sealed class TwainScannerService : IScannerService
 
     private ScanSessionResponse ScanAdfCore(int? scannerId, string? scannerName, ScanRequestOptions options, bool duplex)
     {
+        return ScanCore(
+            scannerId: scannerId,
+            scannerName: scannerName,
+            options: options,
+            mode: duplex ? "adf-duplex" : "adf-simplex",
+            useFeeder: true,
+            duplex: duplex);
+    }
+
+    private ScanSessionResponse ScanCore(
+        int? scannerId,
+        string? scannerName,
+        ScanRequestOptions options,
+        string mode,
+        bool useFeeder,
+        bool duplex)
+    {
         var session = new TwainSession(DataGroups.Control | DataGroups.Image);
         var openResult = session.Open();
         if (!IsSuccessful(openResult))
@@ -322,7 +424,6 @@ internal sealed class TwainScannerService : IScannerService
         try
         {
             var source = ResolveSource(session, scannerId, scannerName);
-            var mode = duplex ? "adf-duplex" : "adf-simplex";
             var completed = false;
             Exception? scanError = null;
             var timeout = TimeSpan.FromSeconds(Math.Clamp(options.TimeoutSeconds, 15, 300));
@@ -340,6 +441,10 @@ internal sealed class TwainScannerService : IScannerService
 
                     var pageNumber = sessionState.Pages.Count + 1;
                     SaveTransferredPage(sessionState, pageNumber, e, incomingPath);
+                    if (!useFeeder)
+                    {
+                        completed = true;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -375,7 +480,9 @@ internal sealed class TwainScannerService : IScannerService
 
             try
             {
-                var modeSettings = ConfigureAdf(source, options, duplex);
+                var modeSettings = useFeeder
+                    ? ConfigureAdf(source, options, duplex)
+                    : ConfigureFlatbed(source, options);
                 sessionState = sessionStore.Create(source.Name ?? $"scanner-{source.Id}", mode, modeSettings);
                 incomingPath = Path.Combine(sessionState.SessionPath, "incoming.bmp");
                 ConfigureFileTransfer(source, incomingPath);
@@ -411,7 +518,9 @@ internal sealed class TwainScannerService : IScannerService
                 sessionState.Status = sessionState.Pages.Count > 0 ? "completed" : "empty";
                 sessionState.Message = sessionState.Pages.Count > 0
                     ? $"Escaneo finalizado con {sessionState.Pages.Count} pagina(s)."
-                    : "No se capturaron paginas. Verificar si habia hojas cargadas en el ADF.";
+                    : useFeeder
+                        ? "No se capturaron paginas. Verificar si habia hojas cargadas en el ADF."
+                        : "No se capturo una pagina desde la cama plana.";
 
                 return sessionState.ToResponse();
             }
@@ -425,7 +534,7 @@ internal sealed class TwainScannerService : IScannerService
         }
         catch (Exception ex)
         {
-            StartupLog.Write($"Error durante {(duplex ? "scan-adf-duplex" : "scan-adf-simplex")}: " + ex);
+            StartupLog.Write($"Error durante {mode}: " + ex);
             throw;
         }
         finally
@@ -490,6 +599,33 @@ internal sealed class TwainScannerService : IScannerService
             Dpi: ReadAppliedDpi(source) ?? options.Dpi,
             PixelType: ToApiPixelType(ReadAppliedPixelType(source) ?? options.PixelType),
             DiscardBlankPages: ToApiBlankPageMode(ReadAppliedBlankPageHandling(source) ?? options.DiscardBlankPages),
+            TransferFormat: "bmp");
+    }
+
+    private static ScanSettingsResponse ConfigureFlatbed(DataSource source, ScanRequestOptions options)
+    {
+        if (source.Capabilities.CapFeederEnabled.IsSupported && source.Capabilities.CapFeederEnabled.CanSet)
+        {
+            EnsureSuccess(source.Capabilities.CapFeederEnabled.SetValue(BoolType.False), "CapFeederEnabled");
+        }
+
+        if (source.Capabilities.CapAutoFeed.IsSupported && source.Capabilities.CapAutoFeed.CanSet)
+        {
+            EnsureSuccess(source.Capabilities.CapAutoFeed.SetValue(BoolType.False), "CapAutoFeed");
+        }
+
+        if (source.Capabilities.CapDuplexEnabled.IsSupported && source.Capabilities.CapDuplexEnabled.CanSet)
+        {
+            EnsureSuccess(source.Capabilities.CapDuplexEnabled.SetValue(BoolType.False), "CapDuplexEnabled");
+        }
+
+        SetResolution(source, options.Dpi);
+        SetPixelType(source, options.PixelType);
+
+        return new ScanSettingsResponse(
+            Dpi: ReadAppliedDpi(source) ?? options.Dpi,
+            PixelType: ToApiPixelType(ReadAppliedPixelType(source) ?? options.PixelType),
+            DiscardBlankPages: "off",
             TransferFormat: "bmp");
     }
 

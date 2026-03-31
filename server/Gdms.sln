@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6ECF2AC8-CFA5-41C6-9933-865136860277}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gdms.Api", "src\Gdms.Api\Gdms.Api.csproj", "{51ADBF76-36BF-4AAA-948A-1034365B6DC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gdms.Application", "src\Gdms.Application\Gdms.Application.csproj", "{65933BA0-4B10-4949-971D-22F2F48B7E07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gdms.Domain", "src\Gdms.Domain\Gdms.Domain.csproj", "{536EFC0F-D0D7-43A9-AF4A-DD98DF7D31E6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gdms.Infrastructure", "src\Gdms.Infrastructure\Gdms.Infrastructure.csproj", "{88C22A03-FF2C-4E1F-A6BF-AE8B65D8C6DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gdms.Contracts", "src\Gdms.Contracts\Gdms.Contracts.csproj", "{B58669C4-8D2A-40CB-A551-9A3205CCD00A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{3CBB7FF1-C3F0-45FD-9088-5848032C6592}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gdms.ArchitectureTests", "tests\Gdms.ArchitectureTests\Gdms.ArchitectureTests.csproj", "{28988D35-AF94-45BA-9D93-D8476F941E08}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{51ADBF76-36BF-4AAA-948A-1034365B6DC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51ADBF76-36BF-4AAA-948A-1034365B6DC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51ADBF76-36BF-4AAA-948A-1034365B6DC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51ADBF76-36BF-4AAA-948A-1034365B6DC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65933BA0-4B10-4949-971D-22F2F48B7E07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65933BA0-4B10-4949-971D-22F2F48B7E07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65933BA0-4B10-4949-971D-22F2F48B7E07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65933BA0-4B10-4949-971D-22F2F48B7E07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{536EFC0F-D0D7-43A9-AF4A-DD98DF7D31E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{536EFC0F-D0D7-43A9-AF4A-DD98DF7D31E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{536EFC0F-D0D7-43A9-AF4A-DD98DF7D31E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{536EFC0F-D0D7-43A9-AF4A-DD98DF7D31E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{88C22A03-FF2C-4E1F-A6BF-AE8B65D8C6DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88C22A03-FF2C-4E1F-A6BF-AE8B65D8C6DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88C22A03-FF2C-4E1F-A6BF-AE8B65D8C6DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{88C22A03-FF2C-4E1F-A6BF-AE8B65D8C6DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B58669C4-8D2A-40CB-A551-9A3205CCD00A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B58669C4-8D2A-40CB-A551-9A3205CCD00A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B58669C4-8D2A-40CB-A551-9A3205CCD00A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B58669C4-8D2A-40CB-A551-9A3205CCD00A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28988D35-AF94-45BA-9D93-D8476F941E08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28988D35-AF94-45BA-9D93-D8476F941E08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28988D35-AF94-45BA-9D93-D8476F941E08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28988D35-AF94-45BA-9D93-D8476F941E08}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{51ADBF76-36BF-4AAA-948A-1034365B6DC1} = {6ECF2AC8-CFA5-41C6-9933-865136860277}
+		{65933BA0-4B10-4949-971D-22F2F48B7E07} = {6ECF2AC8-CFA5-41C6-9933-865136860277}
+		{536EFC0F-D0D7-43A9-AF4A-DD98DF7D31E6} = {6ECF2AC8-CFA5-41C6-9933-865136860277}
+		{88C22A03-FF2C-4E1F-A6BF-AE8B65D8C6DD} = {6ECF2AC8-CFA5-41C6-9933-865136860277}
+		{B58669C4-8D2A-40CB-A551-9A3205CCD00A} = {6ECF2AC8-CFA5-41C6-9933-865136860277}
+		{28988D35-AF94-45BA-9D93-D8476F941E08} = {3CBB7FF1-C3F0-45FD-9088-5848032C6592}
+	EndGlobalSection
+EndGlobal

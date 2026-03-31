@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Gdms.Contracts</AssemblyName>
+    <RootNamespace>Gdms.Contracts</RootNamespace>
+  </PropertyGroup>
+
+</Project>

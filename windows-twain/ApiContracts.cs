@@ -15,8 +15,25 @@ internal sealed record ApiStatusResponse(
     string RunMode,
     string StartupLogPath,
     ScannerStatusResponse Scanner,
+    SessionStoreStatusResponse Sessions,
     IReadOnlyList<ScanOperationDescriptor> Operations,
     string Notes);
+
+internal sealed record SessionStoreStatusResponse(
+    int ActiveSessions,
+    string SessionsRootPath,
+    DateTimeOffset? LastCleanupAtUtc,
+    int LastCleanupDeletedCount);
+
+internal sealed record ActiveScanSessionSummary(
+    string SessionId,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset LastTouchedAtUtc,
+    string ScannerName,
+    string Mode,
+    string Status,
+    int PageCount,
+    bool IsRehydrated);
 
 internal sealed record ScannerStatusResponse(
     bool DriversReady,
@@ -61,6 +78,14 @@ internal sealed record ScanAdfSimplexRequest(
     string? DiscardBlankPages = null);
 
 internal sealed record ScanAdfDuplexRequest(
+    int? ScannerId,
+    string? ScannerName,
+    int TimeoutSeconds = 90,
+    int? Dpi = null,
+    string? PixelType = null,
+    string? DiscardBlankPages = null);
+
+internal sealed record ScanFlatbedSingleRequest(
     int? ScannerId,
     string? ScannerName,
     int TimeoutSeconds = 90,

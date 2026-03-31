@@ -1,0 +1,11 @@
+name: gdms_workspace
+
+packages:
+  - apps/**
+  - packages/**
+
+scripts:
+  analyze:
+    run: flutter analyze
+  test:
+    run: flutter test

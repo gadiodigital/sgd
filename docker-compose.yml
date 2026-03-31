@@ -1,0 +1,34 @@
+services:
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: gdms/api:0.1.0
+    container_name: gdms-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      Postgres__MainDatabase: Host=postgres;Port=5432;Database=gdms;Username=gdms;Password=gdms_dev_password
+      Firebase__ProjectId: gdms-dev
+      Firebase__UseEmulator: "true"
+      Firebase__RemoteConfigTemplateName: gdms-default
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:18.3
+    container_name: gdms-postgres
+    environment:
+      POSTGRES_DB: gdms
+      POSTGRES_USER: gdms
+      POSTGRES_PASSWORD: gdms_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/scripts:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  postgres_data:

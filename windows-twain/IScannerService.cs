@@ -4,7 +4,17 @@ internal interface IScannerService
 {
     ScannerStatusResponse GetStatus();
 
+    SessionStoreStatusResponse GetSessionStoreStatus();
+
+    IReadOnlyList<ActiveScanSessionSummary> GetActiveSessions();
+
     IReadOnlyList<ScanOperationDescriptor> GetOperations();
+
+    SessionStoreStatusResponse CleanupSessionArtifacts();
+
+    SessionStoreStatusResponse ClearActiveSessions();
+    SessionStoreStatusResponse ClearStaleSessions();
+    SessionStoreStatusResponse ClearRehydratedSessions();
 
     ScannerDiscoveryResponse DiscoverScanners();
 
@@ -12,7 +22,11 @@ internal interface IScannerService
 
     ScanSessionResponse ScanAdfDuplex(ScanAdfDuplexRequest? request);
 
+    ScanSessionResponse ScanFlatbedSingle(ScanFlatbedSingleRequest? request);
+
     ScanSessionResponse? GetSession(string sessionId);
+
+    void DeleteSession(string sessionId);
 
     ScanSessionResponse RotatePage(string sessionId, int pageNumber, RotatePageRequest? request);
 

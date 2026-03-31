@@ -64,6 +64,10 @@ curl http://127.0.0.1:43127/api/operations
 Hoy expone estas operaciones:
 
 - `list-scanners`
+- `clear-active-sessions`
+- `clear-stale-sessions`
+- `clear-rehydrated-sessions`
+- `cleanup-session-artifacts`
 - `scan-flatbed-single`
 - `scan-adf-simplex`
 - `scan-adf-duplex`
@@ -77,6 +81,39 @@ Hoy expone estas operaciones:
 - `export-pdf`
 
 ## Descubrimiento de escáneres
+
+## Sesiones activas
+
+### `GET /api/sessions`
+
+Lista las sesiones activas que el host tiene en memoria. Si el proceso reinició y pudo rehidratar sesiones desde disco, también aparecen acá.
+
+Cada entrada devuelve, además de `sessionId`, `createdAtUtc`, `scannerName`, `mode`, `status` y `pageCount`, estos campos nuevos:
+
+- `lastTouchedAtUtc`: última actividad conocida de la sesión.
+- `isRehydrated`: `true` si la sesión fue recuperada desde disco tras reiniciar el host.
+
+Uso:
+
+```bash
+curl http://127.0.0.1:43127/api/sessions
+```
+
+### `DELETE /api/sessions`
+
+Vacía todas las sesiones activas del host local.
+
+### `DELETE /api/sessions/stale`
+
+Vacía las sesiones inactivas. Hoy se consideran inactivas las que no tuvieron actividad en las últimas 2 horas.
+
+### `DELETE /api/sessions/rehydrated`
+
+Vacía solo las sesiones rehidratadas tras reinicio del host.
+
+### `POST /api/sessions/cleanup`
+
+Limpia carpetas huérfanas de sesiones que ya no siguen activas en memoria.
 
 ### `GET /api/scanners`
 
@@ -239,28 +276,74 @@ Errores frecuentes en `message`:
 
 ### `POST /api/scans/flatbed/single`
 
-Existe pero no está implementado.
+Escanea una sola hoja desde cama plana.
 
 Uso:
 
 ```bash
-curl -X POST http://127.0.0.1:43127/api/scans/flatbed/single
+curl -X POST http://127.0.0.1:43127/api/scans/flatbed/single \
+  -H "Content-Type: application/json" \
+  -d "{\"scannerId\":0,\"dpi\":300,\"pixelType\":\"gray\"}"
 ```
+
+Parámetros:
+
+- reutiliza `scannerId`, `scannerName`, `timeoutSeconds`, `dpi` y `pixelType`;
+- acepta `discardBlankPages` por compatibilidad de contrato, pero la respuesta efectiva vuelve `off`;
+- siempre genera una sesión en modo `flatbed-single`.
 
 Respuesta:
 
-```json
-{
-  "operationId": "scan-flatbed-single",
-  "result": "not-ready",
-  "message": "La operacion existe pero todavia no esta implementada en esta fase.",
-  "timestampUtc": "2026-03-15T16:20:00.0000000+00:00"
-}
-```
-
-Status HTTP: `501 Not Implemented`
+- `200` con el mismo esquema de `ScanSessionResponse`;
+- `status = completed` si se capturó una página;
+- `status = empty` si no se capturó ninguna.
 
 ## Sesiones
+
+### `GET /api/sessions`
+
+Lista las sesiones locales activas que el host mantiene en memoria.
+
+Uso:
+
+```bash
+curl http://127.0.0.1:43127/api/sessions
+```
+
+Respuesta ejemplo:
+
+```json
+[
+  {
+    "sessionId": "378140186ee342e29239b86d6b86be8f",
+    "createdAtUtc": "2026-03-15T16:20:00.0000000+00:00",
+    "scannerName": "EPSON DS-570W",
+    "mode": "adf-duplex",
+    "status": "completed",
+    "pageCount": 2
+  }
+]
+```
+
+Notas:
+
+- si no hay sesiones activas, devuelve `[]`;
+- sirve para reanudar sesiones después de cerrar la UI cliente sin perder el estado local del host.
+
+### `DELETE /api/sessions`
+
+Descarta todas las sesiones activas que el host mantiene en memoria.
+
+Uso:
+
+```bash
+curl -X DELETE http://127.0.0.1:43127/api/sessions
+```
+
+Notas:
+
+- elimina las sesiones vivas del host local;
+- si algun archivo queda bloqueado en disco, el artefacto restante pasa a quedar como huérfano y se puede limpiar luego con `POST /api/sessions/cleanup`.
 
 ### `GET /api/scans/{sessionId}`
 

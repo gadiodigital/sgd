@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Gdms.Domain</AssemblyName>
+    <RootNamespace>Gdms.Domain</RootNamespace>
+  </PropertyGroup>
+
+</Project>

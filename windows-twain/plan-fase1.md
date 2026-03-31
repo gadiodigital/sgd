@@ -21,7 +21,7 @@
 - [x] `GET /api/scans/{sessionId}` devuelve la sesion creada.
 - [x] `GET /api/scans/{sessionId}/pages/{pageNumber}/preview` devuelve un JPEG liviano por pagina.
 - [x] `GET /api/scans/{sessionId}/pdf` exporta y devuelve el PDF.
-- [ ] `POST /api/scans/flatbed/single`.
+- [x] `POST /api/scans/flatbed/single`.
 - [x] Rotacion de paginas.
 - [x] Eliminacion de paginas.
 - [x] Prueba browser -> localhost para CORS/HTTP.
@@ -256,7 +256,7 @@
 - [x] `GET /api/operations`
 - [x] `GET /api/scanners`
 - [x] `POST /api/scanners/discover`
-- [ ] `POST /api/scans/flatbed/single`
+- [x] `POST /api/scans/flatbed/single`
 - [x] `POST /api/scans/adf/simplex`
 - [x] `POST /api/scans/adf/duplex`
 - [x] `GET /api/scans/{sessionId}`
@@ -299,7 +299,7 @@
 - [x] Validar descarte automatico de paginas en blanco con TWAIN.
 - [x] Validar DPI y modo de color configurables.
 - [x] Validar preview por pagina para navegador.
-- [ ] Validar flatbed.
+- [x] Implementar `flatbed single` en API y cliente Flutter.
 - [x] Validar escaner sin hojas.
 - [x] Validar escaner sin hojas desde `PruebaEscaner.aspx`.
 - [ ] Validar manejo de errores y timeouts.
@@ -353,4 +353,4 @@
 - [x] Smoke test `ADF simplex` desde `PruebaEscaner1.aspx`:
   - sesion `019771fcc2e34eab8e1b404b485d01e2`
   - `3` paginas capturadas
-- [ ] Validar `flatbed` con otro escaner cuando el usuario lo configure.
+- [ ] Validar `flatbed` con hardware real cuando el usuario lo configure.

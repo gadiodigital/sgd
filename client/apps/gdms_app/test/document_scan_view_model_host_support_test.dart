@@ -124,6 +124,100 @@ void main() {
     );
   });
 
+  test('refreshHostSnapshot recompone estado cuando el host vuelve a responder', () async {
+    var hostAvailable = false;
+
+    final client = MockClient((request) async {
+      if (request.url.path == '/health') {
+        return hostAvailable
+            ? http.Response(jsonEncode({'status': 'ok'}), 200)
+            : http.Response('down', 503);
+      }
+      if (request.url.path == '/api/status') {
+        return http.Response(
+          jsonEncode({
+            'application': 'windows-twain',
+            'version': '1.0.0',
+            'runMode': 'service',
+            'operations': [
+              {'id': 'scan-adf-duplex', 'availability': 'ready'},
+            ],
+          }),
+          200,
+        );
+      }
+      if (request.url.path == '/api/sessions') {
+        return http.Response(
+          jsonEncode([
+            {
+              'sessionId': 's-recovered',
+              'createdAtUtc': '2026-03-31T10:00:00Z',
+              'lastTouchedAtUtc': '2026-03-31T10:10:00Z',
+              'scannerName': 'Brother ADS',
+              'mode': 'adf-duplex',
+              'status': 'completed',
+              'pageCount': 3,
+              'isRehydrated': true,
+            },
+          ]),
+          200,
+        );
+      }
+      if (request.url.path == '/api/scanners') {
+        return http.Response(
+          jsonEncode({
+            'scanners': [
+              {
+                'id': 7,
+                'name': 'Brother ADS',
+                'manufacturer': 'Brother',
+                'productFamily': 'ADS',
+                'twainVersion': '2.4',
+                'isOpen': false,
+              },
+            ],
+          }),
+          200,
+        );
+      }
+
+      return http.Response('not-found', 404);
+    });
+
+    final vm = buildViewModel(client);
+
+    await DocumentScanViewModelHostSupport.refreshHostSnapshot(
+      vm,
+      forceDiscover: false,
+      preserveMessage: false,
+    );
+
+    expect(vm.serviceAvailable, isFalse);
+    expect(vm.serviceStatus, isNull);
+    expect(vm.activeSessions, isEmpty);
+    expect(
+      vm.message,
+      'El servicio windows-twain no responde en http://127.0.0.1:43127.',
+    );
+
+    hostAvailable = true;
+
+    await DocumentScanViewModelHostSupport.refreshHostSnapshot(
+      vm,
+      forceDiscover: false,
+      preserveMessage: false,
+    );
+
+    expect(vm.serviceAvailable, isTrue);
+    expect(vm.serviceStatus, isNotNull);
+    expect(vm.scanners, hasLength(1));
+    expect(vm.selectedScanner?.name, 'Brother ADS');
+    expect(vm.activeSessions, hasLength(1));
+    expect(vm.activeSessions.single.sessionId, 's-recovered');
+    expect(vm.activeSessions.single.isRehydrated, isTrue);
+    expect(vm.message, 'Selecciona el escaner y dispara el escaneo.');
+  });
+
   test('clearActiveSessions limpia scan actual y referencia persistida', () async {
     final client = MockClient((request) async {
       if (request.url.path == '/api/sessions' && request.method == 'DELETE') {

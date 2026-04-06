@@ -108,6 +108,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\quality\validate_workspace.ps
 El detalle del plan de desarrollo y del roadmap está en:
 
 - [wiki.md](C:\IA\codex\wiki.md)
+- [docs\plan_desarrollo_sesiones_grandes.md](C:\IA\codex\docs\plan_desarrollo_sesiones_grandes.md)
 
 ## Manual de uso
 

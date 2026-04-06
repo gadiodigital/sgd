@@ -5,6 +5,7 @@ namespace WindowsTwain;
 internal static class Program
 {
     private const string SingleInstanceMutexName = @"Local\windows-twain-single-instance";
+    private const string SingleInstanceMutexEnvironmentVariableName = "WINDOWS_TWAIN_SINGLE_INSTANCE_MUTEX_NAME";
 
     [STAThread]
     private static void Main()
@@ -12,7 +13,7 @@ internal static class Program
         var runMode = RunMode.Parse(Environment.GetCommandLineArgs().Skip(1));
         StartupLog.Write($"Inicio de windows-twain en modo {runMode.Name}.");
 
-        using var mutex = new Mutex(initiallyOwned: true, SingleInstanceMutexName, out var createdNew);
+        using var mutex = new Mutex(initiallyOwned: true, ResolveMutexName(), out var createdNew);
         if (!createdNew)
         {
             StartupLog.Write("Se detecto una segunda instancia y se cancelo el inicio.");
@@ -71,5 +72,13 @@ internal static class Program
             .Build();
 
         return configuration.GetSection(ApiOptions.SectionName).Get<ApiOptions>() ?? new ApiOptions();
+    }
+
+    private static string ResolveMutexName()
+    {
+        var configuredName = Environment.GetEnvironmentVariable(SingleInstanceMutexEnvironmentVariableName)?.Trim();
+        return string.IsNullOrWhiteSpace(configuredName)
+            ? SingleInstanceMutexName
+            : configuredName;
     }
 }

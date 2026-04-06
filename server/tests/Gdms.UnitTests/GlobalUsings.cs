@@ -1,0 +1,9 @@
+global using Gdms.Application.Abstractions.Persistence;
+global using Gdms.Application.Abstractions.Security;
+global using Gdms.Application.Identity;
+global using Gdms.Application.Tenants;
+global using Gdms.Domain.Common;
+global using Gdms.Domain.Documents;
+global using Gdms.Domain.Identity;
+global using Gdms.Domain.Tenancy;
+global using Xunit;

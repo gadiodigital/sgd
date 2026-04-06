@@ -41,7 +41,7 @@ public sealed class PostgresWorkflowTaskRepository : IWorkflowTaskRepository
                 completed_at_utc
             FROM workflow.workflow_tasks
             WHERE tenant_id = @tenant_id
-              AND (@assigned_to_user_id IS NULL OR assigned_to_user_id = @assigned_to_user_id)
+              AND (CAST(@assigned_to_user_id AS uuid) IS NULL OR assigned_to_user_id = @assigned_to_user_id)
             ORDER BY
                 CASE status WHEN 'OPEN' THEN 0 ELSE 1 END,
                 COALESCE(due_at_utc, created_at_utc),

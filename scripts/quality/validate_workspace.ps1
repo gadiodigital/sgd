@@ -33,26 +33,26 @@ Invoke-Step -Name ".NET test" -Action {
     dotnet test "$workspaceRoot\server\Gdms.sln" --no-build
 }
 
-$flutterTargets = @(
-    "$workspaceRoot\client\apps\gdms_app",
-    "$workspaceRoot\client\packages\core",
-    "$workspaceRoot\client\packages\design_system",
-    "$workspaceRoot\client\packages\feature_auth",
-    "$workspaceRoot\client\packages\feature_config",
-    "$workspaceRoot\client\packages\feature_documents",
-    "$workspaceRoot\client\packages\feature_integrations",
-    "$workspaceRoot\client\packages\feature_notifications",
-    "$workspaceRoot\client\packages\feature_records",
-    "$workspaceRoot\client\packages\feature_reports",
-    "$workspaceRoot\client\packages\feature_search",
-    "$workspaceRoot\client\packages\feature_signature",
-    "$workspaceRoot\client\packages\feature_sector_corporate",
-    "$workspaceRoot\client\packages\feature_sector_legal",
-    "$workspaceRoot\client\packages\feature_sector_real_estate",
-    "$workspaceRoot\client\packages\feature_admin",
-    "$workspaceRoot\client\packages\feature_audit",
-    "$workspaceRoot\client\packages\feature_workflow"
-)
+$postgresIntegrationConnection = [Environment]::GetEnvironmentVariable("GDMS_TEST_POSTGRES_CONNECTION")
+if (-not [string]::IsNullOrWhiteSpace($postgresIntegrationConnection)) {
+    Invoke-Step -Name ".NET integration test" -Action {
+        dotnet test "$workspaceRoot\server\tests\Gdms.IntegrationTests\Gdms.IntegrationTests.csproj" --no-build
+    }
+}
+else {
+    Write-Host "=== .NET integration test ===" -ForegroundColor Cyan
+    Write-Host "Omitido: definir GDMS_TEST_POSTGRES_CONNECTION para ejecutar integration tests de PostgreSQL." -ForegroundColor Yellow
+}
+
+Invoke-Step -Name "windows-twain build" -Action {
+    dotnet build "$workspaceRoot\windows-twain\windows-twain.csproj"
+}
+
+Invoke-Step -Name "Database scripts" -Action {
+    & "$workspaceRoot\scripts\quality\validate_database_scripts.ps1" -WorkspaceRoot $workspaceRoot
+}
+
+$flutterTargets = & "$workspaceRoot\scripts\quality\get_flutter_targets.ps1" -WorkspaceRoot $workspaceRoot
 
 foreach ($target in $flutterTargets) {
     Invoke-Step -Name "Flutter analyze :: $target" -Action {

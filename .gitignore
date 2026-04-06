@@ -90,6 +90,8 @@ packages/
 !client/packages/**
 !client/apps/
 !client/apps/**
+client/apps/**/coverage/
+client/packages/**/coverage/
 
 # -----------------------------------------------------------------------------
 # Android signing and machine-local files

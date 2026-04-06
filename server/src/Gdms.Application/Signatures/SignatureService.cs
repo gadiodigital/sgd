@@ -190,7 +190,7 @@ public sealed class SignatureService
             actorUserId,
             envelope.DocumentId,
             "SIGNATURE_CANCELLED",
-            "WARN",
+            "WARNING",
             JsonSerializer.Serialize(new
             {
                 envelope.Id,

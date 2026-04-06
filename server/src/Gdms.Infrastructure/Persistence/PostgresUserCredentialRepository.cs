@@ -30,7 +30,7 @@ public sealed class PostgresUserCredentialRepository : IUserCredentialRepository
             SELECT
                 u.user_id,
                 u.tenant_id,
-                u.email,
+                u.email::text,
                 u.full_name,
                 u.status,
                 u.created_at_utc,

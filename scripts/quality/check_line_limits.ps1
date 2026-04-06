@@ -8,7 +8,8 @@ $ErrorActionPreference = "Stop"
 
 $targets = @(
     (Join-Path $WorkspaceRoot "server\src"),
-    (Join-Path $WorkspaceRoot "client")
+    (Join-Path $WorkspaceRoot "client"),
+    (Join-Path $WorkspaceRoot "windows-twain")
 )
 
 $violations = @()

@@ -87,6 +87,7 @@ Leer:
 1. [contexto_handoff.md](C:\IA\codex\contexto_handoff.md)
 2. [client\README.md](C:\IA\codex\client\README.md)
 3. [database\scripts\README.md](C:\IA\codex\database\scripts\README.md)
+4. [docs\plan_desarrollo_sesiones_grandes.md](C:\IA\codex\docs\plan_desarrollo_sesiones_grandes.md)
 
 ## 5. Estado actual resumido
 
@@ -199,6 +200,10 @@ Incluye:
 - runbooks operativos.
 
 Estado: `pendiente parcial`
+
+Plan operativo complementario para sesiones grandes:
+
+- [docs\plan_desarrollo_sesiones_grandes.md](C:\IA\codex\docs\plan_desarrollo_sesiones_grandes.md)
 
 ## 7. Roadmap
 

@@ -1,7 +1,9 @@
 import 'package:design_system/design_system.dart';
 import 'package:flutter/material.dart';
+
 import '../application/signature_view_model.dart';
 import '../domain/signature_envelope_item.dart';
+import 'signature_request_cancel_dialog.dart';
 
 /// Renders the document signature dashboard.
 class SignatureDashboardPage extends StatefulWidget {
@@ -258,39 +260,16 @@ extension on _SignatureDashboardPageState {
     _queryController.clear();
     widget.viewModel.clearFilters();
   }
+
   Future<void> _openCancelDialog(
     BuildContext context,
     SignatureEnvelopeItem item,
   ) async {
-    final controller = TextEditingController();
-    final confirmed = await showDialog<bool>(
+    final reason = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Cancelar solicitud de firma'),
-        content: TextField(
-          controller: controller,
-          minLines: 2,
-          maxLines: 4,
-          decoration: const InputDecoration(
-            labelText: 'Motivo',
-            hintText: 'Describí el motivo de cancelación',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cerrar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Cancelar solicitud'),
-          ),
-        ],
-      ),
+      builder: (_) => const SignatureRequestCancelDialog(),
     );
-    final reason = controller.text.trim();
-    controller.dispose();
-    if (confirmed != true || reason.length < 5) {
+    if (reason == null || reason.isEmpty) {
       return;
     }
 

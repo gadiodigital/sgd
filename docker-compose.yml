@@ -6,16 +6,22 @@ services:
     image: gdms/api:0.1.0
     container_name: gdms-api
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_ENVIRONMENT: ${GDMS_ASPNETCORE_ENVIRONMENT:-Development}
       ASPNETCORE_URLS: http://+:8080
-      Postgres__MainDatabase: Host=postgres;Port=5432;Database=gdms;Username=gdms;Password=gdms_dev_password
-      Firebase__ProjectId: gdms-dev
-      Firebase__UseEmulator: "true"
-      Firebase__RemoteConfigTemplateName: gdms-default
+      Postgres__MainDatabase: Host=postgres;Port=5432;Database=gdms;Username=gdms;Password=${GDMS_POSTGRES_PASSWORD:-gdms_dev_password}
+      Firebase__ProjectId: ${GDMS_FIREBASE_PROJECT_ID:-gdms-dev}
+      Firebase__UseEmulator: "${GDMS_FIREBASE_USE_EMULATOR:-true}"
+      Firebase__RemoteConfigTemplateName: ${GDMS_FIREBASE_REMOTE_CONFIG_TEMPLATE:-gdms-default}
+      ApiRuntime__EnableHttpsRedirection: "${GDMS_API_ENABLE_HTTPS_REDIRECTION:-true}"
+      Jwt__Issuer: ${GDMS_JWT_ISSUER:-gdms-api-dev}
+      Jwt__Audience: ${GDMS_JWT_AUDIENCE:-gdms-clients-dev}
+      Jwt__SigningKey: ${GDMS_JWT_SIGNING_KEY:-}
     ports:
       - "8080:8080"
     depends_on:
       - postgres
+    volumes:
+      - api_data_protection:/root/.aspnet/DataProtection-Keys
 
   postgres:
     image: postgres:18.3
@@ -23,7 +29,7 @@ services:
     environment:
       POSTGRES_DB: gdms
       POSTGRES_USER: gdms
-      POSTGRES_PASSWORD: gdms_dev_password
+      POSTGRES_PASSWORD: ${GDMS_POSTGRES_PASSWORD:-gdms_dev_password}
     ports:
       - "5433:5432"
     volumes:
@@ -32,3 +38,4 @@ services:
 
 volumes:
   postgres_data:
+  api_data_protection:

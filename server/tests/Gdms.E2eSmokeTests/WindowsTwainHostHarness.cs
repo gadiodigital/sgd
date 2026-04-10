@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace Gdms.E2eSmokeTests;
 
 internal sealed class WindowsTwainHostHarness : IAsyncDisposable
@@ -6,6 +8,7 @@ internal sealed class WindowsTwainHostHarness : IAsyncDisposable
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn4nWQAAAAASUVORK5CYII=");
 
     private readonly IReadOnlyList<SeededSession> seededSessions;
+    private readonly IReadOnlyDictionary<string, string> environmentOverrides;
     private readonly string host;
     private readonly int port;
     private readonly string mutexName;
@@ -19,8 +22,16 @@ internal sealed class WindowsTwainHostHarness : IAsyncDisposable
     }
 
     public WindowsTwainHostHarness(IReadOnlyList<SeededSession> seededSessions)
+        : this(seededSessions, new Dictionary<string, string>())
+    {
+    }
+
+    public WindowsTwainHostHarness(
+        IReadOnlyList<SeededSession> seededSessions,
+        IReadOnlyDictionary<string, string> environmentOverrides)
     {
         this.seededSessions = seededSessions;
+        this.environmentOverrides = environmentOverrides;
         host = "127.0.0.1";
         port = Random.Shared.Next(44000, 44999);
         mutexName = $@"Local\windows-twain-e2e-{Guid.NewGuid():N}";
@@ -32,13 +43,17 @@ internal sealed class WindowsTwainHostHarness : IAsyncDisposable
     public string BaseUrl { get; }
     public string SessionsRootPath => sessionsRootPath;
 
-    public async Task StartAsync()
+    public async Task StartAsync(bool resetSessionsRoot = true)
     {
         if (process is not null && !process.HasExited)
         {
             return;
         }
 
+        if (resetSessionsRoot)
+        {
+            ResetSessionsRoot();
+        }
         foreach (var session in seededSessions)
         {
             await SeedSessionAsync(session);
@@ -59,15 +74,20 @@ internal sealed class WindowsTwainHostHarness : IAsyncDisposable
         process.StartInfo.Environment["WINDOWS_TWAIN_API__HOST"] = host;
         process.StartInfo.Environment["WINDOWS_TWAIN_API__PORT"] = port.ToString();
         process.StartInfo.Environment["WINDOWS_TWAIN_SINGLE_INSTANCE_MUTEX_NAME"] = mutexName;
+        foreach (var (key, value) in environmentOverrides)
+        {
+            process.StartInfo.Environment[key] = value;
+        }
         process.Start();
 
         await WaitUntilReadyAsync();
+        await WaitUntilSeededSessionsAreVisibleAsync();
     }
 
     public async Task RestartAsync()
     {
         await StopHostAsync();
-        await StartAsync();
+        await StartAsync(resetSessionsRoot: false);
     }
 
     public async Task StopHostAsync()
@@ -87,15 +107,7 @@ internal sealed class WindowsTwainHostHarness : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await StopHostAsync();
-
-        foreach (var session in seededSessions)
-        {
-            var sessionPath = Path.Combine(sessionsRootPath, session.SessionId);
-            if (Directory.Exists(sessionPath))
-            {
-                Directory.Delete(sessionPath, recursive: true);
-            }
-        }
+        ResetSessionsRoot();
     }
 
     private async Task SeedSessionAsync(SeededSession session)
@@ -113,6 +125,28 @@ internal sealed class WindowsTwainHostHarness : IAsyncDisposable
             var filePath = Path.Combine(sessionPath, $"page-{pageNumber:000}.png");
             await File.WriteAllBytesAsync(filePath, SeedPngBytes);
         }
+
+        var timestampUtc = DateTimeOffset.UtcNow;
+        var metadata = new
+        {
+            CreatedAtUtc = timestampUtc,
+            LastTouchedAtUtc = timestampUtc,
+            ScannerName = "Sesion recuperada",
+            Mode = session.PageCount <= 1 ? "flatbed-single" : "adf-simplex",
+            Settings = new
+            {
+                Dpi = 300,
+                PixelType = "color",
+                DiscardBlankPages = "off",
+                TransferFormat = "png"
+            },
+            Status = "completed",
+            Message = "Sesion rehidratada desde disco.",
+            ArtifactRevision = 1,
+            IsRehydrated = true
+        };
+        var metadataPath = Path.Combine(sessionPath, "session.json");
+        await File.WriteAllTextAsync(metadataPath, JsonSerializer.Serialize(metadata));
     }
 
     public async Task<string> SeedOrphanedSessionArtifactAsync(string sessionId, int pageCount, DateTimeOffset lastWriteTimeUtc)
@@ -133,6 +167,15 @@ internal sealed class WindowsTwainHostHarness : IAsyncDisposable
         }
 
         return sessionPath;
+    }
+
+    private void ResetSessionsRoot()
+    {
+        Directory.CreateDirectory(sessionsRootPath);
+        foreach (var sessionPath in Directory.EnumerateDirectories(sessionsRootPath))
+        {
+            Directory.Delete(sessionPath, recursive: true);
+        }
     }
 
     private async Task WaitUntilReadyAsync()
@@ -169,6 +212,42 @@ internal sealed class WindowsTwainHostHarness : IAsyncDisposable
         }
 
         throw new TimeoutException("windows-twain no expuso /health dentro del tiempo esperado.");
+    }
+
+    private async Task WaitUntilSeededSessionsAreVisibleAsync()
+    {
+        if (seededSessions.Count == 0)
+        {
+            return;
+        }
+
+        using var client = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+        var startedAt = DateTimeOffset.UtcNow;
+
+        while (DateTimeOffset.UtcNow - startedAt < TimeSpan.FromSeconds(15))
+        {
+            try
+            {
+                var sessions = await client.GetFromJsonAsync<JsonElement>($"{BaseUrl}/api/sessions");
+                if (sessions.ValueKind == JsonValueKind.Array &&
+                    seededSessions.All(seed =>
+                        sessions.EnumerateArray().Any(session =>
+                            string.Equals(session.GetProperty("sessionId").GetString(), seed.SessionId, StringComparison.Ordinal))))
+                {
+                    return;
+                }
+            }
+            catch (HttpRequestException)
+            {
+            }
+            catch (TaskCanceledException)
+            {
+            }
+
+            await Task.Delay(250);
+        }
+
+        throw new TimeoutException("windows-twain no expuso las sesiones seed dentro del tiempo esperado.");
     }
 
     private static string ResolveRepositoryRoot()

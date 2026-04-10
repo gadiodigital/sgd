@@ -10,6 +10,7 @@ class ScanPreviewSection extends StatelessWidget {
   const ScanPreviewSection({
     required this.scannedFile,
     required this.previewBytes,
+    required this.serviceAvailable,
     required this.currentPage,
     required this.sessionDetails,
     required this.canShowPreviousPage,
@@ -43,6 +44,7 @@ class ScanPreviewSection extends StatelessWidget {
 
   final ScannedDocumentFile scannedFile;
   final List<int>? previewBytes;
+  final bool serviceAvailable;
   final int currentPage;
   final ScanSessionDetails? sessionDetails;
   final bool canShowPreviousPage;
@@ -85,6 +87,9 @@ class ScanPreviewSection extends StatelessWidget {
     final helperText = isFlatbed
         ? 'La preview permite releer la sesion, reordenar, sumar nuevas hojas desde cama plana y corregir paginas.'
         : 'La preview permite releer la sesion, navegar, reordenar, anexar y corregir paginas.';
+    final refreshLabel = serviceAvailable
+        ? 'Releer sesión'
+        : 'Reintentar conexión';
     return GdmsSectionCard(
       title: 'Previsualizacion',
       subtitle:
@@ -123,6 +128,14 @@ class ScanPreviewSection extends StatelessWidget {
               ),
           ],
           const SizedBox(height: 12),
+          if (!serviceAvailable) ...[
+            const GdmsStatusBadge(
+              label:
+                  'El host local no responde. Puedes reintentar la conexión para recuperar la sesión activa.',
+              tone: GdmsStatusTone.warning,
+            ),
+            const SizedBox(height: 12),
+          ],
           Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -142,7 +155,7 @@ class ScanPreviewSection extends StatelessWidget {
                     ? onRefreshSessionRequested
                     : null,
                 icon: const Icon(Icons.sync),
-                label: const Text('Releer sesión'),
+                label: Text(refreshLabel),
               ),
               OutlinedButton.icon(
                 onPressed: !isBusy && canShowPreviousPage

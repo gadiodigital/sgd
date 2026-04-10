@@ -109,6 +109,10 @@ El detalle del plan de desarrollo y del roadmap está en:
 
 - [wiki.md](C:\IA\codex\wiki.md)
 - [docs\plan_desarrollo_sesiones_grandes.md](C:\IA\codex\docs\plan_desarrollo_sesiones_grandes.md)
+- [docs\runbook_preproduccion_local.md](C:\IA\codex\docs\runbook_preproduccion_local.md)
+- [docs\runbook_validacion_ui_documental_local.md](C:\IA\codex\docs\runbook_validacion_ui_documental_local.md)
+- [docs\runbook_recovery_local.md](C:\IA\codex\docs\runbook_recovery_local.md)
+- [docs\observabilidad_local.md](C:\IA\codex\docs\observabilidad_local.md)
 
 ## Manual de uso
 

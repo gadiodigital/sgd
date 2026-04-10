@@ -256,6 +256,12 @@ Entregables:
 - búsqueda productiva;
 - smoke tests y validación end-to-end.
 
+Runbook operativo inicial:
+
+- [docs\runbook_preproduccion_local.md](C:\IA\codex\docs\runbook_preproduccion_local.md)
+- [docs\runbook_recovery_local.md](C:\IA\codex\docs\runbook_recovery_local.md)
+- [docs\observabilidad_local.md](C:\IA\codex\docs\observabilidad_local.md)
+
 ## Roadmap de producción
 
 Objetivo:

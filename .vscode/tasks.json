@@ -1,0 +1,210 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "bootstrap workspace",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\setup\\windows\\15-workspace-bootstrap.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "validate workspace",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\quality\\validate_workspace.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker up",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\setup\\windows\\16-run-gdms-docker.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "docker down",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\scripts\\setup\\windows\\17-stop-gdms-docker.ps1"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "build api",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}\\server\\src\\Gdms.Api\\Gdms.Api.csproj"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\server"
+      },
+      "group": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "run api",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}\\server\\src\\Gdms.Api\\Gdms.Api.csproj"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\server"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "test backend",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "test",
+        "${workspaceFolder}\\server\\Gdms.sln",
+        "--nologo"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\server"
+      },
+      "group": "test",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build windows-twain",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}\\windows-twain\\windows-twain.csproj"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\windows-twain"
+      },
+      "group": "build",
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "run windows-twain",
+      "type": "process",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${workspaceFolder}\\windows-twain\\windows-twain.csproj"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\windows-twain"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "melos bootstrap",
+      "type": "process",
+      "command": "melos",
+      "args": [
+        "bootstrap"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\client"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "analyze flutter workspace",
+      "type": "process",
+      "command": "melos",
+      "args": [
+        "run",
+        "analyze"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\client"
+      },
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "test flutter workspace",
+      "type": "process",
+      "command": "melos",
+      "args": [
+        "run",
+        "test"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\client"
+      },
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "run flutter windows",
+      "type": "process",
+      "command": "flutter",
+      "args": [
+        "run",
+        "-d",
+        "windows",
+        "--dart-define=GDMS_API_BASE_URL=http://localhost:5012"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\client\\apps\\gdms_app"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "run flutter chrome",
+      "type": "process",
+      "command": "flutter",
+      "args": [
+        "run",
+        "-d",
+        "chrome",
+        "--dart-define=GDMS_API_BASE_URL=http://localhost:5012"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}\\client\\apps\\gdms_app"
+      },
+      "isBackground": true,
+      "problemMatcher": []
+    }
+  ]
+}

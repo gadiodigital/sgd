@@ -2,6 +2,12 @@
 
 Workspace modular del frontend Flutter para el sistema de gestion documental.
 
+Configuración actual del monorepo:
+
+- raíz del workspace: [pubspec.yaml](C:\IA\codex\client\pubspec.yaml)
+- resolución compartida Dart/Flutter: `resolution: workspace` en apps y packages
+- orquestación: `melos`
+
 ## Modulos implementados
 
 - `apps/gdms_app`
@@ -134,6 +140,12 @@ melos bootstrap
 melos run analyze
 melos run test
 ```
+
+Si `melos` no entra por `PATH`, revisar que existan:
+
+- `C:\Users\aleja\AppData\Local\Pub\Cache\bin`
+- `C:\FlutterSDK\flutter\bin`
+- `C:\FlutterSDK\flutter\bin\cache\dart-sdk\bin`
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File ..\scripts\quality\validate_workspace.ps1

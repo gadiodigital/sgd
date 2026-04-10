@@ -44,6 +44,7 @@ class _CreateCaseFileDialogState extends State<CreateCaseFileDialog> {
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -128,9 +129,9 @@ class _CreateCaseFileDialogState extends State<CreateCaseFileDialog> {
         widget.sessionViewModel,
       );
       await repository.createCaseFile(
-        code: _codeController.text,
-        title: _titleController.text,
-        category: _categoryController.text,
+        code: _codeController.text.trim(),
+        title: _titleController.text.trim(),
+        category: _categoryController.text.trim(),
       );
       await widget.onCreated();
       if (!mounted) {

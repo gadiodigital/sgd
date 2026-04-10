@@ -19,11 +19,17 @@ ehthumbs.db
 # -----------------------------------------------------------------------------
 .idea/
 .vscode/
+!.vscode/
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/settings.json
 .vs/
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+melos_*.iml
 
 # -----------------------------------------------------------------------------
 # Environment and secrets
@@ -92,6 +98,7 @@ packages/
 !client/apps/**
 client/apps/**/coverage/
 client/packages/**/coverage/
+client/pubspec.lock
 
 # -----------------------------------------------------------------------------
 # Android signing and machine-local files

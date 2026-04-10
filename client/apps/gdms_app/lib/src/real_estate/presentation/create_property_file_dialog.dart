@@ -46,6 +46,7 @@ class _CreatePropertyFileDialogState extends State<CreatePropertyFileDialog> {
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,9 +140,9 @@ class _CreatePropertyFileDialogState extends State<CreatePropertyFileDialog> {
         widget.sessionViewModel,
       );
       await repository.createPropertyFile(
-        code: _codeController.text,
-        title: _titleController.text,
-        address: _addressController.text,
+        code: _codeController.text.trim(),
+        title: _titleController.text.trim(),
+        address: _addressController.text.trim(),
         operationType: _operationType,
       );
       await widget.onCreated();

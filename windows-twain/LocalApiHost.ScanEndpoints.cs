@@ -7,9 +7,18 @@ internal sealed partial class LocalApiHost
 {
     private void MapScanEndpoints(WebApplication app)
     {
-        app.MapPost("/api/scans/flatbed/single", (ScanFlatbedSingleRequest? request) => Results.Json(scannerService.ScanFlatbedSingle(request)));
-        app.MapPost("/api/scans/adf/simplex", (ScanAdfSimplexRequest? request) => Results.Json(scannerService.ScanAdfSimplex(request)));
-        app.MapPost("/api/scans/adf/duplex", (ScanAdfDuplexRequest? request) => Results.Json(scannerService.ScanAdfDuplex(request)));
+        app.MapPost(
+            "/api/scans/flatbed/single",
+            async (HttpContext context, ScanFlatbedSingleRequest? request) =>
+                Results.Json(await scannerService.ScanFlatbedSingle(request, context.RequestAborted)));
+        app.MapPost(
+            "/api/scans/adf/simplex",
+            async (HttpContext context, ScanAdfSimplexRequest? request) =>
+                Results.Json(await scannerService.ScanAdfSimplex(request, context.RequestAborted)));
+        app.MapPost(
+            "/api/scans/adf/duplex",
+            async (HttpContext context, ScanAdfDuplexRequest? request) =>
+                Results.Json(await scannerService.ScanAdfDuplex(request, context.RequestAborted)));
         app.MapGet("/api/scans/{sessionId}", MapGetSession);
         app.MapDelete("/api/scans/{sessionId}", MapDeleteSession);
         app.MapGet("/api/scans/{sessionId}/pages/{pageNumber:int}/preview", MapGetPreview);

@@ -48,6 +48,7 @@ class _CreateCorporateRecordFileDialogState
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,10 +131,10 @@ class _CreateCorporateRecordFileDialogState
         widget.sessionViewModel,
       );
       await repository.createCorporateRecordFile(
-        code: _codeController.text,
-        title: _titleController.text,
-        category: _categoryController.text,
-        ownerArea: _ownerAreaController.text,
+        code: _codeController.text.trim(),
+        title: _titleController.text.trim(),
+        category: _categoryController.text.trim(),
+        ownerArea: _ownerAreaController.text.trim(),
       );
       await widget.onCreated();
       if (!mounted) {

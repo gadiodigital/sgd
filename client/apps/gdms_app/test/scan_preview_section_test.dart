@@ -82,6 +82,7 @@ void main() {
   Widget buildWidget({
     required ScannedDocumentFile scannedFile,
     List<int>? previewBytes,
+    bool serviceAvailable = true,
     int currentPage = 1,
     ScanSessionDetails? sessionDetails,
     bool canShowPreviousPage = false,
@@ -118,6 +119,7 @@ void main() {
           child: ScanPreviewSection(
             scannedFile: scannedFile,
             previewBytes: previewBytes,
+            serviceAvailable: serviceAvailable,
             currentPage: currentPage,
             sessionDetails: sessionDetails,
             canShowPreviousPage: canShowPreviousPage,
@@ -242,7 +244,6 @@ void main() {
     expect(refreshed, isTrue);
     expect(appended, isTrue);
   });
-
   testWidgets('adapta labels y helper para sesiones flatbed', (tester) async {
     await tester.pumpWidget(
       buildWidget(

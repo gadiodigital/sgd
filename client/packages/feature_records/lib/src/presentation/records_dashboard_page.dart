@@ -152,70 +152,78 @@ class _RecordsDashboardPageState extends State<RecordsDashboardPage> {
               title: 'Cola de disposicion',
               subtitle:
                   '${_viewModel.filteredQueue.length} visibles de ${overview.dispositionQueue.length}',
-              child: Column(
-                children: _viewModel.filteredQueue
-                    .map(
-                      (item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: ListTile(
-                          onTap: widget._onItemSelected == null
-                              ? null
-                              : () => widget._onItemSelected!(context, item),
-                          tileColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          title: Text(item.documentTitle),
-                          subtitle: Text('Vencimiento ${item.dueDateLabel}'),
-                          trailing: Wrap(
-                            spacing: 8,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              if (widget._onItemSelected != null)
-                                OutlinedButton(
-                                  onPressed: _viewModel.isBusy
-                                      ? null
-                                      : () => widget._onItemSelected!(
-                                          context,
-                                          item,
-                                        ),
-                                  child: const Text('Documento'),
-                                ),
-                              if (widget._onManageRequested != null)
-                                OutlinedButton(
-                                  onPressed: _viewModel.isBusy
-                                      ? null
-                                      : () => widget._onManageRequested!(
-                                          context,
-                                          item,
-                                        ),
-                                  child: const Text('Gestionar'),
-                                ),
-                              if (item.canExecute)
-                                FilledButton(
-                                  onPressed: _viewModel.isBusy
-                                      ? null
-                                      : () => _confirmDisposition(item),
-                                  child: const Text('Ejecutar'),
-                                ),
-                              GdmsStatusBadge(
-                                label: item.actionLabel,
-                                tone: item.hasLegalHold
-                                    ? GdmsStatusTone.critical
-                                    : GdmsStatusTone.warning,
-                              ),
-                              if (item.hasLegalHold)
-                                const GdmsStatusBadge(
-                                  label: 'Legal hold',
-                                  tone: GdmsStatusTone.critical,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
+              child: _viewModel.filteredQueue.isEmpty
+                  ? const Text(
+                      'No hay items de disposicion para los filtros actuales.',
                     )
-                    .toList(),
-              ),
+                  : Column(
+                      children: _viewModel.filteredQueue
+                          .map(
+                            (item) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: ListTile(
+                                onTap: widget._onItemSelected == null
+                                    ? null
+                                    : () =>
+                                          widget._onItemSelected!(context, item),
+                                tileColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                                title: Text(item.documentTitle),
+                                subtitle: Text(
+                                  'Vencimiento ${item.dueDateLabel}',
+                                ),
+                                trailing: Wrap(
+                                  spacing: 8,
+                                  crossAxisAlignment:
+                                      WrapCrossAlignment.center,
+                                  children: [
+                                    if (widget._onItemSelected != null)
+                                      OutlinedButton(
+                                        onPressed: _viewModel.isBusy
+                                            ? null
+                                            : () => widget._onItemSelected!(
+                                                context,
+                                                item,
+                                              ),
+                                        child: const Text('Documento'),
+                                      ),
+                                    if (widget._onManageRequested != null)
+                                      OutlinedButton(
+                                        onPressed: _viewModel.isBusy
+                                            ? null
+                                            : () => widget._onManageRequested!(
+                                                context,
+                                                item,
+                                              ),
+                                        child: const Text('Gestionar'),
+                                      ),
+                                    if (item.canExecute)
+                                      FilledButton(
+                                        onPressed: _viewModel.isBusy
+                                            ? null
+                                            : () => _confirmDisposition(item),
+                                        child: const Text('Ejecutar'),
+                                      ),
+                                    GdmsStatusBadge(
+                                      label: item.actionLabel,
+                                      tone: item.hasLegalHold
+                                          ? GdmsStatusTone.critical
+                                          : GdmsStatusTone.warning,
+                                    ),
+                                    if (item.hasLegalHold)
+                                      const GdmsStatusBadge(
+                                        label: 'Legal hold',
+                                        tone: GdmsStatusTone.critical,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
             ),
           ],
         );

@@ -1,0 +1,64 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API (.NET)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build api",
+      "program": "${workspaceFolder}/server/src/Gdms.Api/bin/Debug/net10.0/Gdms.Api.dll",
+      "cwd": "${workspaceFolder}/server/src/Gdms.Api",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      }
+    },
+    {
+      "name": "windows-twain",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build windows-twain",
+      "program": "${workspaceFolder}/windows-twain/bin/Debug/net10.0-windows/windows-twain.dll",
+      "cwd": "${workspaceFolder}/windows-twain"
+    },
+    {
+      "name": "Flutter Windows",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/client/apps/gdms_app",
+      "deviceId": "windows",
+      "toolArgs": [
+        "--dart-define=GDMS_API_BASE_URL=http://localhost:5012"
+      ]
+    },
+    {
+      "name": "Flutter Chrome",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/client/apps/gdms_app",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--dart-define=GDMS_API_BASE_URL=http://localhost:5012"
+      ]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "API + Flutter Windows",
+      "configurations": [
+        "API (.NET)",
+        "Flutter Windows"
+      ]
+    },
+    {
+      "name": "API + windows-twain",
+      "configurations": [
+        "API (.NET)",
+        "windows-twain"
+      ]
+    }
+  ]
+}

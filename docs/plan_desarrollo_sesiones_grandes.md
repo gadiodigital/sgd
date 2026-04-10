@@ -1,6 +1,6 @@
 # Plan de desarrollo para sesiones grandes
 
-Fecha de actualización: `2026-04-06`
+Fecha de actualización: `2026-04-09`
 
 ## 1. Objetivo
 
@@ -87,6 +87,59 @@ Medición backend consolidada luego de incorporar `e2e-smoke` cross-system de es
 - backend total consolidado: `55.95%`;
 - threshold mínimo de CI ajustado a `54.0%`.
 
+Medición backend consolidada luego de cerrar la primera pasada de `Gdms.ApiContractTests` sobre todos los controladores API:
+
+- backend total consolidado: `87.82%`;
+- threshold mínimo de CI ajustado a `80.0%`.
+
+Medición Flutter consolidada luego de endurecer `feature_documents`, `feature_records`, `feature_signature`, `feature_workflow`, `feature_notifications` y `feature_admin`:
+
+- Flutter total consolidado: `46.8%`;
+- `client/packages/feature_documents`: `87.18%`;
+- `client/packages/feature_records`: `95.3%`;
+- `client/packages/feature_signature`: `98.79%`;
+- `client/packages/feature_workflow`: `99.35%`;
+- `client/packages/feature_notifications`: `98.69%`;
+- `client/packages/feature_admin`: `98.45%`;
+- `client/packages/feature_reports`: `37.21%` antes de la segunda pasada y pendiente de re-medición consolidada tras endurecer tests reales;
+- `client/packages/feature_search`: `28.43%` antes de la segunda pasada y pendiente de re-medición consolidada tras endurecer tests reales;
+- `client/packages/feature_auth`: `11.86%` antes de la segunda pasada y pendiente de re-medición consolidada tras endurecer tests reales;
+- `client/packages/feature_config`: `12.99%` antes de la segunda pasada y pendiente de re-medición consolidada tras endurecer tests reales;
+- `client/packages/feature_integrations`: `22.22%` antes de la segunda pasada y pendiente de re-medición consolidada tras endurecer tests reales;
+- `client/packages/feature_sector_corporate`: `11.98%` antes de la segunda pasada y pendiente de re-medición consolidada tras endurecer tests reales;
+- `client/packages/feature_sector_legal`: `11.98%` antes de la segunda pasada y pendiente de re-medición consolidada tras endurecer tests reales;
+- `client/packages/feature_sector_real_estate`: `11.98%` antes de la segunda pasada y pendiente de re-medición consolidada tras endurecer tests reales;
+- threshold mínimo de CI ajustado a `45.0%` para Flutter total.
+
+Medición Flutter consolidada luego de cerrar la segunda pasada sobre packages transversales y verticales sectoriales:
+
+- Flutter total consolidado: `53.48%`;
+- `client/apps/gdms_app`: `43.8%`;
+- `client/packages/core`: `92.86%`;
+- `client/packages/design_system`: `67.44%`;
+- `client/packages/feature_auth`: `94.92%`;
+- `client/packages/feature_config`: `100%`;
+- `client/packages/feature_documents`: `87.18%`;
+- `client/packages/feature_integrations`: `100%`;
+- `client/packages/feature_notifications`: `98.69%`;
+- `client/packages/feature_records`: `95.3%`;
+- `client/packages/feature_reports`: `98.45%`;
+- `client/packages/feature_search`: `94.12%`;
+- `client/packages/feature_signature`: `98.79%`;
+- `client/packages/feature_sector_corporate`: `100%`;
+- `client/packages/feature_sector_legal`: `100%`;
+- `client/packages/feature_sector_real_estate`: `100%`;
+- `client/packages/feature_admin`: `98.45%`;
+- `client/packages/feature_audit`: `24.26%`;
+- `client/packages/feature_workflow`: `99.35%`;
+- threshold mínimo de CI ajustado a `52.0%` para Flutter total.
+
+Medición Flutter consolidada luego de cerrar también `feature_audit`:
+
+- Flutter total consolidado: `54.58%`;
+- `client/packages/feature_audit`: pendiente de nueva lectura detallada por target, pero ya impactando positivamente en el consolidado total;
+- threshold mínimo de CI ajustado a `54.0%` para Flutter total.
+
 Estado actual de integración backend:
 
 - `Gdms.IntegrationTests` corre contra PostgreSQL real cuando existe `GDMS_TEST_POSTGRES_CONNECTION`;
@@ -99,6 +152,22 @@ Estado actual de integración backend:
 - la suite `Gdms.ApiContractTests` ya cubre `ReportsController` con contratos HTTP `401`, `403` y `200`;
 - la suite `Gdms.ApiContractTests` ya cubre también `RecordsController` sobre `disposition-candidates`, aplicación de retención y ciclo de `legal hold` con contratos HTTP `401`, `403`, `200`, `201` y `204`;
 - la suite `Gdms.ApiContractTests` ya cubre también `DocumentsController` sobre lectura, ACL y creación con contratos HTTP `401`, `403`, `200` y `201`;
+- la suite `Gdms.ApiContractTests` ya cubre también `DocumentContentController` sobre upload multipart, nueva versión, download y `Range`, incluyendo `401`, `403`, `200`, `201` y `206`;
+- la suite `Gdms.ApiContractTests` ya cubre también `DocumentAccessController` sobre listado y grant de ACL documental, incluyendo `401`, `403`, `400`, `200` y `201`;
+- la suite `Gdms.ApiContractTests` ya cubre también `DocumentMetadataController` sobre lectura y reemplazo de metadatos, incluyendo `401`, `403`, `400`, `200` y validación contra ACL de `EditMetadata`;
+- la suite `Gdms.ApiContractTests` ya cubre también `DocumentTypesController` sobre catálogo tenant-scoped de tipos documentales, incluyendo `401`, `403` y payload autorizado con validación de seeds y schema JSON;
+- la suite `Gdms.ApiContractTests` ya cubre también `NotificationsController` sobre inbox tenant-scoped, incluyendo `401`, `403` y agregación real de `workflow`, `signature`, `records` y `security`;
+- la suite `Gdms.ApiContractTests` ya cubre también `IntegrationsController` sobre discovery tenant-scoped de integraciones configuradas, incluyendo `401`, `403` y validación del catálogo efectivo expuesto por infraestructura;
+- la suite `Gdms.ApiContractTests` ya cubre también `HealthController` sobre payload público de healthcheck, validando `200`, `Status`, ventana temporal UTC y ruta de documentación;
+- la suite `Gdms.ApiContractTests` ya cubre también `CaseFilesController` sobre listado, documentos vinculados, creación y attach documental, incluyendo `401`, `403`, `200`, `201` y `204`;
+- la suite `Gdms.ApiContractTests` ya cubre también `PropertyFilesController` sobre listado, documentos vinculados, creación y attach documental, incluyendo `401`, `403`, `200`, `201` y `204`;
+- la suite `Gdms.ApiContractTests` ya cubre también `CorporateRecordFilesController` sobre listado, documentos vinculados, creación y attach documental, incluyendo `401`, `403`, `200`, `201` y `204`;
+- la suite `Gdms.ApiContractTests` ya cubre también `EvidencePackagesController` sobre export de evidencia documental en JSON descargable, incluyendo `401`, `403`, validación de documento inexistente y verificación de auditoría persistida tras exportar;
+- la suite `Gdms.ApiContractTests` ya cubre también `AuditController` sobre vistas recientes de plataforma, tenant y documento, incluyendo `401`, `403`, normalización de `limit` y validación de documento inexistente;
+- la suite `Gdms.ApiContractTests` ya cubre también `UsersController` sobre listado, detalle, creación y asignación de roles, incluyendo `401`, `403`, `400`, `404`, `200` y `201`;
+- la suite `Gdms.ApiContractTests` ya cubre también `TenantsController` sobre listado y creación, incluyendo bootstrap inicial sin `PLATFORM_ADMIN`, protección posterior por rol y contratos `401`, `403`, `200` y `201`;
+- la suite `Gdms.ApiContractTests` ya cubre también `RolesController` sobre discovery de roles asignables, incluyendo `401` y listado autenticado exitoso;
+- la suite `Gdms.ApiContractTests` ya cubre también `AuthController` sobre bootstrap de `PLATFORM_ADMIN`, bootstrap de `TENANT_ADMIN`, login local y `me`, incluyendo `201`, `200`, `400`, `401` y mapeo explícito de claims requeridos;
 - la suite `Gdms.ApiContractTests` ya cubre también `SignaturesController` sobre listado, creación, completado y cancelación con contratos HTTP `401`, `403`, `200` y `201`;
 - la suite `Gdms.ApiContractTests` ya cubre también `WorkflowController` sobre listado, creación y completado con contratos HTTP `401`, `403`, `200` y `201`;
 - la suite `Gdms.E2eSmokeTests` ya cubre un flujo cross-system real con `bootstrap/login` JWT, upload multipart, metadata, workflow, signature y reporte operacional;
@@ -107,9 +176,36 @@ Estado actual de integración backend:
 - la suite `Gdms.E2eSmokeTests` ya cubre también `scan -> export pdf local -> upload backend` usando `windows-twain` headless con sesión rehidratada y JWT real;
 - la suite `Gdms.E2eSmokeTests` ya cubre también edición de sesión local rehidratada sobre `windows-twain` con `preview`, `merge`, `move`, `delete` y upload final al backend;
 - la suite `Gdms.E2eSmokeTests` ya cubre también recovery del host local `windows-twain` con reinicio, rehidratación de sesión mutada y upload posterior al backend;
+- la suite `Gdms.E2eSmokeTests` ya cubre también caída real del host local durante una sesión visible, fallo de acceso mientras está abajo y retry exitoso tras reinicio con exportación/upload posterior;
+- la suite `Gdms.E2eSmokeTests` ya cubre también el contrato `browser -> localhost` de `windows-twain`, validando CORS loopback permitido y origen externo rechazado;
+- la suite `Gdms.E2eSmokeTests` ya cubre también preflight `OPTIONS` de navegador sobre endpoints de escaneo, verificando headers CORS esperados para origen loopback;
+- la suite `Gdms.E2eSmokeTests` ya cubre también configuración explícita de CORS en `windows-twain`, validando origen externo permitido y loopback rechazado cuando `AllowLoopbackOrigins=false`;
+- la suite `Gdms.E2eSmokeTests` ya cubre también preflight `OPTIONS` para origen explícito configurado en `windows-twain`, completando el contrato browser/localhost sin depender de loopback abierto;
+- la suite `Gdms.E2eSmokeTests` ya cubre también descarga PDF con `Range`, validando el contrato esperado por visores inline de navegador sobre `windows-twain`;
+- la suite `Gdms.E2eSmokeTests` ya cubre también abort temprano del request de escaneo, propagando `RequestAborted` hasta `windows-twain` sin dejar el host local degradado;
+- la suite `Gdms.E2eSmokeTests` ya cubre también abort con operación ya iniciada simulada, preservando una sesión `canceled` sin degradar el host local;
 - la suite `Gdms.E2eSmokeTests` ya cubre también mantenimiento explícito del host local con `clear rehydrated sessions` y validación de vaciado operativo del estado persistido;
 - la suite `Gdms.E2eSmokeTests` ya cubre también cleanup de artefactos huérfanos envejecidos sin afectar sesiones activas del host local;
 - `client/apps/gdms_app` ya cubre recuperación del cliente ante host local caído y restablecido, recomponiendo estado de scanners, sesiones y mensaje operativo;
+- `client/apps/gdms_app` ya cubre también sesión activa con host local caído durante `refreshSession`, preservando estado visible y reportando error de conexión;
+- `client/apps/gdms_app` ya cubre también recuperación automática del estado operativo al reintentar `refreshSession` cuando el host local vuelve a responder;
+- `client/apps/gdms_app` ya ofrece retry guiado desde la preview cuando la sesión sigue visible pero el host local cayó;
+- `client/apps/gdms_app` ya cubre también el retry guiado desde `ScanDocumentDialog`, verificando recomposición de la sesión activa y del estado operativo al volver el host local;
+- `client/packages/feature_documents` ya salió del smoke test único y ahora cubre comportamiento real de `DocumentsViewModel` y `DocumentsDashboardPage`, incluyendo búsqueda, limpieza, mensajes y callbacks operativos;
+- `client/packages/feature_records` ya salió del smoke test único y ahora cubre comportamiento real de `RecordsViewModel` y `RecordsDashboardPage`, incluyendo filtros, limpieza, selección, gestión y ejecución confirmada de disposición;
+- `client/packages/feature_signature` ya salió del smoke test único y ahora cubre comportamiento real de `SignatureViewModel` y `SignatureDashboardPage`, incluyendo filtros, selección, completado, cancelación con motivo y corrección del ciclo de vida del diálogo de cancelación;
+- `client/packages/feature_workflow` ya salió del smoke test único y ahora cubre comportamiento real de `WorkflowViewModel` y `WorkflowDashboardPage`, incluyendo filtros, toggle de `solo mis tareas`, selección, creación y completado de tareas;
+- `client/packages/feature_notifications` ya salió del smoke test único y ahora cubre comportamiento real de `NotificationsViewModel` y `NotificationsDashboardPage`, incluyendo filtros por severidad y categoría, búsqueda, limpieza y acción contextual por alerta;
+- `client/packages/feature_admin` ya salió del smoke test único y ahora cubre comportamiento real de `AdminOverviewViewModel` y `AdminDashboardPage`, incluyendo carga, mensajes, acciones de header y navegación/callbacks sobre métricas, backlog, tenants y eventos;
+- `client/packages/feature_reports` ya salió del smoke test único y ahora cubre comportamiento real de `ReportsViewModel` y `ReportsDashboardPage`, incluyendo carga, filtros por lente operativa, métricas visibles y callbacks sobre KPIs operativos y de plataforma;
+- `client/packages/feature_search` ya salió del smoke test único y ahora cubre comportamiento real de `SearchViewModel` y `SearchDashboardPage`, incluyendo presets, saved searches, filtros, limpieza, ejecución de búsqueda y selección de resultados;
+- `client/packages/feature_auth` ya salió del smoke test único y ahora cubre comportamiento real de `AuthOverviewViewModel` y `AuthDashboardPage`, incluyendo carga de sesión, manejo de error, badges operativos y datos del contexto autenticado;
+- `client/packages/feature_config` ya salió del smoke test único y ahora cubre comportamiento real de `ConfigViewModel` y `ConfigDashboardPage`, incluyendo carga de snapshot, edición de preferencias, guardado y recomposición del estado visible;
+- `client/packages/feature_integrations` ya salió del smoke test único y ahora cubre comportamiento real de `IntegrationsViewModel` y `IntegrationsDashboardPage`, incluyendo carga, filtros por texto/categoría/estado, métricas visibles, limpieza y selección de integraciones;
+- `client/packages/feature_audit` ya salió del smoke test único y ahora cubre comportamiento real de `AuditOverviewViewModel` y `AuditDashboardPage`, incluyendo carga, filtros por severidad/tenant/query, métricas derivadas y manejo explícito de error;
+- `client/packages/feature_sector_corporate` ya salió del smoke test único y ahora cubre comportamiento real de `CorporateDashboardViewModel` y `CorporateDashboardPage`, incluyendo carga, métricas del vertical, CTA de creación y selección de legajos/alertas;
+- `client/packages/feature_sector_legal` ya salió del smoke test único y ahora cubre comportamiento real de `LegalDashboardViewModel` y `LegalDashboardPage`, incluyendo carga, métricas del vertical, CTA de creación, selección de expedientes y render de asuntos jurídicos;
+- `client/packages/feature_sector_real_estate` ya salió del smoke test único y ahora cubre comportamiento real de `RealEstateDashboardViewModel` y `RealEstateDashboardPage`, incluyendo carga, métricas del vertical, CTA de creación y selección de legajos/alertas inmobiliarias;
 - en entornos de desarrollo con PostgreSQL local instalado, el contenedor del repo quedó expuesto en `localhost:5433` para evitar conflicto con `5432`.
 
 ## 4. Definición operativa de cobertura completa
@@ -190,6 +286,7 @@ Prioridades:
 - `feature_search`
 - `feature_notifications`
 - `feature_admin`
+- `feature_audit`
 
 Entregables:
 
@@ -309,4 +406,101 @@ Estado al cierre de esta sesión:
 
 ## 11. Criterio de prioridad actual
 
-La siguiente prioridad correcta es endurecer el smoke de escaneo hacia un flujo con browser o hacia escenarios de cliente contra host caído durante operación activa, manteniendo el threshold backend de CI en `54%` como piso y evitando cualquier regresión por debajo de la baseline consolidada actual.
+La siguiente prioridad correcta es seguir profundizando `Fase 4` sobre drills operativos e incident response, manteniendo pisos de CI en `80%` backend y `54%` Flutter total.
+
+Avance inicial de `Fase 4` ya abierto:
+
+- smoke operativo local en `scripts\ops\invoke_preproduction_smoke.ps1`;
+- runbook base en `docs\runbook_preproduccion_local.md`;
+- runbook de recovery local en `docs\runbook_recovery_local.md`;
+- validación opcional de `windows-twain` integrada al smoke mediante `-IncludeScanHost`;
+- snapshot operativo local en `scripts\ops\get_local_operational_snapshot.ps1`;
+- guía de observabilidad mínima en `docs\observabilidad_local.md`;
+- corrección del puerto operativo documentado de PostgreSQL del stack local a `5433`;
+- backup local reproducible de PostgreSQL y storage documental en `scripts\ops\backup_local_stack.ps1`;
+- restore mínimo verificable en base temporal y storage temporal en `scripts\ops\restore_local_stack.ps1`;
+- runbook específico de backup/restore en `docs\runbook_backup_restore_local.md`;
+- validación operativa de configuración y secretos mínimos en `scripts\ops\assert_operational_configuration.ps1`, con modo estricto para detectar defaults inseguros antes de preproducción;
+- perfil local de preproducción estricta en `.env.preproduction.example` y `scripts\ops\use_preproduction_profile.ps1` para conmutar el stack a settings menos permisivos sin editar archivos versionados;
+- snapshot operativo ampliado con drift check entre `.env` y runtime del contenedor API, más reachability y extractos de configuración efectiva;
+- stack local reprovisionado y verificado en perfil estricto, con `invoke_preproduction_smoke.ps1 -ValidateConfiguration -StrictConfiguration -ValidateRuntimeConfiguration` en verde;
+- validación de riesgos operativos sobre logs en `scripts\ops\assert_operational_risks.ps1`, integrada al snapshot y al smoke de preproducción.
+- verificación integrada de `backup -> restore temporal -> smoke posterior` en `scripts\ops\verify_local_backup_restore.ps1` para dejar evidencia repetible de recuperabilidad local.
+- runtime, riesgos operativos y smoke estricto de preproducción ya quedaron en verde sobre el stack local alineado con el `.env` activo.
+- validación preventiva de capacidad/headroom en `scripts\ops\assert_capacity_headroom.ps1`, integrada al snapshot y opcionalmente al smoke operativo.
+- drill automatizado de reprovisión completa desde backup en `scripts\ops\reprovision_stack_from_backup.ps1`.
+- reprovisión completa desde backup ya validada en verde sobre el stack local, con un riesgo residual visible: Data Protection persiste sin cifrado en reposo del host.
+- chequeo de integridad de negocio post-restore en `scripts\ops\assert_restore_business_integrity.ps1`, integrable tanto en restore temporal como en reprovisión completa.
+- fixture documental determinístico para drills de recovery en `scripts\ops\seed_restore_business_fixture.ps1`, usable para validar hash, tamaño y metadata tras restore.
+- el fixture de recovery ya cubre dos versiones documentales y ACL explícita restauradas junto con el binario.
+- el fixture de recovery ya cubre además una tarea de `workflow` completada y un `signature envelope` firmado, ambos restaurados y verificados post-restore.
+- el fixture de recovery ya cubre además un `legal hold` activo y un evento de `audit` documental, ambos restaurados y verificados post-restore.
+- el fixture de recovery ya deja un usuario autenticable del tenant para validar `evidence package` por HTTP real contra la API local restaurada.
+- `verify_local_backup_restore.ps1 -RunSmokeAfterRestore -RunBusinessIntegrityChecks -EnsureBusinessFixture` ya quedó estable y validado en verde con ese fixture enriquecido.
+- `reprovision_stack_from_backup.ps1 -CreateFreshBackup -RunSmokeAfterRestore -RunBusinessIntegrityChecks -EnsureBusinessFixture` ya quedó validado en verde sobre el stack principal con restore completo del fixture.
+- `scripts\ops\assert_evidence_package_export.ps1` ya valida por HTTP el `evidence package` del fixture y `reprovision_stack_from_backup.ps1 -RunEvidencePackageChecks` ya quedó en verde.
+- `scripts\ops\invoke_temp_restore_evidence_validation.ps1` ya levanta una API efímera contra la base/storage temporales restaurados y `verify_local_backup_restore.ps1 -RunEvidencePackageChecks` ya quedó en verde sin depender del stack principal.
+- el harness temporal de evidencia quedó estabilizado resolviendo la password PostgreSQL desde el runtime activo y evitando colisiones por puerto fijo con asignación dinámica de `ApiBaseUrl`.
+- primera métrica real del drill temporal completo: `TotalDrillDurationMs=20964`, con `EvidencePackageDurationMs=6160`, `BusinessIntegrityDurationMs=2262` y `SmokeDurationMs=9322`.
+- los drills `verify_local_backup_restore.ps1` y `reprovision_stack_from_backup.ps1` ya persisten métricas comparables en `artifacts\ops\recovery_metrics\history.jsonl`, `latest.json` y `latest.md`.
+- baseline observada al `2026-04-09`:
+  - `temp_restore_validation`: `RecoveryExecutionMs=1340`, `ValidationExecutionMs=17726`, `RtoObservedMs=19066`, `TotalDrillDurationMs=20937`;
+  - `stack_reprovision`: `RecoveryExecutionMs=7806`, `ValidationExecutionMs=12937`, `RtoObservedMs=20743`, `TotalDrillDurationMs=24321`.
+- thresholds operativos iniciales ya formalizados en `scripts\ops\assert_recovery_drill_thresholds.ps1`:
+  - `temp_restore_validation`: `RtoObservedMs <= 22000` y `ValidationExecutionMs <= 19000`;
+  - `stack_reprovision`: `RtoObservedMs <= 24000` y `ValidationExecutionMs <= 14000`.
+- `invoke_preproduction_smoke.ps1` ya puede exigir esos thresholds con `-ValidateRecoveryDrillThresholds`.
+- el assert de recovery ya soporta baseline móvil por historial: usa las últimas corridas exitosas del mismo drill y compara la más reciente contra `p95 previo + margen`, dejando además visibles `p50` como referencia de latencia típica y el promedio como referencia secundaria, con fallback al threshold fijo cuando todavía no hay suficiente muestra.
+- al `2026-04-09` ya hay al menos 2 corridas exitosas por tipo de drill, por lo que `assert_recovery_drill_thresholds.ps1` ya está operando efectivamente en modo `rolling`.
+- baseline móvil actual luego de sumar segunda muestra completa con `RPO` por tipo:
+  - `temp_restore_validation`: último `RtoObservedMs=20512`, `ValidationExecutionMs=19161`, `RpoObservedMs=20623`; `RTO`, `ValidationExecutionMs` y `RPO` ya operan en `rolling`.
+  - `stack_reprovision`: último `RtoObservedMs=20749`, `ValidationExecutionMs=13183`, `RpoObservedMs=21476`; `RTO`, `ValidationExecutionMs` y `RPO` ya operan en `rolling`.
+- restricción operativa: `temp_restore_validation` y `stack_reprovision` no deben correrse en paralelo porque comparten stack Docker, PostgreSQL y fixture de recovery.
+- `write_recovery_drill_metrics.ps1` ya persiste también `RpoObservedMs` a partir de `manifest.createdAtUtc` del bundle restaurado.
+- `assert_recovery_drill_thresholds.ps1` ya persiste además un snapshot derivado en `artifacts\ops\recovery_metrics\threshold_summary.json` y `threshold_summary.md`, más variantes dedicadas por perfil (`threshold_summary.local-light.*` y `threshold_summary.preproduction-strict.*`), con `observed`, `p50`, `p95`, promedio, margen, threshold efectivo y modo por drill/métrica.
+- ese summary de recovery ya expone además `BaselineSource`, `SelectedRunCount`, `ProfileRunCount` y `LegacyRunCount`, dejando la baseline de recovery tan trazable como la de capacidad.
+- desde esta sesión, recovery ya soporta también separación por `Scenario`, con artefactos derivados `threshold_summary.<profile>.<scenario>.*` y fallback compatible cuando todavía no hay suficiente muestra etiquetada del escenario.
+- la baseline etiquetada de recovery para `preproduction-strict + preproduction-smoke` ya quedó poblada y validada con varias corridas reales; desde esta sesión el assert ya opera en modo puro `scenario-tagged-only`, apoyado por `3` corridas etiquetadas del escenario.
+- durante esta sesión se corrigió precisamente esa transición en `assert_recovery_drill_thresholds.ps1`: el modo `scenario-tagged-only` y `profile-tagged-only` ya no se activan con `2` corridas, sino con `3`, evitando falsos rojos por endurecimiento prematuro del baseline.
+- el gate de recovery ya soporta perfiles explícitos:
+  - `local-light` como baseline actual del repo;
+  - `preproduction-strict` con thresholds y márgenes más exigentes para una validación operativa más dura.
+- al `2026-04-10`, ambos perfiles (`local-light` y `preproduction-strict`) ya fueron validados en verde contra el historial real disponible.
+- desde `2026-04-10`, `write_recovery_drill_metrics.ps1` ya persiste `MetricsProfile` y `assert_recovery_drill_thresholds.ps1` ya prefiere muestras del perfil pedido cuando existen, con bootstrap transitorio `tagged + legacy` y fallback compatible al historial legacy no etiquetado mientras el perfil nuevo junta baseline propia.
+- después de poblar dos muestras reales por drill en `preproduction-strict`, ese perfil ya puede operar con baseline etiquetada propia sobre `temp_restore_validation` y `stack_reprovision`.
+- al cierre de esta sesión, `preproduction-strict` ya quedó endurecido con thresholds y márgenes más exigentes que `local-light`, aprovechando esa baseline etiquetada propia.
+- al cierre de esta sesión, `assert_capacity_headroom.ps1` también quedó separado por perfil (`local-light` y `preproduction-strict`), para no compartir el mismo gate preventivo de espacio/capacidad entre laboratorio y validación más exigente.
+- al cierre de esta sesión, `assert_capacity_headroom.ps1` ya persiste también evidencia derivada por perfil en `artifacts\ops\capacity_metrics`, con thresholds, mediciones y estado de checks.
+- al cierre de esta sesión, `assert_capacity_headroom.ps1` ya persiste también historial incremental en `artifacts\ops\capacity_metrics\history.jsonl`, dejando base para tendencia preventiva por perfil.
+- al cierre de esta sesión, `assert_capacity_trend.ps1` ya valida degradación sostenida de headroom por perfil usando `capacity_metrics\history.jsonl`, con fallback implícito cuando todavía no hay suficiente muestra.
+- al cierre de esta sesión, `assert_capacity_trend.ps1` ya expone también `p50`, `p95` y promedio por métrica, alineando el gate de capacidad con el criterio móvil usado en recovery.
+- al cierre de esta sesión, los scripts de capacidad ya soportan además `Scenario`, para no mezclar en el historial corridas `local-idle` con corridas `preproduction-smoke`.
+- al cierre de esta sesión, los artefactos derivados de capacidad (`latest.*` y `trend_summary.*`) ya quedaron separados por `Profile + Scenario`, evitando colisiones entre escenarios del mismo perfil.
+- al cierre de esta sesión, `assert_capacity_trend.ps1` ya persiste también `BaselineSource` en sus artefactos derivados, para dejar explícito si el baseline usado fue `scenario-tagged-only`, mixto con legacy o puramente legacy.
+- al cierre de esta sesión, `assert_capacity_trend.ps1` ya persiste también `SelectedRunCount`, `ScenarioRunCount` y `ProfileRunCount`, para mostrar cuánta muestra real sostiene cada baseline por escenario.
+- al cierre de esta sesión, `preproduction-strict` quedó endurecido también en capacidad: thresholds absolutos más bajos y márgenes de tendencia más cortos, aprovechando que `preproduction-smoke` ya opera con baseline `scenario-tagged-only`.
+- al cierre de esta sesión, `invoke_preproduction_smoke.ps1` ya quedó orientado por default a `preproduction-strict` / `preproduction-smoke`, evitando depender de overrides explícitos para la corrida operativa dura.
+- al cierre de esta sesión, `scripts\ops\run_preproduction_strict_smoke.ps1` ya quedó como entrypoint corto para el smoke estricto de preproducción local.
+- al cierre de esta sesión, `scripts\ops\refresh_preproduction_strict_baseline.ps1` ya quedó como helper serial para refrescar baseline estricta de recovery y capacidad sin correr drills incompatibles en paralelo.
+- al cierre de esta sesión, `stack_reprovision` ya quedó desacoplado del rebuild forzado de imagen Docker durante el drill, evitando contaminar `RTO`/`RPO` con tiempo de build del API.
+- al cierre de esta sesión, luego de refrescar dos muestras limpias adicionales, `preproduction-strict` volvió a endurecerse con márgenes móviles de recovery más cortos sobre `RTO`, `ValidationExecutionMs` y `RPO`.
+- al cierre de esta sesión, el workflow de CI ya soporta un job opt-in `preproduction-strict-smoke`, activable con `GDMS_ENABLE_PREPRODUCTION_SMOKE=true` en runners con Docker disponible.
+- al cierre de esta sesión, ese job ya publica también snapshot operativo y artefactos de `capacity_metrics` / `recovery_metrics`, dejando evidencia útil de la corrida en CI.
+- al cierre de esta sesión, la retención de artifacts en CI ya quedó acotada: `14` días para coverage y `7` días para evidencia operativa del smoke estricto.
+- al cierre de esta sesión, el job estricto ya separa artifacts de éxito y de fallo, publicando evidencia mínima en verde y el paquete completo solo cuando la corrida falla.
+- baseline actual con `RPO observed` ya absorbida por baseline móvil:
+  - `temp_restore_validation`: promedio previo `RpoObservedMs=19249`, último `20623`, threshold efectivo `25000`;
+  - `stack_reprovision`: promedio previo `RpoObservedMs=21206`, último `21476`, threshold efectivo `26000`.
+- compatibilidad hacia atrás: el assert de recovery ignora corridas históricas que todavía no tenían `RpoObservedMs`, evitando romper el baseline existente.
+- baseline estricta refrescada y validada nuevamente al `2026-04-10` con muestra limpia:
+  - `temp_restore_validation`: `RTO=19275 ms`, `ValidationExecutionMs=17937 ms`, `RPO=19386 ms`, threshold efectivo `20188/18870/22000`;
+  - `stack_reprovision`: `RTO=19219 ms`, `ValidationExecutionMs=13012 ms`, `RPO=19903 ms`, threshold efectivo `21408/13839/22107`.
+- baseline estricta ampliada al `2026-04-10` con una muestra limpia adicional por drill:
+  - `temp_restore_validation`: último `RTO=19096 ms`, `ValidationExecutionMs=17785 ms`, `RPO=19214 ms`;
+  - `stack_reprovision`: último `RTO=19250 ms`, `ValidationExecutionMs=12885 ms`, `RPO=19930 ms`.
+- el siguiente paso operativo sobre esta base ya no es más tooling nuevo, sino refrescar periódicamente `preproduction-strict` con corridas seriales reales para que la baseline etiquetada siga representando el estado actual del stack.
+
+Siguiente corte recomendado:
+
+- seguir endureciendo el perfil `preproduction-strict` con thresholds preventivos más cercanos a una preproducción cargada real;
+- o poblar baseline propia del escenario `preproduction-smoke` con varias corridas reales, hasta que el `BaselineSource` quede estable en `scenario-tagged-only`.

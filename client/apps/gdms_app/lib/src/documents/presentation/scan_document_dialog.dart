@@ -180,6 +180,7 @@ class _ScanDocumentDialogState extends State<ScanDocumentDialog> {
                       ScanPreviewSection(
                         scannedFile: _viewModel.lastScannedFile!,
                         previewBytes: _viewModel.previewBytes,
+                        serviceAvailable: _viewModel.serviceAvailable,
                         currentPage: _viewModel.currentPreviewPage,
                         sessionDetails: _viewModel.sessionDetails,
                         canShowPreviousPage: _viewModel.canShowPreviousPage,

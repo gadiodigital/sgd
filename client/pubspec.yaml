@@ -1,0 +1,35 @@
+name: gdms_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+dev_dependencies:
+  melos: ^7.4.1
+
+workspace:
+  - apps/gdms_app
+  - packages/core
+  - packages/design_system
+  - packages/feature_admin
+  - packages/feature_audit
+  - packages/feature_auth
+  - packages/feature_config
+  - packages/feature_documents
+  - packages/feature_integrations
+  - packages/feature_notifications
+  - packages/feature_records
+  - packages/feature_reports
+  - packages/feature_search
+  - packages/feature_sector_corporate
+  - packages/feature_sector_legal
+  - packages/feature_sector_real_estate
+  - packages/feature_signature
+  - packages/feature_workflow
+
+melos:
+  scripts:
+    analyze:
+      exec: flutter analyze
+    test:
+      exec: flutter test

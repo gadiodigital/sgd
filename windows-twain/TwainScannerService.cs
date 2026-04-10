@@ -103,22 +103,46 @@ internal sealed partial class TwainScannerService : IScannerService
         }
     }
 
-    public ScanSessionResponse ScanAdfSimplex(ScanAdfSimplexRequest? request)
+    public Task<ScanSessionResponse> ScanAdfSimplex(ScanAdfSimplexRequest? request, CancellationToken cancellationToken)
     {
         request ??= new ScanAdfSimplexRequest(null, null);
-        return ExecuteScan(request.ScannerId, request.ScannerName, request.TimeoutSeconds, request.Dpi, request.PixelType, request.DiscardBlankPages, "adf-simplex");
+        return ExecuteScan(
+            request.ScannerId,
+            request.ScannerName,
+            request.TimeoutSeconds,
+            request.Dpi,
+            request.PixelType,
+            request.DiscardBlankPages,
+            "adf-simplex",
+            cancellationToken);
     }
 
-    public ScanSessionResponse ScanAdfDuplex(ScanAdfDuplexRequest? request)
+    public Task<ScanSessionResponse> ScanAdfDuplex(ScanAdfDuplexRequest? request, CancellationToken cancellationToken)
     {
         request ??= new ScanAdfDuplexRequest(null, null);
-        return ExecuteScan(request.ScannerId, request.ScannerName, request.TimeoutSeconds, request.Dpi, request.PixelType, request.DiscardBlankPages, "adf-duplex");
+        return ExecuteScan(
+            request.ScannerId,
+            request.ScannerName,
+            request.TimeoutSeconds,
+            request.Dpi,
+            request.PixelType,
+            request.DiscardBlankPages,
+            "adf-duplex",
+            cancellationToken);
     }
 
-    public ScanSessionResponse ScanFlatbedSingle(ScanFlatbedSingleRequest? request)
+    public Task<ScanSessionResponse> ScanFlatbedSingle(ScanFlatbedSingleRequest? request, CancellationToken cancellationToken)
     {
         request ??= new ScanFlatbedSingleRequest(null, null);
-        return ExecuteScan(request.ScannerId, request.ScannerName, request.TimeoutSeconds, request.Dpi, request.PixelType, request.DiscardBlankPages, "flatbed-single");
+        return ExecuteScan(
+            request.ScannerId,
+            request.ScannerName,
+            request.TimeoutSeconds,
+            request.Dpi,
+            request.PixelType,
+            request.DiscardBlankPages,
+            "flatbed-single",
+            cancellationToken);
     }
 
     public ScanSessionResponse? GetSession(string sessionId) => sessionStore.Get(sessionId);

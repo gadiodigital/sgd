@@ -86,8 +86,9 @@ class _CreateWorkflowTaskDialogState extends State<CreateWorkflowTaskDialog> {
                     const SizedBox(height: 16),
                     Form(
                       key: _formKey,
-                        child: Column(
-                          children: [
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      child: Column(
+                        children: [
                           DropdownButtonFormField<String>(
                             key: ValueKey(_selectedDocumentId),
                             initialValue: _selectedDocumentId,
@@ -160,6 +161,16 @@ class _CreateWorkflowTaskDialogState extends State<CreateWorkflowTaskDialog> {
                               child: const Text('Crear tarea'),
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: _viewModel.isBusy
+                                  ? null
+                                  : () => Navigator.of(context).pop(false),
+                              child: const Text('Cancelar'),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -185,7 +196,7 @@ class _CreateWorkflowTaskDialogState extends State<CreateWorkflowTaskDialog> {
 
     final created = await _viewModel.createTask(
       documentId: documentId,
-      title: _titleController.text,
+      title: _titleController.text.trim(),
       notes: _notesController.text,
       dueDate: _dueDateController.text,
       assignedToUserId: _selectedAssignedUserId,

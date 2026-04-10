@@ -125,23 +125,28 @@ class _WorkflowDashboardPageState extends State<WorkflowDashboardPage> {
               title: 'Tareas recientes',
               subtitle:
                   '${filteredTasks.length} visibles de ${overview.tasks.length}',
-              child: Column(
-                children: filteredTasks
-                    .map(
-                      (task) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: _WorkflowTaskTile(
-                          task: task,
-                          isBusy: widget.viewModel.isBusy,
-                          onOpenDocument: widget.onTaskSelected == null
-                              ? null
-                              : () => widget.onTaskSelected!(context, task),
-                          onComplete: () => widget.viewModel.completeTask(task.id),
-                        ),
-                      ),
-                    )
-                    .toList(growable: false),
-              ),
+              child: filteredTasks.isEmpty
+                  ? const Text('No hay tareas para los filtros actuales.')
+                  : Column(
+                      children: filteredTasks
+                          .map(
+                            (task) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: _WorkflowTaskTile(
+                                task: task,
+                                isBusy: widget.viewModel.isBusy,
+                                onOpenDocument:
+                                    widget.onTaskSelected == null
+                                    ? null
+                                    : () =>
+                                          widget.onTaskSelected!(context, task),
+                                onComplete: () =>
+                                    widget.viewModel.completeTask(task.id),
+                              ),
+                            ),
+                          )
+                          .toList(growable: false),
+                    ),
             ),
           ],
         );

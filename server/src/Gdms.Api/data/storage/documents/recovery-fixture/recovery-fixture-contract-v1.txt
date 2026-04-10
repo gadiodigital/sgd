@@ -1,0 +1,4 @@
+GDMS recovery fixture contract
+contractNumber=REC-001
+tenant=RECOVERY_FIXTURE
+version=1

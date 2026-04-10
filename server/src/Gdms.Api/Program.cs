@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 var corsOptions = builder.Configuration.GetSection("Cors").Get<CorsOptions>() ?? new CorsOptions();
+var apiRuntimeOptions = builder.Configuration.GetSection("ApiRuntime").Get<ApiRuntimeOptions>() ?? new ApiRuntimeOptions();
 
 builder.Services.AddExceptionHandler<DomainExceptionHandler>();
 builder.Services.AddProblemDetails();
@@ -106,7 +107,10 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "GDMS API v1");
 });
 
-app.UseHttpsRedirection();
+if (apiRuntimeOptions.EnableHttpsRedirection)
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors(corsOptions.PolicyName);
 app.UseAuthentication();
 app.UseAuthorization();

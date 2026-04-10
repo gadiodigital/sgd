@@ -18,11 +18,11 @@ internal interface IScannerService
 
     ScannerDiscoveryResponse DiscoverScanners();
 
-    ScanSessionResponse ScanAdfSimplex(ScanAdfSimplexRequest? request);
+    Task<ScanSessionResponse> ScanAdfSimplex(ScanAdfSimplexRequest? request, CancellationToken cancellationToken);
 
-    ScanSessionResponse ScanAdfDuplex(ScanAdfDuplexRequest? request);
+    Task<ScanSessionResponse> ScanAdfDuplex(ScanAdfDuplexRequest? request, CancellationToken cancellationToken);
 
-    ScanSessionResponse ScanFlatbedSingle(ScanFlatbedSingleRequest? request);
+    Task<ScanSessionResponse> ScanFlatbedSingle(ScanFlatbedSingleRequest? request, CancellationToken cancellationToken);
 
     ScanSessionResponse? GetSession(string sessionId);
 

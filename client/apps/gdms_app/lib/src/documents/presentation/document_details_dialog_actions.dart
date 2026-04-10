@@ -163,42 +163,51 @@ extension _DocumentDetailsDialogActions on _DocumentDetailsDialogState {
       _signaturesViewModel.completeSignature(item.id, widget.document.id);
 
   Future<void> _cancelSignatureRequest(SignatureEnvelopeItem item) async {
-    final controller = TextEditingController();
+    var reason = '';
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Cancelar solicitud de firma'),
-        content: TextField(
-          controller: controller,
-          minLines: 2,
-          maxLines: 4,
-          decoration: const InputDecoration(
-            labelText: 'Motivo',
-            hintText: 'Describí el motivo de cancelación',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cerrar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Cancelar solicitud'),
-          ),
-        ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          final isReasonValid = reason.trim().length >= 5;
+          return AlertDialog(
+            title: const Text('Cancelar solicitud de firma'),
+            content: TextField(
+              minLines: 2,
+              maxLines: 4,
+              onChanged: (value) => setDialogState(() => reason = value),
+              decoration: InputDecoration(
+                labelText: 'Motivo',
+                hintText: 'Describi el motivo de cancelacion',
+                helperText: isReasonValid
+                    ? 'Motivo listo para cancelar.'
+                    : 'Minimo 5 caracteres.',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Cerrar'),
+              ),
+              FilledButton(
+                onPressed: isReasonValid
+                    ? () => Navigator.of(dialogContext).pop(true)
+                    : null,
+                child: const Text('Cancelar solicitud'),
+              ),
+            ],
+          );
+        },
       ),
     );
-    final reason = controller.text.trim();
-    controller.dispose();
-    if (confirmed != true || reason.length < 5) {
+    final trimmedReason = reason.trim();
+    if (confirmed != true) {
       return;
     }
 
     await _signaturesViewModel.cancelSignature(
       item.id,
       widget.document.id,
-      reason,
+      trimmedReason,
     );
   }
 }

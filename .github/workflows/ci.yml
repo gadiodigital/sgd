@@ -46,10 +46,149 @@ jobs:
 
       - name: Assert backend coverage baseline
         shell: pwsh
-        run: .\scripts\quality\assert_coverage.ps1 -BackendLineThresholdPct 54.0
+        run: .\scripts\quality\assert_coverage.ps1 -BackendLineThresholdPct 80.0 -FlutterLineThresholdPct 54.0
 
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
           name: coverage-reports
           path: artifacts/coverage
+          retention-days: 14
+
+  preproduction-strict-smoke:
+    if: ${{ vars.GDMS_ENABLE_PREPRODUCTION_SMOKE == 'true' }}
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Verify Docker availability
+        shell: pwsh
+        run: docker version
+
+      - name: Prepare strict preproduction env
+        shell: pwsh
+        run: |
+          Copy-Item .\.env.preproduction.example .\.env -Force
+          $envContent = Get-Content .\.env -Raw
+          $envContent = $envContent.Replace('change-this-postgres-password', 'gdms_ci_preprod_password_2026')
+          $envContent = $envContent.Replace('change-this-preproduction-jwt-signing-key-with-at-least-32-characters', 'gdms-ci-preprod-jwt-signing-key-2026-validated')
+          Set-Content .\.env $envContent -Encoding utf8
+
+      - name: Start strict preproduction stack
+        shell: pwsh
+        run: docker compose up --build -d
+
+      - name: Run strict preproduction smoke
+        shell: pwsh
+        run: .\scripts\ops\run_preproduction_strict_smoke.ps1 -CaptureSnapshotOnFailure
+
+      - name: Run selected scan e2e smoke tests
+        shell: pwsh
+        env:
+          GDMS_TEST_POSTGRES_CONNECTION: Host=127.0.0.1;Port=5433;Database=gdms;Username=gdms;Password=gdms_ci_preprod_password_2026
+        run: |
+          New-Item -ItemType Directory -Path .\artifacts\test-results -Force | Out-Null
+          dotnet test .\server\tests\Gdms.E2eSmokeTests\Gdms.E2eSmokeTests.csproj `
+            --filter "(FullyQualifiedName~ScanEditableSessionSmokeTests|FullyQualifiedName~ScanHostRecoverySmokeTests|FullyQualifiedName~ScanHostRetryRecoverySmokeTests|FullyQualifiedName~ScanHostCorsSmokeTests)" `
+            --logger "trx;LogFileName=scan-e2e-smoke.trx" `
+            --results-directory .\artifacts\test-results
+
+      - name: Write scan e2e summary
+        if: always()
+        shell: pwsh
+        run: |
+          .\scripts\quality\write_test_result_summary.ps1 `
+            -TrxPath .\artifacts\test-results\scan-e2e-smoke.trx `
+            -OutputDirectory .\artifacts\test-results `
+            -SummaryBaseName scan-e2e-smoke-summary
+
+      - name: Capture operational snapshot
+        if: always()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path .\artifacts\ops\ci -Force | Out-Null
+          .\scripts\ops\get_local_operational_snapshot.ps1 -ApiBaseUrl http://127.0.0.1:8080 -CapacityHeadroomProfile preproduction-strict -CapacityTrendProfile preproduction-strict -CapacityScenario preproduction-smoke -SnapshotPath .\artifacts\ops\ci\local_operational_snapshot_ci.txt
+
+      - name: Dump docker logs on failure
+        if: failure()
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path .\artifacts\ops\ci -Force | Out-Null
+          docker compose logs --tail 200 | Set-Content .\artifacts\ops\ci\docker-compose.failure.log -Encoding utf8
+
+      - name: Upload strict smoke summary artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preproduction-strict-smoke-summary
+          path: |
+            artifacts/ops/ci
+            artifacts/ops/capacity_metrics
+            artifacts/ops/recovery_metrics
+            artifacts/test-results
+          retention-days: 7
+
+      - name: Upload strict smoke failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preproduction-strict-smoke-failure
+          path: |
+            artifacts/ops/local_operational_snapshot.txt
+            artifacts/ops/ci
+            artifacts/ops/capacity_metrics
+            artifacts/ops/recovery_metrics
+            artifacts/test-results
+          retention-days: 7
+
+      - name: Stop strict preproduction stack
+        if: always()
+        shell: pwsh
+        run: docker compose down -v
+
+  gdms-app-ui-automation:
+    if: ${{ vars.GDMS_ENABLE_UI_AUTOMATION == 'true' }}
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Bootstrap gdms_app dependencies
+        working-directory: client/apps/gdms_app
+        shell: pwsh
+        run: flutter pub get
+
+      - name: Run gdms_app UI automation
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path .\artifacts\ui-tests -Force | Out-Null
+          .\scripts\ops\run_gdms_app_ui_automation.ps1 -OutputDirectory .\artifacts\ui-tests
+
+      - name: Upload UI automation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdms-app-ui-automation
+          path: |
+            artifacts/ui-tests
+            client/apps/gdms_app/build/windows/x64/runner/Debug
+          retention-days: 7

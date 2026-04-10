@@ -23,6 +23,10 @@ class CreateSignatureRequestDialog extends StatefulWidget {
 
 class _CreateSignatureRequestDialogState
     extends State<CreateSignatureRequestDialog> {
+  static final RegExp _emailPattern = RegExp(
+    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+  );
+
   final _formKey = GlobalKey<FormState>();
   final _signerDisplayNameController = TextEditingController();
   final _signerEmailController = TextEditingController();
@@ -61,6 +65,7 @@ class _CreateSignatureRequestDialogState
             builder: (context, _) {
               return Form(
                 key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +116,7 @@ class _CreateSignatureRequestDialogState
                       ),
                       validator: (value) {
                         final normalized = value?.trim() ?? '';
-                        return normalized.contains('@')
+                        return _emailPattern.hasMatch(normalized)
                             ? null
                             : 'Ingresá un email válido.';
                       },
@@ -175,8 +180,8 @@ class _CreateSignatureRequestDialogState
 
     await widget.viewModel.submit(
       documentId: _selectedDocumentId!,
-      signerDisplayName: _signerDisplayNameController.text,
-      signerEmail: _signerEmailController.text,
+      signerDisplayName: _signerDisplayNameController.text.trim(),
+      signerEmail: _signerEmailController.text.trim(),
       signatureLevel: _signatureLevel,
     );
 

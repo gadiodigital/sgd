@@ -100,14 +100,26 @@ flutter doctor --android-licenses
   - `melos bootstrap` del monorepo Flutter;
   - `flutter pub get` y `flutter analyze` en `client\apps\gdms_app`.
 
+  El workspace Flutter actual se define en:
+  - `client\pubspec.yaml`
+
+  Si `melos` falla pero Flutter/Dart sí están instalados, verificar también:
+  - `C:\Users\<usuario>\AppData\Local\Pub\Cache\bin`
+  - `C:\FlutterSDK\flutter\bin`
+  - `C:\FlutterSDK\flutter\bin\cache\dart-sdk\bin`
+
 - `16-run-gdms-docker.ps1`
   Levanta el stack Docker del proyecto.
   Expone:
   - Swagger: `http://localhost:8080/swagger`
-  - PostgreSQL: `localhost:5432`
+  - PostgreSQL: `localhost:5433`
+  Si falta `.env`, lo crea desde `.env.example` para que puedas ajustar `GDMS_JWT_SIGNING_KEY` y settings operativos.
 
 - `17-stop-gdms-docker.ps1`
   Baja el stack Docker del proyecto.
+
+- `scripts\ops\use_preproduction_profile.ps1`
+  Reemplaza `.env` por un perfil local de preproducción para validar el stack con settings menos permisivos.
 
 - `18-codex-bootstrap-prompt.md`
   Prompt listo para reingresar en Codex con contexto de proyecto.
@@ -139,6 +151,16 @@ Después de correr `15-workspace-bootstrap.ps1`, validar también:
 cd C:\IA\codex
 powershell -ExecutionPolicy Bypass -File .\scripts\quality\validate_workspace.ps1
 ```
+
+Ese validador ahora resuelve Flutter de forma robusta en este orden:
+
+- `flutter` desde `PATH`
+- `FLUTTER_ROOT\bin\flutter.bat`
+- `C:\FlutterSDK\flutter\bin\flutter.bat`
+- `C:\src\flutter\bin\flutter.bat`
+- `C:\tools\flutter\bin\flutter.bat`
+
+Con eso, el gate del workspace puede correr incluso si `flutter` no quedó expuesto globalmente en `PATH`, siempre que Flutter esté instalado en una de esas rutas esperadas.
 
 Si eso termina en verde, el workspace quedó listo para desarrollo.
 

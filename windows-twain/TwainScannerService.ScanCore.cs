@@ -5,9 +5,21 @@ namespace WindowsTwain;
 
 internal sealed partial class TwainScannerService
 {
-    private ScanSessionResponse ScanAdfCore(int? scannerId, string? scannerName, ScanRequestOptions options, bool duplex)
+    private ScanSessionResponse ScanAdfCore(
+        int? scannerId,
+        string? scannerName,
+        ScanRequestOptions options,
+        bool duplex,
+        CancellationToken cancellationToken)
     {
-        return ScanCore(scannerId, scannerName, options, duplex ? "adf-duplex" : "adf-simplex", useFeeder: true, duplex);
+        return ScanCore(
+            scannerId,
+            scannerName,
+            options,
+            duplex ? "adf-duplex" : "adf-simplex",
+            useFeeder: true,
+            duplex,
+            cancellationToken);
     }
 
     private ScanSessionResponse ScanCore(
@@ -16,7 +28,8 @@ internal sealed partial class TwainScannerService
         ScanRequestOptions options,
         string mode,
         bool useFeeder,
-        bool duplex)
+        bool duplex,
+        CancellationToken cancellationToken)
     {
         var session = new TwainSession(DataGroups.Control | DataGroups.Image);
         var openResult = session.Open();
@@ -28,7 +41,7 @@ internal sealed partial class TwainScannerService
         try
         {
             var source = ResolveSource(session, scannerId, scannerName);
-            return ExecuteSourceScan(session, source, options, mode, useFeeder, duplex);
+            return ExecuteSourceScan(session, source, options, mode, useFeeder, duplex, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -44,7 +57,14 @@ internal sealed partial class TwainScannerService
         }
     }
 
-    private ScanSessionResponse ExecuteSourceScan(TwainSession session, DataSource source, ScanRequestOptions options, string mode, bool useFeeder, bool duplex)
+    private ScanSessionResponse ExecuteSourceScan(
+        TwainSession session,
+        DataSource source,
+        ScanRequestOptions options,
+        string mode,
+        bool useFeeder,
+        bool duplex,
+        CancellationToken cancellationToken)
     {
         var completed = false;
         Exception? scanError = null;
@@ -111,7 +131,19 @@ internal sealed partial class TwainScannerService
                 throw new InvalidOperationException($"No fue posible habilitar el escaner para adquisicion. ReturnCode={enableResult}.");
             }
 
-            WaitForScanCompletion(mode, timeout, () => completed);
+            WaitForScanCompletion(
+                mode,
+                timeout,
+                () => completed,
+                cancellationToken,
+                () =>
+                {
+                    if (sessionState is not null)
+                    {
+                        sessionState.Status = "canceled";
+                        sessionState.Message = "La solicitud del cliente fue cancelada.";
+                    }
+                });
             if (scanError is not null)
             {
                 throw scanError;
@@ -125,6 +157,10 @@ internal sealed partial class TwainScannerService
             UpdateFinalSessionStatus(sessionState, useFeeder);
             return sessionState.ToResponse();
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested && sessionState is not null)
+        {
+            return sessionState.ToResponse();
+        }
         finally
         {
             if (source.IsOpen)
@@ -134,13 +170,23 @@ internal sealed partial class TwainScannerService
         }
     }
 
-    private static void WaitForScanCompletion(string mode, TimeSpan timeout, Func<bool> isCompleted)
+    private static void WaitForScanCompletion(
+        string mode,
+        TimeSpan timeout,
+        Func<bool> isCompleted,
+        CancellationToken cancellationToken,
+        Action onCanceled)
     {
         var startedAt = DateTime.UtcNow;
         while (!isCompleted())
         {
             Application.DoEvents();
             Thread.Sleep(20);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                onCanceled();
+                throw new OperationCanceledException(cancellationToken);
+            }
 
             if (DateTime.UtcNow - startedAt > timeout)
             {

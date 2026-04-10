@@ -234,34 +234,42 @@ class _RecordsItemManagementDialogState
   }
 
   Future<void> _releaseLegalHold(String legalHoldId) async {
-    final controller = TextEditingController();
+    var releaseReason = '';
     final reason = await showDialog<String>(
       context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: const Text('Liberar legal hold'),
-          content: TextField(
-            controller: controller,
-            maxLines: 2,
-            decoration: const InputDecoration(
-              labelText: 'Motivo de liberación',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) {
+          final trimmedReason = releaseReason.trim();
+          final isReasonValid = trimmedReason.length >= 5;
+          return AlertDialog(
+            title: const Text('Liberar legal hold'),
+            content: TextField(
+              maxLines: 2,
+              onChanged: (value) =>
+                  setDialogState(() => releaseReason = value),
+              decoration: InputDecoration(
+                labelText: 'Motivo de liberación',
+                helperText: isReasonValid
+                    ? 'Motivo listo para liberar.'
+                    : 'Minimo 5 caracteres.',
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(dialogContext).pop(controller.text.trim()),
-              child: const Text('Liberar'),
-            ),
-          ],
-        );
-      },
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text('Cancelar'),
+              ),
+              FilledButton(
+                onPressed: isReasonValid
+                    ? () => Navigator.of(dialogContext).pop(trimmedReason)
+                    : null,
+                child: const Text('Liberar'),
+              ),
+            ],
+          );
+        },
+      ),
     );
-    controller.dispose();
 
     if (reason == null || reason.isEmpty) return;
     await _viewModel.releaseLegalHold(

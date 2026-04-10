@@ -34,6 +34,7 @@ final class DocumentScanViewModelSessionSupport {
     try {
       await vm.run(() async {
         final details = await syncSessionDetails(vm);
+        await refreshServiceStatus(vm);
         await DocumentScanViewModelSupport.loadPreview(vm);
         if (details == null) {
           vm.setMessage('No hay una sesion de escaneo activa para refrescar.');
@@ -45,6 +46,7 @@ final class DocumentScanViewModelSessionSupport {
         );
       });
     } catch (error) {
+      await refreshServiceStatus(vm);
       vm.setMessage(
         DocumentScanViewModelSupport.mapError(vm.serviceBaseUrl, error),
       );

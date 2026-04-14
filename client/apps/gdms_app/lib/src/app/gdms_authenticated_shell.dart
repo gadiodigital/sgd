@@ -39,6 +39,8 @@ import '../legal/presentation/create_case_file_dialog.dart';
 import '../real_estate/presentation/create_property_file_dialog.dart';
 import '../real_estate/presentation/property_file_details_dialog.dart';
 import '../records/presentation/records_item_management_dialog.dart';
+import '../structure/application/document_structure_view_model.dart';
+import '../structure/presentation/document_structure_page.dart';
 import 'gdms_authenticated_shell_admin.dart';
 import 'gdms_authenticated_shell_documents.dart';
 import 'gdms_authenticated_shell_integrations.dart';
@@ -67,6 +69,10 @@ class GdmsAuthenticatedShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final documentsViewModel = DocumentsViewModel(
       ApiDocumentsRepository(sessionViewModel.apiClient, sessionViewModel),
+    );
+    final structureViewModel = DocumentStructureViewModel(
+      sessionViewModel.apiClient,
+      sessionViewModel,
     );
     final recordsViewModel = RecordsViewModel(
       ApiRecordsRepository(sessionViewModel.apiClient, sessionViewModel),
@@ -137,6 +143,11 @@ class GdmsAuthenticatedShell extends StatelessWidget {
         sessionViewModel: sessionViewModel,
         documentsViewModel: documentsViewModel,
         showDialog: _showDialog,
+      ),
+      structurePage: DocumentStructurePage(
+        viewModel: structureViewModel,
+        apiClient: sessionViewModel.apiClient,
+        sessionViewModel: sessionViewModel,
       ),
       notificationsPage: buildNotificationsPage(
         notificationsViewModel: notificationsViewModel,

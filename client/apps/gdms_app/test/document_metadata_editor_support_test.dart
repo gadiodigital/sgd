@@ -23,15 +23,30 @@ void main() {
       type: DocumentMetadataFieldType.boolean,
       required: false,
     ),
+    DocumentMetadataField(
+      key: 'category',
+      label: 'Categoria',
+      type: DocumentMetadataFieldType.list,
+      required: false,
+      options: ['Legal', 'Fiscal'],
+    ),
+    DocumentMetadataField(
+      key: 'payload',
+      label: 'Payload',
+      type: DocumentMetadataFieldType.json,
+      required: false,
+    ),
   ];
 
-  test('buildPayload normaliza texto y booleans', () {
+  test('buildPayload normaliza texto booleanos listas y json', () {
     final controllers = <String, TextEditingController>{
       'notes': TextEditingController(text: '  contrato base  '),
       'issuedAt': TextEditingController(text: '2026-03-31'),
+      'payload': TextEditingController(text: '{"folios": 3}'),
     };
     final booleanValues = <String, String?>{
       'isSigned': 'true',
+      'category': 'Legal',
     };
 
     final payload = DocumentMetadataEditorSupport.buildPayload(
@@ -44,6 +59,8 @@ void main() {
       'notes': 'contrato base',
       'issuedAt': '2026-03-31',
       'isSigned': true,
+      'category': 'Legal',
+      'payload': {'folios': 3},
     });
   });
 
@@ -51,10 +68,9 @@ void main() {
     final controllers = <String, TextEditingController>{
       'notes': TextEditingController(text: '   '),
       'issuedAt': TextEditingController(text: ''),
+      'payload': TextEditingController(text: ''),
     };
-    final booleanValues = <String, String?>{
-      'isSigned': null,
-    };
+    final booleanValues = <String, String?>{'isSigned': null, 'category': null};
 
     final payload = DocumentMetadataEditorSupport.buildPayload(
       fields,
@@ -65,39 +81,41 @@ void main() {
     expect(payload, isEmpty);
   });
 
-  test('syncEditors repuebla controllers y valores booleanos desde metadata', () {
-    final staleController = TextEditingController(text: 'old');
-    final controllers = <String, TextEditingController>{
-      'legacy': staleController,
-    };
-    final booleanValues = <String, String?>{
-      'legacyFlag': 'false',
-    };
+  test(
+    'syncEditors repuebla controllers y valores booleanos desde metadata',
+    () {
+      final staleController = TextEditingController(text: 'old');
+      final controllers = <String, TextEditingController>{
+        'legacy': staleController,
+      };
+      final booleanValues = <String, String?>{'legacyFlag': 'false'};
 
-    DocumentMetadataEditorSupport.syncEditors(
-      fields: fields,
-      metadata: const <String, Object?>{
-        'notes': 'Contrato 2026',
-        'issuedAt': '2026-03-31',
-        'isSigned': false,
-      },
-      controllers: controllers,
-      booleanValues: booleanValues,
-    );
+      DocumentMetadataEditorSupport.syncEditors(
+        fields: fields,
+        metadata: const <String, Object?>{
+          'notes': 'Contrato 2026',
+          'issuedAt': '2026-03-31',
+          'isSigned': false,
+          'category': 'Fiscal',
+          'payload': {'source': 'legacy'},
+        },
+        controllers: controllers,
+        booleanValues: booleanValues,
+      );
 
-    expect(controllers.keys, {'notes', 'issuedAt'});
-    expect(controllers['notes']!.text, 'Contrato 2026');
-    expect(controllers['issuedAt']!.text, '2026-03-31');
-    expect(booleanValues, {'isSigned': 'false'});
-  });
+      expect(controllers.keys, {'notes', 'issuedAt', 'payload'});
+      expect(controllers['notes']!.text, 'Contrato 2026');
+      expect(controllers['issuedAt']!.text, '2026-03-31');
+      expect(controllers['payload']!.text, '{"source":"legacy"}');
+      expect(booleanValues, {'isSigned': 'false', 'category': 'Fiscal'});
+    },
+  );
 
   test('syncEditors con metadata vacia deja mapas limpios y defaults', () {
     final controllers = <String, TextEditingController>{
       'notes': TextEditingController(text: 'old'),
     };
-    final booleanValues = <String, String?>{
-      'isSigned': 'true',
-    };
+    final booleanValues = <String, String?>{'isSigned': 'true'};
 
     DocumentMetadataEditorSupport.syncEditors(
       fields: fields,
@@ -106,9 +124,24 @@ void main() {
       booleanValues: booleanValues,
     );
 
-    expect(controllers.keys, {'notes', 'issuedAt'});
+    expect(controllers.keys, {'notes', 'issuedAt', 'payload'});
     expect(controllers['notes']!.text, isEmpty);
     expect(controllers['issuedAt']!.text, isEmpty);
-    expect(booleanValues, {'isSigned': null});
+    expect(controllers['payload']!.text, isEmpty);
+    expect(booleanValues, {'isSigned': null, 'category': null});
+  });
+
+  test('syncEditors ignora valores incompatibles para dropdowns', () {
+    final controllers = <String, TextEditingController>{};
+    final booleanValues = <String, String?>{};
+
+    DocumentMetadataEditorSupport.syncEditors(
+      fields: fields,
+      metadata: const <String, Object?>{'isSigned': 'si', 'category': 'RRHH'},
+      controllers: controllers,
+      booleanValues: booleanValues,
+    );
+
+    expect(booleanValues, {'isSigned': null, 'category': null});
   });
 }

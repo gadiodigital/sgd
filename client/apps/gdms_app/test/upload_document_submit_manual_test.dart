@@ -147,94 +147,102 @@ void main() {
     );
   }
 
-  testWidgets('submit exitoso de upload inicial tambien funciona con archivo manual', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
+  testWidgets(
+    'submit exitoso de upload inicial tambien funciona con archivo manual',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
 
-    var uploadedCalls = 0;
-    Object? dialogResult = const Object();
-    final viewModel = DocumentUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {},
-    );
+      var uploadedCalls = 0;
+      Object? dialogResult = const Object();
+      final viewModel = DocumentUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async => {'id': 'doc-1'},
+      );
 
-    await tester.pumpWidget(
-      buildUploadDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        onUploaded: () async => uploadedCalls += 1,
-        onResult: (value) => dialogResult = value,
-        pickFileLauncher: (_) async => PlatformFile(
-          name: 'contrato-manual.pdf',
-          size: 7,
-          bytes: Uint8List.fromList(const [9, 8, 7]),
+      await tester.pumpWidget(
+        buildUploadDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          onUploaded: () async => uploadedCalls += 1,
+          onResult: (value) => dialogResult = value,
+          pickFileLauncher: (_) async => PlatformFile(
+            name: 'contrato-manual.pdf',
+            size: 7,
+            bytes: Uint8List.fromList(const [9, 8, 7]),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Seleccionar archivo'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Seleccionar archivo'));
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.pumpAndSettle();
 
-    expect(uploadedCalls, 1);
-    expect(dialogResult, isNull);
-    expect(find.text('Subir documento'), findsNothing);
-  }, variant: windowsVariant);
+      expect(uploadedCalls, 1);
+      expect(dialogResult, isNull);
+      expect(find.text('Subir documento'), findsNothing);
+    },
+    variant: windowsVariant,
+  );
 
-  testWidgets('submit exitoso de nueva version tambien funciona con archivo manual', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
+  testWidgets(
+    'submit exitoso de nueva version tambien funciona con archivo manual',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
 
-    Object? dialogResult = const Object();
-    final viewModel = DocumentVersionUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {},
-    );
+      Object? dialogResult = const Object();
+      final viewModel = DocumentVersionUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async => <String, dynamic>{},
+      );
 
-    await tester.pumpWidget(
-      buildVersionDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        onResult: (value) => dialogResult = value,
-        pickFileLauncher: (_) async => PlatformFile(
-          name: 'version-manual.pdf',
-          size: 5,
-          bytes: Uint8List.fromList(const [3, 2, 1]),
+      await tester.pumpWidget(
+        buildVersionDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          onResult: (value) => dialogResult = value,
+          pickFileLauncher: (_) async => PlatformFile(
+            name: 'version-manual.pdf',
+            size: 5,
+            bytes: Uint8List.fromList(const [3, 2, 1]),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Seleccionar archivo'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Seleccionar archivo'));
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Subir versión'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
+      await tester.pumpAndSettle();
 
-    expect(dialogResult, isTrue);
-    expect(find.text('Subir nueva versión'), findsNothing);
-  }, variant: windowsVariant);
+      expect(dialogResult, isTrue);
+      expect(find.text('Subir nueva versión'), findsNothing);
+    },
+    variant: windowsVariant,
+  );
 }

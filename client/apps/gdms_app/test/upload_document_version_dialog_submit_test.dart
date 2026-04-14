@@ -104,157 +104,7 @@ void main() {
     );
   }
 
-  testWidgets('submit exitoso devuelve true y cierra el dialogo', (tester) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
-
-    Object? dialogResult = const Object();
-    final viewModel = DocumentVersionUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {},
-    );
-
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        onResult: (value) => dialogResult = value,
-        scanDocumentLauncher: (_) async => const ScannedDocumentFile(
-              fileName: 'version.pdf',
-              bytes: [1, 2, 3],
-              pageCount: 1,
-              sessionId: 'session-version-1',
-              scannerName: 'Fujitsu',
-            ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Escanear documento'));
-    await tester.pumpAndSettle();
-
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.pumpAndSettle();
-
-    expect(dialogResult, isTrue);
-    expect(find.text('Subir nueva versión'), findsNothing);
-  }, variant: windowsVariant);
-
-  testWidgets('submit fallido deja mensaje visible y no cierra el dialogo', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
-
-    final viewModel = DocumentVersionUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {
-        throw const ApiException('La nueva versión fue rechazada.');
-      },
-    );
-
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        onResult: (_) {},
-        scanDocumentLauncher: (_) async => const ScannedDocumentFile(
-              fileName: 'version.pdf',
-              bytes: [1, 2, 3],
-              pageCount: 1,
-              sessionId: 'session-version-2',
-              scannerName: 'Fujitsu',
-            ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Escanear documento'));
-    await tester.pumpAndSettle();
-
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Subir nueva versión'), findsOneWidget);
-    expect(find.text('La nueva versión fue rechazada.'), findsOneWidget);
-  }, variant: windowsVariant);
-
-  testWidgets('submit de version en curso bloquea cancelar y muestra progreso', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
-
-    final completer = Completer<void>();
-    final viewModel = DocumentVersionUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) => completer.future,
-    );
-
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        onResult: (_) {},
-        scanDocumentLauncher: (_) async => const ScannedDocumentFile(
-              fileName: 'version.pdf',
-              bytes: [1, 2, 3],
-              pageCount: 1,
-              sessionId: 'session-version-3',
-              scannerName: 'Fujitsu',
-            ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Escanear documento'));
-    await tester.pumpAndSettle();
-
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.pump();
-
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(
-      tester.widget<TextButton>(find.widgetWithText(TextButton, 'Cancelar'))
-          .onPressed,
-      isNull,
-    );
-    expect(
-      tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'Subir versión'),
-      ).onPressed,
-      isNull,
-    );
-
-    completer.complete();
-    await tester.pumpAndSettle();
-  }, variant: windowsVariant);
-
-  testWidgets('submit de version exitoso tambien funciona con archivo manual', (
+  testWidgets('submit exitoso devuelve true y cierra el dialogo', (
     tester,
   ) async {
     final sessionViewModel = await buildSignedInSession(buildClient());
@@ -264,13 +114,14 @@ void main() {
     final viewModel = DocumentVersionUploadViewModel(
       sessionViewModel.apiClient,
       sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {},
+      multipartUploader:
+          ({
+            required path,
+            required fields,
+            required fileFieldName,
+            required bytes,
+            required fileName,
+          }) async => <String, dynamic>{},
     );
 
     await tester.pumpWidget(
@@ -278,23 +129,195 @@ void main() {
         sessionViewModel: sessionViewModel,
         viewModel: viewModel,
         onResult: (value) => dialogResult = value,
-        pickFileLauncher: (_) async => PlatformFile(
-          name: 'version-manual.pdf',
-          size: 5,
-          bytes: Uint8List.fromList(const [3, 2, 1]),
+        scanDocumentLauncher: (_) async => const ScannedDocumentFile(
+          fileName: 'version.pdf',
+          bytes: [1, 2, 3],
+          pageCount: 1,
+          sessionId: 'session-version-1',
+          scannerName: 'Fujitsu',
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Seleccionar archivo'));
+    await tester.tap(find.text('Escanear documento'));
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir versión'));
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Subir versión'),
+    );
     await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
     await tester.pumpAndSettle();
 
     expect(dialogResult, isTrue);
     expect(find.text('Subir nueva versión'), findsNothing);
   }, variant: windowsVariant);
+
+  testWidgets(
+    'submit fallido deja mensaje visible y no cierra el dialogo',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
+
+      final viewModel = DocumentVersionUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async {
+              throw const ApiException('La nueva versión fue rechazada.');
+            },
+      );
+
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          onResult: (_) {},
+          scanDocumentLauncher: (_) async => const ScannedDocumentFile(
+            fileName: 'version.pdf',
+            bytes: [1, 2, 3],
+            pageCount: 1,
+            sessionId: 'session-version-2',
+            scannerName: 'Fujitsu',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Escanear documento'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Subir versión'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Subir nueva versión'), findsOneWidget);
+      expect(find.text('La nueva versión fue rechazada.'), findsOneWidget);
+    },
+    variant: windowsVariant,
+  );
+
+  testWidgets(
+    'submit de version en curso bloquea cancelar y muestra progreso',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
+
+      final completer = Completer<Map<String, dynamic>>();
+      final viewModel = DocumentVersionUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) => completer.future,
+      );
+
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          onResult: (_) {},
+          scanDocumentLauncher: (_) async => const ScannedDocumentFile(
+            fileName: 'version.pdf',
+            bytes: [1, 2, 3],
+            pageCount: 1,
+            sessionId: 'session-version-3',
+            scannerName: 'Fujitsu',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Escanear documento'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Subir versión'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(
+        tester
+            .widget<TextButton>(find.widgetWithText(TextButton, 'Cancelar'))
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Subir versión'),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      completer.complete(<String, dynamic>{});
+      await tester.pumpAndSettle();
+    },
+    variant: windowsVariant,
+  );
+
+  testWidgets(
+    'submit de version exitoso tambien funciona con archivo manual',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
+
+      Object? dialogResult = const Object();
+      final viewModel = DocumentVersionUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async => <String, dynamic>{},
+      );
+
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          onResult: (value) => dialogResult = value,
+          pickFileLauncher: (_) async => PlatformFile(
+            name: 'version-manual.pdf',
+            size: 5,
+            bytes: Uint8List.fromList(const [3, 2, 1]),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Seleccionar archivo'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(
+        find.widgetWithText(FilledButton, 'Subir versión'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
+      await tester.pumpAndSettle();
+
+      expect(dialogResult, isTrue);
+      expect(find.text('Subir nueva versión'), findsNothing);
+    },
+    variant: windowsVariant,
+  );
 }

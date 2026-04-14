@@ -21,11 +21,15 @@ Orden sugerido de ejecución:
 17. `017_corporate_record_file_document_links.sql`
 18. `018_workflow_task_assignments.sql`
 19. `019_signature_cancellation.sql`
+20. `020_document_structure_hierarchy.sql`
 
 Cuando se usa `docker-compose.yml`, PostgreSQL ejecuta automáticamente estos scripts al inicializar un volumen nuevo.
+
+Para actualizar una base existente con la estructura documental configurable, ejecutar `../updates/update_document_structure_hierarchy.sql`. Ese archivo invoca la migración `020_document_structure_hierarchy.sql` como unidad aplicable.
 
 ## Objetivo
 
 - Crear el baseline relacional del sistema.
 - Reflejar integridad referencial, checks de dominio y comentarios de esquema.
 - Dejar seeds mínimos para roles, tipos documentales y políticas de retención.
+- Incorporar estructura documental configurable por tenant/proyecto de forma aditiva.

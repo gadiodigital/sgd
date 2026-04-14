@@ -74,19 +74,21 @@ void main() {
     final viewModel = DocumentVersionUploadViewModel(
       sessionViewModel.apiClient,
       sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {
-        capturedPath = path;
-        capturedFields = fields;
-        capturedFieldName = fileFieldName;
-        capturedBytes = bytes;
-        capturedFileName = fileName;
-      },
+      multipartUploader:
+          ({
+            required path,
+            required fields,
+            required fileFieldName,
+            required bytes,
+            required fileName,
+          }) async {
+            capturedPath = path;
+            capturedFields = fields;
+            capturedFieldName = fileFieldName;
+            capturedBytes = bytes;
+            capturedFileName = fileName;
+            return <String, dynamic>{};
+          },
     );
 
     final uploaded = await viewModel.upload(
@@ -110,34 +112,38 @@ void main() {
     expect(viewModel.message, 'Nueva versión subida correctamente.');
   });
 
-  test('upload de version usa mensaje de ApiException del uploader multipart', () async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
+  test(
+    'upload de version usa mensaje de ApiException del uploader multipart',
+    () async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
 
-    final viewModel = DocumentVersionUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {
-        throw const ApiException('La version fue rechazada.');
-      },
-    );
+      final viewModel = DocumentVersionUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async {
+              throw const ApiException('La version fue rechazada.');
+            },
+      );
 
-    final uploaded = await viewModel.upload(
-      documentId: 'doc-1',
-      file: PlatformFile(
-        name: 'version.pdf',
-        size: 3,
-        bytes: Uint8List.fromList([1, 2, 3]),
-      ),
-    );
+      final uploaded = await viewModel.upload(
+        documentId: 'doc-1',
+        file: PlatformFile(
+          name: 'version.pdf',
+          size: 3,
+          bytes: Uint8List.fromList([1, 2, 3]),
+        ),
+      );
 
-    expect(uploaded, isFalse);
-    expect(viewModel.message, 'La version fue rechazada.');
-  });
+      expect(uploaded, isFalse);
+      expect(viewModel.message, 'La version fue rechazada.');
+    },
+  );
 }

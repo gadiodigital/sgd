@@ -21,6 +21,7 @@ Leer primero estos archivos:
 - contexto técnico y estado del proyecto: [contexto_handoff.md](C:\IA\codex\contexto_handoff.md)
 - requisitos funcionales: [rf.md](C:\IA\codex\rf.md)
 - requisitos no funcionales: [rnf.md](C:\IA\codex\rnf.md)
+- estructura documental configurable: [docs\estructura_documental_configurable.md](C:\IA\codex\docs\estructura_documental_configurable.md)
 
 ## Estructura principal
 

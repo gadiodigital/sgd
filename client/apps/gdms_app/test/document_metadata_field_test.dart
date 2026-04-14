@@ -15,79 +15,120 @@ void main() {
     expect(field.type, DocumentMetadataFieldType.integer);
     expect(field.required, isTrue);
     expect(field.maxLength, 12);
+    expect(field.options, isEmpty);
   });
 
-  test('fromJson usa defaults seguros cuando faltan datos o tipo es invalido', () {
-    final field = DocumentMetadataField.fromJson('fallbackKey', {
-      'label': '   ',
-      'type': 'custom',
-      'required': false,
-      'maxLength': 'bad',
+  test('fromJson parsea list con opciones y json', () {
+    final listField = DocumentMetadataField.fromJson('category', {
+      'label': 'Categoria',
+      'type': 'list',
+      'options': ['Legal', '  Fiscal  ', '', 25],
+    });
+    final jsonField = DocumentMetadataField.fromJson('payload', {
+      'label': 'Payload',
+      'type': 'json',
     });
 
-    expect(field.label, 'fallbackKey');
-    expect(field.type, DocumentMetadataFieldType.text);
-    expect(field.required, isFalse);
-    expect(field.maxLength, isNull);
+    expect(listField.type, DocumentMetadataFieldType.list);
+    expect(listField.options, ['Legal', 'Fiscal']);
+    expect(jsonField.type, DocumentMetadataFieldType.json);
   });
 
-  test('helperText cubre date integer number boolean text y fallback vacio', () {
-    expect(
-      const DocumentMetadataField(
-        key: 'signedAt',
-        label: 'Fecha',
-        type: DocumentMetadataFieldType.date,
-        required: false,
-      ).helperText,
-      'Formato AAAA-MM-DD',
-    );
-    expect(
-      const DocumentMetadataField(
-        key: 'folios',
-        label: 'Folios',
-        type: DocumentMetadataFieldType.integer,
-        required: false,
-      ).helperText,
-      'Valor entero',
-    );
-    expect(
-      const DocumentMetadataField(
-        key: 'amount',
-        label: 'Monto',
-        type: DocumentMetadataFieldType.number,
-        required: false,
-      ).helperText,
-      'Valor numérico',
-    );
-    expect(
-      const DocumentMetadataField(
-        key: 'approved',
-        label: 'Aprobado',
-        type: DocumentMetadataFieldType.boolean,
-        required: false,
-      ).helperText,
-      'Seleccione verdadero o falso',
-    );
-    expect(
-      const DocumentMetadataField(
-        key: 'title',
-        label: 'Titulo',
-        type: DocumentMetadataFieldType.text,
-        required: false,
-        maxLength: 40,
-      ).helperText,
-      'Máximo 40 caracteres',
-    );
-    expect(
-      const DocumentMetadataField(
-        key: 'notes',
-        label: 'Notas',
-        type: DocumentMetadataFieldType.text,
-        required: false,
-      ).helperText,
-      '',
-    );
-  });
+  test(
+    'fromJson usa defaults seguros cuando faltan datos o tipo es invalido',
+    () {
+      final field = DocumentMetadataField.fromJson('fallbackKey', {
+        'label': '   ',
+        'type': 'custom',
+        'required': false,
+        'maxLength': 'bad',
+      });
+
+      expect(field.label, 'fallbackKey');
+      expect(field.type, DocumentMetadataFieldType.text);
+      expect(field.required, isFalse);
+      expect(field.maxLength, isNull);
+    },
+  );
+
+  test(
+    'helperText cubre date integer number boolean text y fallback vacio',
+    () {
+      expect(
+        const DocumentMetadataField(
+          key: 'signedAt',
+          label: 'Fecha',
+          type: DocumentMetadataFieldType.date,
+          required: false,
+        ).helperText,
+        'Formato AAAA-MM-DD',
+      );
+      expect(
+        const DocumentMetadataField(
+          key: 'folios',
+          label: 'Folios',
+          type: DocumentMetadataFieldType.integer,
+          required: false,
+        ).helperText,
+        'Valor entero',
+      );
+      expect(
+        const DocumentMetadataField(
+          key: 'amount',
+          label: 'Monto',
+          type: DocumentMetadataFieldType.number,
+          required: false,
+        ).helperText,
+        'Valor numérico',
+      );
+      expect(
+        const DocumentMetadataField(
+          key: 'approved',
+          label: 'Aprobado',
+          type: DocumentMetadataFieldType.boolean,
+          required: false,
+        ).helperText,
+        'Seleccione verdadero o falso',
+      );
+      expect(
+        const DocumentMetadataField(
+          key: 'category',
+          label: 'Categoria',
+          type: DocumentMetadataFieldType.list,
+          required: false,
+        ).helperText,
+        'Seleccione una opción',
+      );
+      expect(
+        const DocumentMetadataField(
+          key: 'payload',
+          label: 'Payload',
+          type: DocumentMetadataFieldType.json,
+          required: false,
+        ).helperText,
+        'Objeto, lista o valor JSON válido',
+      );
+      expect(
+        const DocumentMetadataField(
+          key: 'title',
+          label: 'Titulo',
+          type: DocumentMetadataFieldType.text,
+          required: false,
+          maxLength: 40,
+        ).helperText,
+        'Máximo 40 caracteres',
+      );
+      expect(
+        const DocumentMetadataField(
+          key: 'notes',
+          label: 'Notas',
+          type: DocumentMetadataFieldType.text,
+          required: false,
+        ).helperText,
+        '',
+      );
+    },
+  );
 
   test('validateValue cubre required y validaciones por tipo', () {
     const requiredText = DocumentMetadataField(
@@ -97,7 +138,10 @@ void main() {
       required: true,
       maxLength: 5,
     );
-    expect(requiredText.validateValue('   '), 'El campo Titulo es obligatorio.');
+    expect(
+      requiredText.validateValue('   '),
+      'El campo Titulo es obligatorio.',
+    );
     expect(
       requiredText.validateValue('demasiado'),
       'El campo Titulo excede 5 caracteres.',
@@ -152,5 +196,30 @@ void main() {
     );
     expect(booleanField.validateValue('true'), isNull);
     expect(booleanField.validateValue('false'), isNull);
+
+    const listField = DocumentMetadataField(
+      key: 'category',
+      label: 'Categoria',
+      type: DocumentMetadataFieldType.list,
+      required: false,
+      options: ['Legal', 'Fiscal'],
+    );
+    expect(
+      listField.validateValue('RRHH'),
+      'El campo Categoria debe usar una opción configurada.',
+    );
+    expect(listField.validateValue('Legal'), isNull);
+
+    const jsonField = DocumentMetadataField(
+      key: 'payload',
+      label: 'Payload',
+      type: DocumentMetadataFieldType.json,
+      required: false,
+    );
+    expect(
+      jsonField.validateValue('{bad'),
+      'El campo Payload debe contener JSON válido.',
+    );
+    expect(jsonField.validateValue('{"ok":true}'), isNull);
   });
 }

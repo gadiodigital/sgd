@@ -39,11 +39,20 @@ void main() {
     expect(find.text('Metadatos tipados'), findsNothing);
   });
 
-  testWidgets('renderiza campos tipados y callback booleano', (tester) async {
-    final titleController = TextEditingController();
-    addTearDown(titleController.dispose);
+  testWidgets('renderiza campos tipados y callbacks de seleccion', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-    String? latestBooleanValue;
+    final titleController = TextEditingController();
+    final payloadController = TextEditingController();
+    addTearDown(titleController.dispose);
+    addTearDown(payloadController.dispose);
+
+    final changedValues = <String, String?>{};
 
     await tester.pumpWidget(
       buildSection(
@@ -67,10 +76,23 @@ void main() {
             type: DocumentMetadataFieldType.boolean,
             required: false,
           ),
+          DocumentMetadataField(
+            key: 'category',
+            label: 'Categoria',
+            type: DocumentMetadataFieldType.list,
+            required: true,
+            options: ['Legal', 'Fiscal'],
+          ),
+          DocumentMetadataField(
+            key: 'payload',
+            label: 'Payload tecnico',
+            type: DocumentMetadataFieldType.json,
+            required: false,
+          ),
         ],
-        controllers: {'title': titleController},
-        booleanValues: {'approved': null},
-        onBooleanChanged: (_, value) => latestBooleanValue = value,
+        controllers: {'title': titleController, 'payload': payloadController},
+        booleanValues: {'approved': null, 'category': null},
+        onBooleanChanged: (key, value) => changedValues[key] = value,
       ),
     );
 
@@ -78,15 +100,22 @@ void main() {
     expect(find.text('Titulo legal'), findsOneWidget);
     expect(find.text('Fecha'), findsOneWidget);
     expect(find.text('Aprobado'), findsOneWidget);
+    expect(find.text('Categoria'), findsOneWidget);
+    expect(find.text('Payload tecnico'), findsOneWidget);
     expect(find.text('Máximo 30 caracteres'), findsOneWidget);
     expect(find.text('Formato AAAA-MM-DD'), findsOneWidget);
     expect(find.text('Seleccione verdadero o falso'), findsOneWidget);
+    expect(find.text('Seleccione una opción'), findsOneWidget);
+    expect(find.text('Objeto, lista o valor JSON válido'), findsOneWidget);
 
-    final dropdown = tester.widget<DropdownButtonFormField<String>>(
-      find.byType(DropdownButtonFormField<String>).last,
-    );
-    dropdown.onChanged?.call('true');
+    final dropdowns = tester
+        .widgetList<DropdownButtonFormField<String>>(
+          find.byType(DropdownButtonFormField<String>),
+        )
+        .toList(growable: false);
+    dropdowns.first.onChanged?.call('true');
+    dropdowns.last.onChanged?.call('Fiscal');
 
-    expect(latestBooleanValue, 'true');
+    expect(changedValues, {'approved': 'true', 'category': 'Fiscal'});
   });
 }

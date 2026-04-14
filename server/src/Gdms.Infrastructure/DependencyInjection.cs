@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<ICaseFileRepository, PostgresCaseFileRepository>();
         services.AddScoped<ICorporateRecordFileRepository, PostgresCorporateRecordFileRepository>();
         services.AddScoped<IDocumentRepository, PostgresDocumentRepository>();
+        services.AddScoped<IDocumentStructureRepository, PostgresDocumentStructureRepository>();
         services.AddScoped<IDocumentAccessRepository, PostgresDocumentAccessRepository>();
         services.AddScoped<IPropertyFileRepository, PostgresPropertyFileRepository>();
         services.AddScoped<IDocumentSearchRepository, PostgresDocumentSearchRepository>();

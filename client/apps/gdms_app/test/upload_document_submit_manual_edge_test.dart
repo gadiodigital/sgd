@@ -146,103 +146,117 @@ void main() {
     );
   }
 
-  testWidgets('submit manual fallido en upload inicial deja mensaje visible y modal abierto', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
+  testWidgets(
+    'submit manual fallido en upload inicial deja mensaje visible y modal abierto',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
 
-    final viewModel = DocumentUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {
-        throw const ApiException('El backend rechazo el archivo manual.');
-      },
-    );
+      final viewModel = DocumentUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async {
+              throw const ApiException('El backend rechazo el archivo manual.');
+            },
+      );
 
-    await tester.pumpWidget(
-      buildUploadDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        pickFileLauncher: (_) async => PlatformFile(
-          name: 'contrato-manual.pdf',
-          size: 7,
-          bytes: Uint8List.fromList(const [9, 8, 7]),
+      await tester.pumpWidget(
+        buildUploadDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          pickFileLauncher: (_) async => PlatformFile(
+            name: 'contrato-manual.pdf',
+            size: 7,
+            bytes: Uint8List.fromList(const [9, 8, 7]),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Seleccionar archivo'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Seleccionar archivo'));
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Subir documento'), findsOneWidget);
-    expect(find.text('El backend rechazo el archivo manual.'), findsOneWidget);
-  }, variant: windowsVariant);
+      expect(find.text('Subir documento'), findsOneWidget);
+      expect(
+        find.text('El backend rechazo el archivo manual.'),
+        findsOneWidget,
+      );
+    },
+    variant: windowsVariant,
+  );
 
-  testWidgets('submit manual en curso para nueva version bloquea acciones y muestra progreso', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
+  testWidgets(
+    'submit manual en curso para nueva version bloquea acciones y muestra progreso',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
 
-    final completer = Completer<void>();
-    final viewModel = DocumentVersionUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) => completer.future,
-    );
+      final completer = Completer<Map<String, dynamic>>();
+      final viewModel = DocumentVersionUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) => completer.future,
+      );
 
-    await tester.pumpWidget(
-      buildVersionDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        pickFileLauncher: (_) async => PlatformFile(
-          name: 'version-manual.pdf',
-          size: 5,
-          bytes: Uint8List.fromList(const [3, 2, 1]),
+      await tester.pumpWidget(
+        buildVersionDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          pickFileLauncher: (_) async => PlatformFile(
+            name: 'version-manual.pdf',
+            size: 5,
+            bytes: Uint8List.fromList(const [3, 2, 1]),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Seleccionar archivo'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Seleccionar archivo'));
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
-    await tester.pump();
-
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
-    expect(
-      tester.widget<TextButton>(find.widgetWithText(TextButton, 'Cancelar'))
-          .onPressed,
-      isNull,
-    );
-    expect(
-      tester.widget<FilledButton>(
+      await tester.ensureVisible(
         find.widgetWithText(FilledButton, 'Subir versión'),
-      ).onPressed,
-      isNull,
-    );
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir versión'));
+      await tester.pump();
 
-    completer.complete();
-    await tester.pumpAndSettle();
-  }, variant: windowsVariant);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(
+        tester
+            .widget<TextButton>(find.widgetWithText(TextButton, 'Cancelar'))
+            .onPressed,
+        isNull,
+      );
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.widgetWithText(FilledButton, 'Subir versión'),
+            )
+            .onPressed,
+        isNull,
+      );
+
+      completer.complete(<String, dynamic>{});
+      await tester.pumpAndSettle();
+    },
+    variant: windowsVariant,
+  );
 }

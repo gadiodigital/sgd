@@ -10,6 +10,7 @@ class GdmsHomeShell extends StatefulWidget {
     required this.sessionViewModel,
     required this.authPage,
     required this.documentsPage,
+    required this.structurePage,
     required this.notificationsPage,
     required this.configPage,
     required this.integrationsPage,
@@ -29,6 +30,7 @@ class GdmsHomeShell extends StatefulWidget {
   final AppSessionViewModel sessionViewModel;
   final Widget authPage;
   final Widget documentsPage;
+  final Widget structurePage;
   final Widget notificationsPage;
   final Widget configPage;
   final Widget integrationsPage;
@@ -69,6 +71,13 @@ class _GdmsHomeShellState extends State<GdmsHomeShell> {
         icon: Icons.folder_copy_outlined,
         selectedIcon: Icons.folder_copy,
         child: widget.documentsPage,
+        sessionViewModel: widget.sessionViewModel,
+      ),
+      ShellDestination(
+        label: 'Estructura',
+        icon: Icons.account_tree_outlined,
+        selectedIcon: Icons.account_tree,
+        child: widget.structurePage,
         sessionViewModel: widget.sessionViewModel,
       ),
       ShellDestination(

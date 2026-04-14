@@ -10,6 +10,13 @@ import '../../infrastructure/api/gdms_api_client.dart';
 import '../domain/document_type_catalog_entry.dart';
 import 'upload_multipart_support.dart';
 
+final class DocumentUploadResult {
+  const DocumentUploadResult({required this.succeeded, this.documentId});
+
+  final bool succeeded;
+  final String? documentId;
+}
+
 /// Coordinates multipart document uploads against the GDMS API.
 final class DocumentUploadViewModel extends ViewModel {
   DocumentUploadViewModel(
@@ -76,18 +83,34 @@ final class DocumentUploadViewModel extends ViewModel {
     required PlatformFile file,
     Map<String, Object?> metadata = const <String, Object?>{},
   }) async {
+    final result = await uploadWithResult(
+      documentTypeCode: documentTypeCode,
+      title: title,
+      file: file,
+      metadata: metadata,
+    );
+    return result.succeeded;
+  }
+
+  Future<DocumentUploadResult> uploadWithResult({
+    required String documentTypeCode,
+    required String? title,
+    required PlatformFile file,
+    Map<String, Object?> metadata = const <String, Object?>{},
+  }) async {
     final session = _sessionViewModel.session;
     if (session == null) {
       setMessage('No hay una sesion autenticada activa.');
-      return false;
+      return const DocumentUploadResult(succeeded: false);
     }
 
     if (file.bytes == null || file.bytes!.isEmpty) {
       setMessage('No se pudo leer el archivo seleccionado.');
-      return false;
+      return const DocumentUploadResult(succeeded: false);
     }
 
     try {
+      String? uploadedDocumentId;
       await run(() async {
         final fields = <String, String>{
           'documentTypeCode': documentTypeCode.trim(),
@@ -100,21 +123,28 @@ final class DocumentUploadViewModel extends ViewModel {
           fields['metadataJson'] = jsonEncode(normalizedMetadata);
         }
 
-        await _multipartUploader(
+        final response = await _multipartUploader(
           path: '/api/tenants/${session.tenantId}/documents/upload',
           fields: fields,
           fileFieldName: 'file',
           bytes: file.bytes!,
           fileName: file.name,
         );
+        final responseId = response['id'];
+        if (responseId is String && responseId.trim().isNotEmpty) {
+          uploadedDocumentId = responseId;
+        }
 
         setMessage('Documento subido correctamente.');
       });
 
-      return true;
+      return DocumentUploadResult(
+        succeeded: true,
+        documentId: uploadedDocumentId,
+      );
     } catch (error) {
       setMessage(_mapError(error));
-      return false;
+      return const DocumentUploadResult(succeeded: false);
     }
   }
 
@@ -145,7 +175,7 @@ final class DocumentUploadViewModel extends ViewModel {
     return normalized;
   }
 
-  Future<void> _defaultMultipartUploader({
+  Future<Map<String, dynamic>> _defaultMultipartUploader({
     required String path,
     required Map<String, String> fields,
     required String fileFieldName,

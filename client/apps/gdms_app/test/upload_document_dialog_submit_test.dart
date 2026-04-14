@@ -89,6 +89,7 @@ void main() {
     required DocumentUploadViewModel viewModel,
     required ValueChanged<Object?> onResult,
     required Future<void> Function() onUploaded,
+    Future<bool> Function(String documentId)? onDocumentUploaded,
     Future<Object?> Function(BuildContext context)? scanDocumentLauncher,
     Future<PlatformFile?> Function(BuildContext context)? pickFileLauncher,
   }) {
@@ -104,6 +105,7 @@ void main() {
                   apiClient: sessionViewModel.apiClient,
                   sessionViewModel: sessionViewModel,
                   onUploaded: onUploaded,
+                  onDocumentUploaded: onDocumentUploaded,
                   viewModel: viewModel,
                   scanDocumentLauncher: scanDocumentLauncher == null
                       ? null
@@ -120,103 +122,168 @@ void main() {
     );
   }
 
-  testWidgets('submit exitoso dispara onUploaded y cierra el dialogo', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
+  testWidgets(
+    'submit exitoso dispara onUploaded y cierra el dialogo',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
 
-    var uploadedCalls = 0;
-    Object? dialogResult = const Object();
+      var uploadedCalls = 0;
+      Object? dialogResult = const Object();
 
-    final viewModel = DocumentUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {},
-    );
+      final viewModel = DocumentUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async => {'id': 'doc-1'},
+      );
 
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        onUploaded: () async => uploadedCalls += 1,
-        onResult: (value) => dialogResult = value,
-        scanDocumentLauncher: (_) async => const ScannedDocumentFile(
-              fileName: 'contrato.pdf',
-              bytes: [1, 2, 3, 4],
-              pageCount: 1,
-              sessionId: 'session-up-1',
-              scannerName: 'Canon DR',
-            ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          onUploaded: () async => uploadedCalls += 1,
+          onResult: (value) => dialogResult = value,
+          scanDocumentLauncher: (_) async => const ScannedDocumentFile(
+            fileName: 'contrato.pdf',
+            bytes: [1, 2, 3, 4],
+            pageCount: 1,
+            sessionId: 'session-up-1',
+            scannerName: 'Canon DR',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Escanear documento'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Escanear documento'));
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.pumpAndSettle();
 
-    expect(uploadedCalls, 1);
-    expect(dialogResult, isNull);
-    expect(find.text('Subir documento'), findsNothing);
-  }, variant: windowsVariant);
+      expect(uploadedCalls, 1);
+      expect(dialogResult, isNull);
+      expect(find.text('Subir documento'), findsNothing);
+    },
+    variant: windowsVariant,
+  );
 
-  testWidgets('submit fallido deja mensaje visible y mantiene el dialogo abierto', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
+  testWidgets(
+    'submit exitoso vincula el documento subido antes de cerrar',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
 
-    final viewModel = DocumentUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {
-        throw const ApiException('El backend rechazo el documento.');
-      },
-    );
+      var uploadedCalls = 0;
+      String? linkedDocumentId;
+      Object? dialogResult = const Object();
 
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        onUploaded: () async {},
-        onResult: (_) {},
-        scanDocumentLauncher: (_) async => const ScannedDocumentFile(
-              fileName: 'contrato.pdf',
-              bytes: [1, 2, 3, 4],
-              pageCount: 1,
-              sessionId: 'session-up-2',
-              scannerName: 'Canon DR',
-            ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      final viewModel = DocumentUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async => {'id': 'doc-linked-1'},
+      );
 
-    await tester.tap(find.text('Escanear documento'));
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          onUploaded: () async => uploadedCalls += 1,
+          onDocumentUploaded: (documentId) async {
+            linkedDocumentId = documentId;
+            return true;
+          },
+          onResult: (value) => dialogResult = value,
+          scanDocumentLauncher: (_) async => const ScannedDocumentFile(
+            fileName: 'contrato.pdf',
+            bytes: [1, 2, 3, 4],
+            pageCount: 1,
+            sessionId: 'session-up-linked',
+            scannerName: 'Canon DR',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Escanear documento'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Subir documento'), findsOneWidget);
-    expect(find.text('El backend rechazo el documento.'), findsOneWidget);
-  }, variant: windowsVariant);
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.pumpAndSettle();
+
+      expect(linkedDocumentId, 'doc-linked-1');
+      expect(uploadedCalls, 1);
+      expect(dialogResult, isNull);
+      expect(find.text('Subir documento'), findsNothing);
+    },
+    variant: windowsVariant,
+  );
+
+  testWidgets(
+    'submit fallido deja mensaje visible y mantiene el dialogo abierto',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
+
+      final viewModel = DocumentUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async {
+              throw const ApiException('El backend rechazo el documento.');
+            },
+      );
+
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          onUploaded: () async {},
+          onResult: (_) {},
+          scanDocumentLauncher: (_) async => const ScannedDocumentFile(
+            fileName: 'contrato.pdf',
+            bytes: [1, 2, 3, 4],
+            pageCount: 1,
+            sessionId: 'session-up-2',
+            scannerName: 'Canon DR',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Escanear documento'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Subir documento'), findsOneWidget);
+      expect(find.text('El backend rechazo el documento.'), findsOneWidget);
+    },
+    variant: windowsVariant,
+  );
 
   testWidgets('submit en curso bloquea cancelar y muestra progreso', (
     tester,
@@ -224,17 +291,18 @@ void main() {
     final sessionViewModel = await buildSignedInSession(buildClient());
     addTearDown(sessionViewModel.dispose);
 
-    final completer = Completer<void>();
+    final completer = Completer<Map<String, dynamic>>();
     final viewModel = DocumentUploadViewModel(
       sessionViewModel.apiClient,
       sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) => completer.future,
+      multipartUploader:
+          ({
+            required path,
+            required fields,
+            required fileFieldName,
+            required bytes,
+            required fileName,
+          }) => completer.future,
     );
 
     await tester.pumpWidget(
@@ -244,12 +312,12 @@ void main() {
         onUploaded: () async {},
         onResult: (_) {},
         scanDocumentLauncher: (_) async => const ScannedDocumentFile(
-              fileName: 'contrato.pdf',
-              bytes: [1, 2, 3, 4],
-              pageCount: 1,
-              sessionId: 'session-up-3',
-              scannerName: 'Canon DR',
-            ),
+          fileName: 'contrato.pdf',
+          bytes: [1, 2, 3, 4],
+          pageCount: 1,
+          sessionId: 'session-up-3',
+          scannerName: 'Canon DR',
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -263,17 +331,19 @@ void main() {
 
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(
-      tester.widget<TextButton>(find.widgetWithText(TextButton, 'Cancelar'))
+      tester
+          .widget<TextButton>(find.widgetWithText(TextButton, 'Cancelar'))
           .onPressed,
       isNull,
     );
     expect(
-      tester.widget<FilledButton>(find.widgetWithText(FilledButton, 'Subir'))
+      tester
+          .widget<FilledButton>(find.widgetWithText(FilledButton, 'Subir'))
           .onPressed,
       isNull,
     );
 
-    completer.complete();
+    completer.complete({'id': 'doc-1'});
     await tester.pumpAndSettle();
   }, variant: windowsVariant);
 }

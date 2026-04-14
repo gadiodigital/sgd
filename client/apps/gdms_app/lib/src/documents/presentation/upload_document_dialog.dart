@@ -14,6 +14,7 @@ import 'document_metadata_editor_support.dart';
 import 'scan_document_dialog.dart';
 import 'upload_document_form_section.dart';
 import 'upload_scan_summary_badge.dart';
+
 /// Displays a modal flow to pick a file and upload it to the backend.
 class UploadDocumentDialog extends StatefulWidget {
   const UploadDocumentDialog({
@@ -21,6 +22,7 @@ class UploadDocumentDialog extends StatefulWidget {
     required this.sessionViewModel,
     required this.onUploaded,
     this.startWithScanner = false,
+    this.onDocumentUploaded,
     this.scanDocumentLauncher,
     this.pickFileLauncher,
     this.viewModel,
@@ -31,7 +33,9 @@ class UploadDocumentDialog extends StatefulWidget {
   final AppSessionViewModel sessionViewModel;
   final Future<void> Function() onUploaded;
   final bool startWithScanner;
-  final Future<ScannedDocumentFile?> Function(BuildContext context)? scanDocumentLauncher;
+  final Future<bool> Function(String documentId)? onDocumentUploaded;
+  final Future<ScannedDocumentFile?> Function(BuildContext context)?
+  scanDocumentLauncher;
   final Future<PlatformFile?> Function(BuildContext context)? pickFileLauncher;
   final DocumentUploadViewModel? viewModel;
   @override
@@ -58,10 +62,7 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
     _ownsViewModel = widget.viewModel == null;
     _viewModel =
         widget.viewModel ??
-        DocumentUploadViewModel(
-          widget.apiClient,
-          widget.sessionViewModel,
-        );
+        DocumentUploadViewModel(widget.apiClient, widget.sessionViewModel);
     unawaited(_loadCatalog());
     if (widget.startWithScanner && _supportsScannerIntegration) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -72,6 +73,7 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
       });
     }
   }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -251,7 +253,7 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
       return;
     }
 
-    final uploaded = await _viewModel.upload(
+    final uploadResult = await _viewModel.uploadWithResult(
       documentTypeCode: selectedDocumentType.code,
       title: _titleController.text,
       file: selectedFile,
@@ -261,7 +263,28 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
         _booleanMetadataValues,
       ),
     );
-    if (!mounted || !uploaded) return;
+    if (!mounted || !uploadResult.succeeded) return;
+
+    final documentUploaded = widget.onDocumentUploaded;
+    if (documentUploaded != null) {
+      final documentId = uploadResult.documentId;
+      if (documentId == null || documentId.trim().isEmpty) {
+        _viewModel.setMessage(
+          'El documento se subio, pero la API no devolvio su identificador.',
+        );
+        return;
+      }
+
+      final linked = await documentUploaded(documentId);
+      if (!mounted || !linked) {
+        if (mounted) {
+          _viewModel.setMessage(
+            'El documento se subio, pero no se pudo vincular al nodo seleccionado.',
+          );
+        }
+        return;
+      }
+    }
 
     await widget.onUploaded();
     if (!mounted) return;
@@ -272,7 +295,9 @@ class _UploadDocumentDialogState extends State<UploadDocumentDialog> {
   void _resetMetadataInputs() {
     final selectedDocumentType = _selectedDocumentType;
     DocumentMetadataEditorSupport.syncEditors(
-      fields: selectedDocumentType?.metadataFields ?? const <DocumentMetadataField>[],
+      fields:
+          selectedDocumentType?.metadataFields ??
+          const <DocumentMetadataField>[],
       metadata: const <String, Object?>{},
       controllers: _metadataControllers,
       booleanValues: _booleanMetadataValues,

@@ -72,11 +72,7 @@ void main() {
               'sector': 'legal',
               'isActive': true,
               'metadataSchema': {
-                'notes': {
-                  'label': 'Notas',
-                  'type': 'text',
-                  'required': false,
-                },
+                'notes': {'label': 'Notas', 'type': 'text', 'required': false},
                 'signed': {
                   'label': 'Firmado',
                   'type': 'boolean',
@@ -140,111 +136,127 @@ void main() {
     );
   }
 
-  testWidgets('submit convierte titulo y metadatos tipados en metadataJson', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClientWithSchemas());
-    addTearDown(sessionViewModel.dispose);
+  testWidgets(
+    'submit convierte titulo y metadatos tipados en metadataJson',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(
+        buildClientWithSchemas(),
+      );
+      addTearDown(sessionViewModel.dispose);
 
-    Map<String, String>? capturedFields;
+      Map<String, String>? capturedFields;
 
-    final viewModel = DocumentUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {
-        capturedFields = fields;
-      },
-    );
+      final viewModel = DocumentUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async {
+              capturedFields = fields;
+              return {'id': 'doc-1'};
+            },
+      );
 
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-        scanDocumentLauncher: (_) async => const ScannedDocumentFile(
-              fileName: 'contrato.pdf',
-              bytes: [1, 2, 3, 4],
-              pageCount: 1,
-              sessionId: 'session-meta-1',
-              scannerName: 'Canon DR',
-            ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+          scanDocumentLauncher: (_) async => const ScannedDocumentFile(
+            fileName: 'contrato.pdf',
+            bytes: [1, 2, 3, 4],
+            pageCount: 1,
+            sessionId: 'session-meta-1',
+            scannerName: 'Canon DR',
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).first, 'Contrato marco');
-    await tester.enterText(find.byType(TextFormField).last, '  Observacion  ');
+      await tester.enterText(
+        find.byType(TextFormField).first,
+        'Contrato marco',
+      );
+      await tester.enterText(
+        find.byType(TextFormField).last,
+        '  Observacion  ',
+      );
 
-    final booleanDropdown = tester.widgetList<DropdownButtonFormField<String>>(
-      find.byType(DropdownButtonFormField<String>),
-    ).last;
-    booleanDropdown.onChanged?.call('true');
-    await tester.pumpAndSettle();
+      final booleanDropdown = tester
+          .widgetList<DropdownButtonFormField<String>>(
+            find.byType(DropdownButtonFormField<String>),
+          )
+          .last;
+      booleanDropdown.onChanged?.call('true');
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Escanear documento'));
-    await tester.tap(find.text('Escanear documento'));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Escanear documento'));
+      await tester.tap(find.text('Escanear documento'));
+      await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
-    await tester.pumpAndSettle();
+      await tester.ensureVisible(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
+      await tester.pumpAndSettle();
 
-    expect(capturedFields, {
-      'documentTypeCode': 'LEASE',
-      'title': 'Contrato marco',
-      'metadataJson': jsonEncode({
-        'notes': 'Observacion',
-        'signed': true,
-      }),
-    });
-  }, variant: windowsVariant);
+      expect(capturedFields, {
+        'documentTypeCode': 'LEASE',
+        'title': 'Contrato marco',
+        'metadataJson': jsonEncode({'notes': 'Observacion', 'signed': true}),
+      });
+    },
+    variant: windowsVariant,
+  );
 
-  testWidgets('cambiar de tipo documental limpia metadatos anteriores', (
-    tester,
-  ) async {
-    final sessionViewModel = await buildSignedInSession(buildClientWithSchemas());
-    addTearDown(sessionViewModel.dispose);
+  testWidgets(
+    'cambiar de tipo documental limpia metadatos anteriores',
+    (tester) async {
+      final sessionViewModel = await buildSignedInSession(
+        buildClientWithSchemas(),
+      );
+      addTearDown(sessionViewModel.dispose);
 
-    final viewModel = DocumentUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {},
-    );
+      final viewModel = DocumentUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async => {'id': 'doc-1'},
+      );
 
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        viewModel: viewModel,
-      ),
-    );
-    await tester.pumpAndSettle();
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          viewModel: viewModel,
+        ),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Notas'), findsOneWidget);
-    expect(find.text('Firmado'), findsOneWidget);
+      expect(find.text('Notas'), findsOneWidget);
+      expect(find.text('Firmado'), findsOneWidget);
 
-    await tester.enterText(find.byType(TextFormField).last, 'Texto previo');
+      await tester.enterText(find.byType(TextFormField).last, 'Texto previo');
 
-    final typeDropdown = tester.widget<DropdownButtonFormField<String>>(
-      find.byType(DropdownButtonFormField<String>).first,
-    );
-    typeDropdown.onChanged?.call('MEMO');
-    await tester.pumpAndSettle();
+      final typeDropdown = tester.widget<DropdownButtonFormField<String>>(
+        find.byType(DropdownButtonFormField<String>).first,
+      );
+      typeDropdown.onChanged?.call('MEMO');
+      await tester.pumpAndSettle();
 
-    expect(find.text('Notas'), findsNothing);
-    expect(find.text('Firmado'), findsNothing);
-    expect(find.text('Referencia'), findsOneWidget);
-    expect(find.text('Texto previo'), findsNothing);
-    expect(find.byType(TextFormField), findsNWidgets(2));
-  }, variant: windowsVariant);
+      expect(find.text('Notas'), findsNothing);
+      expect(find.text('Firmado'), findsNothing);
+      expect(find.text('Referencia'), findsOneWidget);
+      expect(find.text('Texto previo'), findsNothing);
+      expect(find.byType(TextFormField), findsNWidgets(2));
+    },
+    variant: windowsVariant,
+  );
 }

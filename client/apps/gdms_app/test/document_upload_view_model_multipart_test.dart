@@ -61,64 +61,66 @@ void main() {
     });
   }
 
-  test('upload exitoso usa path fields metadata normalizada y bytes reales', () async {
-    final sessionViewModel = await buildSignedInSession(buildClient());
-    addTearDown(sessionViewModel.dispose);
+  test(
+    'upload exitoso usa path fields metadata normalizada y bytes reales',
+    () async {
+      final sessionViewModel = await buildSignedInSession(buildClient());
+      addTearDown(sessionViewModel.dispose);
 
-    String? capturedPath;
-    Map<String, String>? capturedFields;
-    String? capturedFieldName;
-    List<int>? capturedBytes;
-    String? capturedFileName;
+      String? capturedPath;
+      Map<String, String>? capturedFields;
+      String? capturedFieldName;
+      List<int>? capturedBytes;
+      String? capturedFileName;
 
-    final viewModel = DocumentUploadViewModel(
-      sessionViewModel.apiClient,
-      sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {
-        capturedPath = path;
-        capturedFields = fields;
-        capturedFieldName = fileFieldName;
-        capturedBytes = bytes;
-        capturedFileName = fileName;
-      },
-    );
+      final viewModel = DocumentUploadViewModel(
+        sessionViewModel.apiClient,
+        sessionViewModel,
+        multipartUploader:
+            ({
+              required path,
+              required fields,
+              required fileFieldName,
+              required bytes,
+              required fileName,
+            }) async {
+              capturedPath = path;
+              capturedFields = fields;
+              capturedFieldName = fileFieldName;
+              capturedBytes = bytes;
+              capturedFileName = fileName;
+              return {'id': 'doc-1'};
+            },
+      );
 
-    final uploaded = await viewModel.upload(
-      documentTypeCode: '  LEASE  ',
-      title: '  Contrato marco  ',
-      file: PlatformFile(
-        name: 'contrato.pdf',
-        size: 4,
-        bytes: Uint8List.fromList([1, 2, 3, 4]),
-      ),
-      metadata: const {
-        'caseNumber': '  EXP-123  ',
-        'signed': true,
-        'empty': '   ',
-      },
-    );
+      final uploaded = await viewModel.upload(
+        documentTypeCode: '  LEASE  ',
+        title: '  Contrato marco  ',
+        file: PlatformFile(
+          name: 'contrato.pdf',
+          size: 4,
+          bytes: Uint8List.fromList([1, 2, 3, 4]),
+        ),
+        metadata: const {
+          'caseNumber': '  EXP-123  ',
+          'signed': true,
+          'empty': '   ',
+        },
+      );
 
-    expect(uploaded, isTrue);
-    expect(capturedPath, '/api/tenants/tenant-1/documents/upload');
-    expect(capturedFieldName, 'file');
-    expect(capturedFileName, 'contrato.pdf');
-    expect(capturedBytes, [1, 2, 3, 4]);
-    expect(capturedFields, {
-      'documentTypeCode': 'LEASE',
-      'title': 'Contrato marco',
-      'metadataJson': jsonEncode({
-        'caseNumber': 'EXP-123',
-        'signed': true,
-      }),
-    });
-    expect(viewModel.message, 'Documento subido correctamente.');
-  });
+      expect(uploaded, isTrue);
+      expect(capturedPath, '/api/tenants/tenant-1/documents/upload');
+      expect(capturedFieldName, 'file');
+      expect(capturedFileName, 'contrato.pdf');
+      expect(capturedBytes, [1, 2, 3, 4]);
+      expect(capturedFields, {
+        'documentTypeCode': 'LEASE',
+        'title': 'Contrato marco',
+        'metadataJson': jsonEncode({'caseNumber': 'EXP-123', 'signed': true}),
+      });
+      expect(viewModel.message, 'Documento subido correctamente.');
+    },
+  );
 
   test('upload usa mensaje de ApiException del uploader multipart', () async {
     final sessionViewModel = await buildSignedInSession(buildClient());
@@ -127,15 +129,16 @@ void main() {
     final viewModel = DocumentUploadViewModel(
       sessionViewModel.apiClient,
       sessionViewModel,
-      multipartUploader: ({
-        required path,
-        required fields,
-        required fileFieldName,
-        required bytes,
-        required fileName,
-      }) async {
-        throw const ApiException('El backend rechazo el binario.');
-      },
+      multipartUploader:
+          ({
+            required path,
+            required fields,
+            required fileFieldName,
+            required bytes,
+            required fileName,
+          }) async {
+            throw const ApiException('El backend rechazo el binario.');
+          },
     );
 
     final uploaded = await viewModel.upload(

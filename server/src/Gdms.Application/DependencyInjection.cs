@@ -11,6 +11,7 @@ using Gdms.Application.Reports;
 using Gdms.Application.RealEstate;
 using Gdms.Application.Signatures;
 using Gdms.Application.Corporate;
+using Gdms.Application.Structure;
 using Gdms.Application.Workflow;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,6 +37,8 @@ public static class DependencyInjection
         services.AddScoped<DocumentTypeCatalogService>();
         services.AddScoped<DocumentMetadataService>();
         services.AddScoped<DocumentMetadataSchemaValidator>();
+        services.AddScoped<DocumentStructureService>();
+        services.AddScoped<StructureMetadataSchemaValidator>();
         services.AddScoped<IntegrationsService>();
         services.AddScoped<RoleService>();
         services.AddScoped<UserService>();

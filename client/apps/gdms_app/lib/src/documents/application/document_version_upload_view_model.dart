@@ -62,7 +62,7 @@ final class DocumentVersionUploadViewModel extends ViewModel {
     return 'No se pudo subir la nueva versión del documento.';
   }
 
-  Future<void> _defaultMultipartUploader({
+  Future<Map<String, dynamic>> _defaultMultipartUploader({
     required String path,
     required Map<String, String> fields,
     required String fileFieldName,

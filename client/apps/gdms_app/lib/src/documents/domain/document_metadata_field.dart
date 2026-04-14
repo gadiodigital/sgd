@@ -1,5 +1,15 @@
+import 'dart:convert';
+
 /// Enumerates the supported metadata field kinds emitted by the backend.
-enum DocumentMetadataFieldType { text, date, integer, number, boolean }
+enum DocumentMetadataFieldType {
+  text,
+  date,
+  integer,
+  number,
+  boolean,
+  list,
+  json,
+}
 
 /// Represents a metadata field rendered dynamically from the document type schema.
 final class DocumentMetadataField {
@@ -9,6 +19,7 @@ final class DocumentMetadataField {
     required this.type,
     required this.required,
     this.maxLength,
+    this.options = const <String>[],
   });
 
   factory DocumentMetadataField.fromJson(
@@ -25,6 +36,13 @@ final class DocumentMetadataField {
       maxLength: json['maxLength'] is num
           ? (json['maxLength'] as num).toInt()
           : null,
+      options: json['options'] is List
+          ? (json['options'] as List)
+                .whereType<String>()
+                .map((option) => option.trim())
+                .where((option) => option.isNotEmpty)
+                .toList(growable: false)
+          : const <String>[],
     );
   }
 
@@ -33,6 +51,7 @@ final class DocumentMetadataField {
   final DocumentMetadataFieldType type;
   final bool required;
   final int? maxLength;
+  final List<String> options;
 
   String? validateValue(String? rawValue) {
     final value = rawValue?.trim() ?? '';
@@ -67,6 +86,20 @@ final class DocumentMetadataField {
       return 'El campo $label debe ser verdadero o falso.';
     }
 
+    if (type == DocumentMetadataFieldType.list &&
+        options.isNotEmpty &&
+        !options.contains(value)) {
+      return 'El campo $label debe usar una opción configurada.';
+    }
+
+    if (type == DocumentMetadataFieldType.json) {
+      try {
+        jsonDecode(value);
+      } catch (_) {
+        return 'El campo $label debe contener JSON válido.';
+      }
+    }
+
     return null;
   }
 
@@ -76,6 +109,8 @@ final class DocumentMetadataField {
       DocumentMetadataFieldType.integer => 'Valor entero',
       DocumentMetadataFieldType.number => 'Valor numérico',
       DocumentMetadataFieldType.boolean => 'Seleccione verdadero o falso',
+      DocumentMetadataFieldType.list => 'Seleccione una opción',
+      DocumentMetadataFieldType.json => 'Objeto, lista o valor JSON válido',
       DocumentMetadataFieldType.text when maxLength != null =>
         'Máximo $maxLength caracteres',
       _ => '',
@@ -87,7 +122,10 @@ final class DocumentMetadataField {
       'date' => DocumentMetadataFieldType.date,
       'integer' => DocumentMetadataFieldType.integer,
       'number' => DocumentMetadataFieldType.number,
+      'decimal' => DocumentMetadataFieldType.number,
       'boolean' => DocumentMetadataFieldType.boolean,
+      'list' => DocumentMetadataFieldType.list,
+      'json' => DocumentMetadataFieldType.json,
       _ => DocumentMetadataFieldType.text,
     };
   }

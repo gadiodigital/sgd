@@ -145,7 +145,7 @@ public sealed class AuthService
     }
 
     /// <summary>
-    /// Authenticates a tenant user using local credentials and issues a JWT bearer token.
+    /// Authenticates an organization user using local credentials and issues a JWT bearer token.
     /// </summary>
     public async Task<AuthenticatedSession> LoginAsync(
         string tenantCode,

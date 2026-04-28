@@ -49,7 +49,7 @@ public sealed class DocumentService
     }
 
     /// <summary>
-    /// Searches tenant documents using a free-text query.
+    /// Searches organization documents using a free-text query.
     /// </summary>
     public async Task<IReadOnlyCollection<Document>> SearchAsync(
         Guid tenantId,

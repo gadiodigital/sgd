@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/admin_role_option.dart';
 
-/// Captures a role assignment choice for an existing tenant user.
+/// Captures a role assignment choice for an existing organization user.
 class AssignUserRoleDialog extends StatefulWidget {
   const AssignUserRoleDialog({
     required this.userFullName,

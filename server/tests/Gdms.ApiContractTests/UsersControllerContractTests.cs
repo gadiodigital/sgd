@@ -159,6 +159,44 @@ public sealed class UsersControllerContractTests : IClassFixture<ApiContractTest
         Assert.Contains(persistedAssigned!.Roles, role => role.Code == "DOCUMENT_OPERATOR");
     }
 
+    [PostgresContractFact]
+    public async Task Current_Organization_User_Endpoints_Should_Use_Organization_From_Claims()
+    {
+        var tenant = await CreateTenantAsync("api_users_current", "API Users Current");
+        var admin = await CreateUserAsync(tenant.Id, $"admin.{Guid.NewGuid():N}@tenant.ar");
+        var listedUser = await CreateUserAsync(tenant.Id, $"listed.{Guid.NewGuid():N}@tenant.ar", "Usuario Actual");
+
+        using var client = _factory.CreateClientForTenant(tenant.Id, "TENANT_ADMIN");
+        client.DefaultRequestHeaders.Remove(TestAuthHandler.UserIdHeader);
+        client.DefaultRequestHeaders.Add(TestAuthHandler.UserIdHeader, admin.Id.ToString());
+
+        var listResponse = await client.GetAsync("/api/organization/users");
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/organization/users",
+            BuildCreateUserRequest($"current.{Guid.NewGuid():N}@tenant.ar"));
+
+        listResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var listPayload = await listResponse.Content.ReadFromJsonAsync<UserResponse[]>();
+        var createdPayload = await createResponse.Content.ReadFromJsonAsync<UserResponse>();
+
+        Assert.NotNull(listPayload);
+        Assert.Contains(listPayload!, item => item.Id == listedUser.Id);
+        Assert.NotNull(createdPayload);
+        Assert.Equal(tenant.Id, createdPayload!.TenantId);
+
+        var assignResponse = await client.PostAsJsonAsync(
+            $"/api/organization/users/{createdPayload.Id}/roles",
+            new AssignRoleRequest { RoleCode = "DOCUMENT_OPERATOR" });
+
+        assignResponse.EnsureSuccessStatusCode();
+
+        var assignedPayload = await assignResponse.Content.ReadFromJsonAsync<UserResponse>();
+        Assert.NotNull(assignedPayload);
+        Assert.Contains(assignedPayload!.Roles, role => role.Code == "DOCUMENT_OPERATOR");
+    }
+
     private async Task<Tenant> CreateTenantAsync(string code, string name)
     {
         return await new PostgresTenantRepository(_factory.DataSource).AddAsync(

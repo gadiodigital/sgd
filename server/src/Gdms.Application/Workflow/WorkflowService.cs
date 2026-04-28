@@ -34,7 +34,7 @@ public sealed class WorkflowService
     }
 
     /// <summary>
-    /// Lists workflow tasks of a tenant.
+    /// Lists workflow tasks of an organization.
     /// </summary>
     public async Task<IReadOnlyCollection<WorkflowTask>> ListByTenantAsync(
         Guid tenantId,

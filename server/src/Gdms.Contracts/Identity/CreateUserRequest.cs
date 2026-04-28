@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace Gdms.Contracts.Identity;
 
 /// <summary>
-/// Represents the payload required to create a tenant-scoped user.
+/// Represents the payload required to create an organization-scoped user.
 /// </summary>
 public sealed class CreateUserRequest
 {

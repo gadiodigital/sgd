@@ -246,7 +246,8 @@ final class DocumentScanViewModel extends ViewModel {
       DocumentScanViewModelSessionSupport.discardSessionsWhere(
         this,
         (session) => session.isFinished,
-        successMessage: 'Se descartaron las sesiones finalizadas del host local.',
+        successMessage:
+            'Se descartaron las sesiones finalizadas del host local.',
       );
   Future<void> discardAdfSessions() =>
       DocumentScanViewModelSessionSupport.discardSessionsWhere(
@@ -282,7 +283,8 @@ final class DocumentScanViewModel extends ViewModel {
   void setServiceAvailable(bool value) => _serviceAvailable = value;
   void setServiceStatus(WindowsTwainServiceStatus? value) =>
       _serviceStatus = value;
-  void setActiveSessions(List<ActiveScanSession> value) => _activeSessions = value;
+  void setActiveSessions(List<ActiveScanSession> value) =>
+      _activeSessions = value;
   void setPreviewBytes(List<int>? value) => _previewBytes = value;
   void setCurrentPreviewPage(int value) => _currentPreviewPage = value;
   void setPreferredScannerName(String? value) => _preferredScannerName = value;

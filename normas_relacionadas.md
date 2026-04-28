@@ -4,7 +4,7 @@ Fecha de corte: 2026-03-18
 
 ## 1. Propósito
 
-Este documento resume el marco legal, normativo y técnico que debe usarse como contexto para diseñar un sistema de gestión documental empresarial y sectorial para la República Argentina, con foco en empresas, inmobiliarias, estudios jurídicos y organizaciones similares.
+Este documento resume el marco legal, normativo y técnico que debe usarse como contexto para diseñar un sistema de gestión documental empresarial y sectorial para la República Argentina, con foco en empresas, inmobiliarias, estudios jurídicos y organizaciónes similares.
 
 La idea central es separar tres capas:
 
@@ -134,7 +134,7 @@ Implicancias:
 ### Ley 25.246 y modificaciones, incluyendo Ley 27.739
 
 - Crea y fortalece el régimen argentino de prevención de LA/FT y el rol de la UIF.
-- No todas las organizaciones usuarias del sistema serán `sujetos obligados`, pero el producto debe contemplar esa posibilidad en verticales sectoriales.
+- No todas las organizaciónes usuarias del sistema serán `sujetos obligados`, pero el producto debe contemplar esa posibilidad en verticales sectoriales.
 
 Impacto general:
 
@@ -240,7 +240,7 @@ Impacto:
 ### ISO 30301 - Management systems for records
 
 - Lleva la gestión documental al plano de sistema de gestión.
-- Relevante para organizaciones que quieran demostrar gobernanza y mejora continua, no solo operación.
+- Relevante para organizaciónes que quieran demostrar gobernanza y mejora continua, no solo operación.
 
 Impacto:
 
@@ -299,7 +299,7 @@ Impacto:
 
 Impacto:
 
-- orienta la priorización de amenazas por activo, tenant, vertical y flujo crítico.
+- orienta la priorización de amenazas por activo, organización, vertical y flujo crítico.
 
 ### ISO/IEC 27017
 
@@ -316,7 +316,7 @@ Impacto:
 
 Impacto:
 
-- especialmente útil para el modelo SaaS multi-tenant;
+- especialmente útil para el modelo instalacion dedicada;
 - impulsa requisitos sobre privacidad contractual, transferencias y subprocesadores.
 
 ### ISO/IEC 27701
@@ -459,7 +459,7 @@ Impacto:
 
 Impacto:
 
-- permite activar módulos, umbrales y comportamiento por tenant sin redeploy;
+- permite activar módulos, umbrales y comportamiento por organización sin redeploy;
 - impulsa `RF-049`, `RNF-041`.
 
 ### Cloud Firestore
@@ -477,13 +477,13 @@ Impacto:
 
 | Subsistema | Implicancias principales |
 | --- | --- |
-| Identidad y acceso | MFA, RBAC/ABAC, SSO, segregación por tenant, ethical walls, delegación auditada |
+| Identidad y acceso | MFA, RBAC/ABAC, SSO, segregación por organización, ethical walls, delegación auditada |
 | Repositorio documental | versionado, hash, clasificación, metadatos, cuarentena, preservación de originales |
 | Records management | calendarios de retención, legal hold, declaración de record, disposición certificada |
 | Evidencia y auditoría | auditoría inmutable, exportación probatoria, hashes, firmas, sellado temporal |
 | Privacidad | inventario de bases, minimización, atención de derechos, encargados y transferencias |
 | Configuración y NoSQL | Remote Config para flags y parámetros no sensibles; Firestore para proyecciones y datos no relacionales sin romper ownership del core |
-| SaaS / híbrido | aislamiento entre tenants, claves por tenant, responsabilidad compartida, portabilidad |
+| SaaS / híbrido | aislamiento entre organizaciónes, claves por organización, responsabilidad compartida, portabilidad |
 | Vertical inmobiliario | legajo, KYC, beneficiario final, monitoreo y reportabilidad |
 | Vertical jurídico | privilegio profesional, confidencialidad reforzada, asunto/caso, defensa no equiparada a cliente UIF |
 | Vertical corporativo | contratos, societario, contable, proveedores, RR.HH., plazos diferenciados |
@@ -555,3 +555,6 @@ Para este proyecto, la combinación mínima razonable es:
 - [OWASP Application Security Verification Standard](https://owasp.org/www-project-application-security-verification-standard/)
 - [OWASP API Security Project](https://owasp.org/www-project-api-security/)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+
+
+

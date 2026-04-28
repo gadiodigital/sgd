@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes explicit ACL management endpoints for tenant documents.
+/// Exposes explicit ACL management endpoints for organization documents.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -50,7 +50,7 @@ public sealed class DocumentAccessController : ControllerBase
     }
 
     /// <summary>
-    /// Grants an explicit ACL permission to a tenant user.
+    /// Grants an explicit ACL permission to an organization user.
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN,DOCUMENT_OPERATOR")]

@@ -16,7 +16,8 @@ final class DocumentWorkflowTasksViewModel extends ViewModel {
   final AppSessionViewModel _sessionViewModel;
   List<WorkflowTaskItem> _tasks = const [];
 
-  UnmodifiableListView<WorkflowTaskItem> get tasks => UnmodifiableListView(_tasks);
+  UnmodifiableListView<WorkflowTaskItem> get tasks =>
+      UnmodifiableListView(_tasks);
 
   Future<void> load(String documentId) async {
     final session = _sessionViewModel.session;
@@ -28,7 +29,7 @@ final class DocumentWorkflowTasksViewModel extends ViewModel {
     try {
       await run(() async {
         final response = await _apiClient.getList(
-          '/api/tenants/${session.tenantId}/workflow/tasks',
+          '/api/organization/workflow/tasks',
         );
         _tasks = response
             .cast<Map<String, dynamic>>()
@@ -56,7 +57,7 @@ final class DocumentWorkflowTasksViewModel extends ViewModel {
     try {
       await run(() async {
         await _apiClient.postNoContent(
-          '/api/tenants/${session.tenantId}/workflow/tasks/$taskId/complete',
+          '/api/organization/workflow/tasks/$taskId/complete',
           const {},
         );
         await load(documentId);
@@ -69,7 +70,9 @@ final class DocumentWorkflowTasksViewModel extends ViewModel {
 
   WorkflowTaskItem _mapTask(Map<String, dynamic> json) {
     final dueAtRaw = json['dueAtUtc'] as String?;
-    final dueAt = dueAtRaw == null ? null : DateTime.tryParse(dueAtRaw)?.toUtc();
+    final dueAt = dueAtRaw == null
+        ? null
+        : DateTime.tryParse(dueAtRaw)?.toUtc();
     final today = DateTime.now();
     return WorkflowTaskItem(
       id: json['id'] as String? ?? '',
@@ -84,7 +87,9 @@ final class DocumentWorkflowTasksViewModel extends ViewModel {
       isOverdue:
           dueAt != null &&
           (json['status'] as String? ?? 'OPEN') == 'OPEN' &&
-          dueAt.toLocal().isBefore(DateTime(today.year, today.month, today.day)),
+          dueAt.toLocal().isBefore(
+            DateTime(today.year, today.month, today.day),
+          ),
     );
   }
 

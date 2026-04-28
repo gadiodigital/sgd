@@ -16,7 +16,7 @@ public interface ILegalHoldRepository
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns a legal hold by identifier inside a tenant.
+    /// Returns a legal hold by identifier inside an organization.
     /// </summary>
     Task<LegalHold?> GetByIdAsync(Guid tenantId, Guid legalHoldId, CancellationToken cancellationToken);
 

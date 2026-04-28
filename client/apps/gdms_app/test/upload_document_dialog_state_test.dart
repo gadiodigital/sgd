@@ -111,8 +111,7 @@ void main() {
                   scanDocumentLauncher: scanDocumentLauncher == null
                       ? null
                       : (innerContext) async =>
-                            await scanDocumentLauncher(innerContext)
-                                as dynamic,
+                            await scanDocumentLauncher(innerContext) as dynamic,
                   pickFileLauncher: pickFileLauncher,
                 ),
               ).then(onResult);
@@ -155,20 +154,14 @@ void main() {
     addTearDown(sessionViewModel.dispose);
 
     await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        onResult: (_) {},
-      ),
+      buildDialogHarness(sessionViewModel: sessionViewModel, onResult: (_) {}),
     );
     await tester.pumpAndSettle();
 
     await tester.tap(find.widgetWithText(FilledButton, 'Subir'));
     await tester.pumpAndSettle();
 
-    expect(
-      find.text('Selecciona un archivo antes de subir.'),
-      findsOneWidget,
-    );
+    expect(find.text('Selecciona un archivo antes de subir.'), findsOneWidget);
     expect(find.byType(UploadDocumentDialog), findsOneWidget);
   }, variant: windowsVariant);
 
@@ -181,15 +174,12 @@ void main() {
     addTearDown(sessionViewModel.dispose);
 
     await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        onResult: (_) {},
-      ),
+      buildDialogHarness(sessionViewModel: sessionViewModel, onResult: (_) {}),
     );
     await tester.pumpAndSettle();
 
     expect(
-      find.text('No hay tipos documentales activos para este tenant.'),
+      find.text('No hay tipos documentales activos para esta organización.'),
       findsOneWidget,
     );
 
@@ -199,7 +189,9 @@ void main() {
     expect(find.text('Selecciona el tipo documental.'), findsOneWidget);
   }, variant: windowsVariant);
 
-  testWidgets('cancelar el scanner no selecciona archivo ni badge', (tester) async {
+  testWidgets('cancelar el scanner no selecciona archivo ni badge', (
+    tester,
+  ) async {
     final client = buildClient();
     final sessionViewModel = await buildSignedInSession(client);
     var launcherCalls = 0;
@@ -226,62 +218,66 @@ void main() {
     expect(find.textContaining('PDF escaneado'), findsNothing);
   }, variant: windowsVariant);
 
-  testWidgets('seleccionar archivo manual autocompleta titulo y no muestra badge de scan', (
-    tester,
-  ) async {
-    final client = buildClient();
-    final sessionViewModel = await buildSignedInSession(client);
+  testWidgets(
+    'seleccionar archivo manual autocompleta titulo y no muestra badge de scan',
+    (tester) async {
+      final client = buildClient();
+      final sessionViewModel = await buildSignedInSession(client);
 
-    addTearDown(sessionViewModel.dispose);
+      addTearDown(sessionViewModel.dispose);
 
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        onResult: (_) {},
-        pickFileLauncher: (_) async => PlatformFile(
-          name: 'contrato-manual.pdf',
-          size: 7,
-          bytes: Uint8List.fromList(const [1, 2, 3]),
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          onResult: (_) {},
+          pickFileLauncher: (_) async => PlatformFile(
+            name: 'contrato-manual.pdf',
+            size: 7,
+            bytes: Uint8List.fromList(const [1, 2, 3]),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Seleccionar archivo'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Seleccionar archivo'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('contrato-manual.pdf'), findsOneWidget);
-    expect(find.textContaining('PDF escaneado'), findsNothing);
-    expect(find.text('contrato-manual'), findsOneWidget);
-  }, variant: windowsVariant);
+      expect(find.text('contrato-manual.pdf'), findsOneWidget);
+      expect(find.textContaining('PDF escaneado'), findsNothing);
+      expect(find.text('contrato-manual'), findsOneWidget);
+    },
+    variant: windowsVariant,
+  );
 
-  testWidgets('seleccionar archivo manual no pisa un titulo ya editado', (
-    tester,
-  ) async {
-    final client = buildClient();
-    final sessionViewModel = await buildSignedInSession(client);
+  testWidgets(
+    'seleccionar archivo manual no pisa un titulo ya editado',
+    (tester) async {
+      final client = buildClient();
+      final sessionViewModel = await buildSignedInSession(client);
 
-    addTearDown(sessionViewModel.dispose);
+      addTearDown(sessionViewModel.dispose);
 
-    await tester.pumpWidget(
-      buildDialogHarness(
-        sessionViewModel: sessionViewModel,
-        onResult: (_) {},
-        pickFileLauncher: (_) async => PlatformFile(
-          name: 'anexo.pdf',
-          size: 3,
-          bytes: Uint8List.fromList(const [4, 5, 6]),
+      await tester.pumpWidget(
+        buildDialogHarness(
+          sessionViewModel: sessionViewModel,
+          onResult: (_) {},
+          pickFileLauncher: (_) async => PlatformFile(
+            name: 'anexo.pdf',
+            size: 3,
+            bytes: Uint8List.fromList(const [4, 5, 6]),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextFormField).first, 'Titulo manual');
-    await tester.tap(find.text('Seleccionar archivo'));
-    await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField).first, 'Titulo manual');
+      await tester.tap(find.text('Seleccionar archivo'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('anexo.pdf'), findsOneWidget);
-    expect(find.text('Titulo manual'), findsOneWidget);
-    expect(find.text('anexo'), findsNothing);
-  }, variant: windowsVariant);
+      expect(find.text('anexo.pdf'), findsOneWidget);
+      expect(find.text('Titulo manual'), findsOneWidget);
+      expect(find.text('anexo'), findsNothing);
+    },
+    variant: windowsVariant,
+  );
 }

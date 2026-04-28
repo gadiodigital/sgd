@@ -21,11 +21,15 @@ public sealed class AuditControllerContractTests : IClassFixture<ApiContractTest
 
         var platformResponse = await client.GetAsync("/api/audit/events/recent");
         var tenantResponse = await client.GetAsync($"/api/tenants/{tenant.Id}/audit/events/recent");
+        var currentOrganizationResponse = await client.GetAsync("/api/organization/audit/events/recent");
         var documentResponse = await client.GetAsync($"/api/tenants/{tenant.Id}/documents/{document.Id}/audit-events");
+        var currentOrganizationDocumentResponse = await client.GetAsync($"/api/organization/documents/{document.Id}/audit-events");
 
         Assert.Equal(HttpStatusCode.Unauthorized, platformResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, tenantResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, currentOrganizationResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, documentResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, currentOrganizationDocumentResponse.StatusCode);
     }
 
     [PostgresContractFact]
@@ -36,6 +40,20 @@ public sealed class AuditControllerContractTests : IClassFixture<ApiContractTest
         var response = await client.GetAsync("/api/audit/events/recent");
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [PostgresContractFact]
+    public async Task Current_Organization_Audit_Should_Return_401_When_Organization_Claim_Is_Missing()
+    {
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.EnabledHeader, "true");
+        client.DefaultRequestHeaders.Add(TestAuthHandler.RolesHeader, "AUDITOR");
+
+        var tenantResponse = await client.GetAsync("/api/organization/audit/events/recent");
+        var documentResponse = await client.GetAsync($"/api/organization/documents/{Guid.NewGuid()}/audit-events");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, tenantResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, documentResponse.StatusCode);
     }
 
     [PostgresContractFact]
@@ -93,15 +111,22 @@ public sealed class AuditControllerContractTests : IClassFixture<ApiContractTest
 
         var platformResponse = await platformClient.GetAsync("/api/audit/events/recent?limit=1");
         var tenantResponse = await tenantClient.GetAsync($"/api/tenants/{tenantA.Id}/audit/events/recent?limit=1");
+        var currentOrganizationResponse = await tenantClient.GetAsync("/api/organization/audit/events/recent?limit=1");
         var documentResponse = await documentClient.GetAsync($"/api/tenants/{tenantA.Id}/documents/{documentA.Id}/audit-events?limit=0");
+        var currentOrganizationDocumentResponse = await documentClient.GetAsync($"/api/organization/documents/{documentA.Id}/audit-events?limit=0");
 
         platformResponse.EnsureSuccessStatusCode();
         tenantResponse.EnsureSuccessStatusCode();
+        currentOrganizationResponse.EnsureSuccessStatusCode();
         documentResponse.EnsureSuccessStatusCode();
+        currentOrganizationDocumentResponse.EnsureSuccessStatusCode();
 
         var platformPayload = await platformResponse.Content.ReadFromJsonAsync<AuditEventResponse[]>();
         var tenantPayload = await tenantResponse.Content.ReadFromJsonAsync<AuditEventResponse[]>();
+        var currentOrganizationPayload = await currentOrganizationResponse.Content.ReadFromJsonAsync<AuditEventResponse[]>();
         var documentPayload = await documentResponse.Content.ReadFromJsonAsync<AuditEventResponse[]>();
+        var currentOrganizationDocumentPayload =
+            await currentOrganizationDocumentResponse.Content.ReadFromJsonAsync<AuditEventResponse[]>();
 
         Assert.NotNull(platformPayload);
         Assert.Single(platformPayload!);
@@ -111,11 +136,22 @@ public sealed class AuditControllerContractTests : IClassFixture<ApiContractTest
         Assert.Equal(tenantA.Id, tenantPayload[0].TenantId);
         Assert.Equal("DOCUMENT_METADATA_UPDATED", tenantPayload[0].EventType);
 
+        Assert.NotNull(currentOrganizationPayload);
+        Assert.Single(currentOrganizationPayload!);
+        Assert.Equal(tenantA.Id, currentOrganizationPayload[0].TenantId);
+        Assert.Equal("DOCUMENT_METADATA_UPDATED", currentOrganizationPayload[0].EventType);
+
         Assert.NotNull(documentPayload);
         Assert.Equal(2, documentPayload!.Length);
         Assert.All(documentPayload, item => Assert.Equal(documentA.Id, item.DocumentId));
         Assert.Contains(documentPayload, item => item.EventType == "DOCUMENT_CREATED");
         Assert.Contains(documentPayload, item => item.EventType == "DOCUMENT_METADATA_UPDATED");
+
+        Assert.NotNull(currentOrganizationDocumentPayload);
+        Assert.Equal(2, currentOrganizationDocumentPayload!.Length);
+        Assert.All(currentOrganizationDocumentPayload, item => Assert.Equal(documentA.Id, item.DocumentId));
+        Assert.Contains(currentOrganizationDocumentPayload, item => item.EventType == "DOCUMENT_CREATED");
+        Assert.Contains(currentOrganizationDocumentPayload, item => item.EventType == "DOCUMENT_METADATA_UPDATED");
     }
 
     private async Task<Tenant> CreateTenantAsync(string code, string name)

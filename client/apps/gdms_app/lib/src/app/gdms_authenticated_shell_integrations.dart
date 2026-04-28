@@ -19,7 +19,7 @@ Widget buildIntegrationsPage({
   required AppSessionViewModel sessionViewModel,
   required FirebaseRuntimeState firebaseRuntimeState,
   required Future<void> Function(BuildContext context, WidgetBuilder builder)
-      showDialog,
+  showDialog,
 }) {
   return IntegrationsDashboardPage(
     viewModel: integrationsViewModel,
@@ -41,7 +41,7 @@ Future<void> openIntegrationStatusAction({
   required AppSessionViewModel sessionViewModel,
   required FirebaseRuntimeState firebaseRuntimeState,
   required Future<void> Function(BuildContext context, WidgetBuilder builder)
-      showDialog,
+  showDialog,
 }) {
   return switch (item.category) {
     'CONFIG' => _openConfigPreview(

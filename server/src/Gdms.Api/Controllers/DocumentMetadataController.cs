@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped read access to current document metadata.
+/// Exposes organization-scoped read access to current document metadata.
 /// </summary>
 [ApiController]
 [Authorize]

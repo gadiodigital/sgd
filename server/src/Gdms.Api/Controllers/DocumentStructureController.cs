@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped configurable document structures.
+/// Exposes organization-scoped configurable document structures.
 /// </summary>
 [ApiController]
 [Authorize]

@@ -64,7 +64,9 @@ class _AdminTenantDetailsDialogState extends State<AdminTenantDetailsDialog> {
                   ),
                 ),
               if (_isBusy && _details == null)
-                const Expanded(child: Center(child: CircularProgressIndicator()))
+                const Expanded(
+                  child: Center(child: CircularProgressIndicator()),
+                )
               else if (_details != null)
                 Expanded(
                   child: ListView(
@@ -82,16 +84,21 @@ class _AdminTenantDetailsDialogState extends State<AdminTenantDetailsDialog> {
                                 children: _details!.recentEvents
                                     .map(
                                       (event) => Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 12),
+                                        padding: const EdgeInsets.only(
+                                          bottom: 12,
+                                        ),
                                         child: ListTile(
                                           tileColor: Colors.white,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(16),
+                                            borderRadius: BorderRadius.circular(
+                                              16,
+                                            ),
                                           ),
                                           title: Text(
-                                            event.eventType.replaceAll('_', ' '),
+                                            event.eventType.replaceAll(
+                                              '_',
+                                              ' ',
+                                            ),
                                           ),
                                           subtitle: Text(
                                             '${event.tenantCode} · ${event.occurredAtLabel}',

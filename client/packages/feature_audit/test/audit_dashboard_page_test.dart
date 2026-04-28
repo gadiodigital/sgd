@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-    'filtra por severidad tenant y query y limpia el dashboard',
+    'filtra por severidad organizacion y query y limpia el dashboard',
     (tester) async {
       tester.view.physicalSize = const Size(1440, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -20,9 +20,7 @@ void main() {
             useMaterial3: false,
             splashFactory: NoSplash.splashFactory,
           ),
-          home: Scaffold(
-            body: AuditDashboardPage(viewModel: viewModel),
-          ),
+          home: Scaffold(body: AuditDashboardPage(viewModel: viewModel)),
         ),
       );
 
@@ -40,7 +38,9 @@ void main() {
       expect(find.text('1 visibles de 4'), findsOneWidget);
       expect(find.text('ACCESS_POLICY_CHANGED'), findsOneWidget);
 
-      await tester.tap(find.widgetWithText(FilterChip, 'Todos los tenants'));
+      await tester.tap(
+        find.widgetWithText(FilterChip, 'Todas las organizaciones'),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilterChip, 'TENANT-1'));
       await tester.pumpAndSettle();

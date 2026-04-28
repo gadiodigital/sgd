@@ -3,19 +3,19 @@ using System.ComponentModel.DataAnnotations;
 namespace Gdms.Contracts.Tenants;
 
 /// <summary>
-/// Represents the payload required to create a tenant.
+/// Represents the payload required to create the initial organization record.
 /// </summary>
 public sealed class CreateTenantRequest
 {
     /// <summary>
-    /// Gets or sets the short tenant code used in integrations and routing.
+    /// Gets or sets the short organization code used in integrations and routing.
     /// </summary>
     [Required]
     [MaxLength(32)]
     public string Code { get; init; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the display name of the tenant.
+    /// Gets or sets the display name of the organization.
     /// </summary>
     [Required]
     [MaxLength(160)]

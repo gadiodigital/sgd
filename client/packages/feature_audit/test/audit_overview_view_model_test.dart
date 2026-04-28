@@ -18,24 +18,21 @@ void main() {
     expect(viewModel.message, 'Auditoría sincronizada.');
 
     viewModel.updateSeverityFilter('WARNING');
-    expect(
-      viewModel.filteredEvents.map((item) => item.eventType),
-      ['LOGIN_FAILED'],
-    );
+    expect(viewModel.filteredEvents.map((item) => item.eventType), [
+      'LOGIN_FAILED',
+    ]);
 
     viewModel.updateSeverityFilter('ALL');
     viewModel.updateTenantFilter('TENANT-2');
-    expect(
-      viewModel.filteredEvents.map((item) => item.eventType),
-      ['ACCESS_POLICY_CHANGED'],
-    );
+    expect(viewModel.filteredEvents.map((item) => item.eventType), [
+      'ACCESS_POLICY_CHANGED',
+    ]);
 
     viewModel.updateTenantFilter('ALL');
     viewModel.updateQuery('document');
-    expect(
-      viewModel.filteredEvents.map((item) => item.eventType),
-      ['DOCUMENT_CREATED'],
-    );
+    expect(viewModel.filteredEvents.map((item) => item.eventType), [
+      'DOCUMENT_CREATED',
+    ]);
 
     viewModel.clearFilters();
     expect(viewModel.query, '');

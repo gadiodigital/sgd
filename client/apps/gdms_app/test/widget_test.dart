@@ -10,9 +10,9 @@ void main() {
     expect(find.text('Ingreso al GDMS'), findsOneWidget);
     expect(find.text('Ingresar'), findsOneWidget);
 
-    await tester.tap(find.text('Tenant admin'));
+    await tester.tap(find.text('Organización admin'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Crear tenant admin'), findsOneWidget);
+    expect(find.text('Crear administrador de organización'), findsOneWidget);
   });
 }

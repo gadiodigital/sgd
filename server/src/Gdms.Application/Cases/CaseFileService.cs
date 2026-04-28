@@ -31,7 +31,7 @@ public sealed class CaseFileService
     }
 
     /// <summary>
-    /// Lists case files of a tenant.
+    /// Lists case files of an organization.
     /// </summary>
     public async Task<IReadOnlyCollection<CaseFile>> ListByTenantAsync(
         Guid tenantId,
@@ -54,7 +54,7 @@ public sealed class CaseFileService
     }
 
     /// <summary>
-    /// Creates a new case file inside a tenant.
+    /// Creates a new case file inside an organization.
     /// </summary>
     public async Task<CaseFile> CreateAsync(
         Guid tenantId,

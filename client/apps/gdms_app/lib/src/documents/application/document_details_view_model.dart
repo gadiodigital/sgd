@@ -48,7 +48,7 @@ final class DocumentDetailsViewModel extends ViewModel {
           '/api/tenants/${session.tenantId}/document-types',
         );
         final auditResponse = await _apiClient.getList(
-          '/api/tenants/${session.tenantId}/documents/$documentId/audit-events?limit=20',
+          '/api/organization/documents/$documentId/audit-events?limit=20',
         );
         final versionsResponse = await _apiClient.getList(
           '/api/tenants/${session.tenantId}/documents/$documentId/versions',

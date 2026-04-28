@@ -1,7 +1,7 @@
 namespace Gdms.Contracts.Tenants;
 
 /// <summary>
-/// Represents a tenant returned by the public API.
+/// Represents an organization record returned by the public API.
 /// </summary>
 public sealed record TenantResponse(
     Guid Id,

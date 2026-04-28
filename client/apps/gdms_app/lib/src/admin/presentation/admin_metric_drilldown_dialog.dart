@@ -22,11 +22,11 @@ class AdminMetricDrilldownDialog extends StatelessWidget {
   final List<GovernanceTask> tasks;
   final List<AdminAuditEvent> events;
   final Future<void> Function(BuildContext context, GovernanceTask task)?
-      onTaskSelected;
+  onTaskSelected;
   final Future<void> Function(BuildContext context, AdminTenantSummary tenant)?
-      onTenantSelected;
+  onTenantSelected;
   final Future<void> Function(BuildContext context, AdminAuditEvent event)?
-      onEventSelected;
+  onEventSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -52,15 +52,20 @@ class AdminMetricDrilldownDialog extends StatelessWidget {
                 child: ListView(
                   children: [
                     GdmsSectionCard(
-                      title: 'Tenants recientes',
-                      subtitle: 'Nuevas altas o cuentas que requieren seguimiento.',
+                      title: 'Organización configurada',
+                      subtitle:
+                          'Alta inicial o configuración que requiere seguimiento.',
                       child: tenants.isEmpty
-                          ? const Text('No hay tenants recientes para revisar.')
+                          ? const Text(
+                              'No hay datos de organización para revisar.',
+                            )
                           : Column(
                               children: tenants
                                   .map(
                                     (tenant) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
                                       child: ListTile(
                                         onTap: onTenantSelected == null
                                             ? null
@@ -70,7 +75,9 @@ class AdminMetricDrilldownDialog extends StatelessWidget {
                                               ),
                                         tileColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                         ),
                                         title: Text(tenant.name),
                                         subtitle: Text(
@@ -86,14 +93,19 @@ class AdminMetricDrilldownDialog extends StatelessWidget {
                     const SizedBox(height: 16),
                     GdmsSectionCard(
                       title: 'Backlog relacionado',
-                      subtitle: 'Pendientes de plataforma asociados a activación y setup.',
+                      subtitle:
+                          'Pendientes de plataforma asociados a activación y setup.',
                       child: tasks.isEmpty
-                          ? const Text('No hay tareas relacionadas para mostrar.')
+                          ? const Text(
+                              'No hay tareas relacionadas para mostrar.',
+                            )
                           : Column(
                               children: tasks
                                   .map(
                                     (task) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 12),
+                                      padding: const EdgeInsets.only(
+                                        bottom: 12,
+                                      ),
                                       child: ListTile(
                                         onTap: onTaskSelected == null
                                             ? null
@@ -103,7 +115,9 @@ class AdminMetricDrilldownDialog extends StatelessWidget {
                                               ),
                                         tileColor: Colors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                         ),
                                         title: Text(task.title),
                                         subtitle: Text(task.ownerLabel),
@@ -123,7 +137,8 @@ class AdminMetricDrilldownDialog extends StatelessWidget {
                       const SizedBox(height: 16),
                       GdmsSectionCard(
                         title: 'Actividad reciente',
-                        subtitle: 'Señales recientes para contextualizar el KPI.',
+                        subtitle:
+                            'Señales recientes para contextualizar el KPI.',
                         child: Column(
                           children: events
                               .map(
@@ -132,10 +147,8 @@ class AdminMetricDrilldownDialog extends StatelessWidget {
                                   child: ListTile(
                                     onTap: onEventSelected == null
                                         ? null
-                                        : () => onEventSelected!(
-                                            context,
-                                            event,
-                                          ),
+                                        : () =>
+                                              onEventSelected!(context, event),
                                     tileColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),

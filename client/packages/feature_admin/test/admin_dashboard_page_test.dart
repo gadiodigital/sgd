@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   testWidgets(
-    'renderiza acciones y dispara callbacks de metricas backlog tenants y eventos',
+    'renderiza acciones y dispara callbacks de metricas backlog organizaciones y eventos',
     (tester) async {
       tester.view.physicalSize = const Size(1440, 2400);
       tester.view.devicePixelRatio = 1.0;
@@ -18,7 +18,6 @@ void main() {
       GovernanceTask? selectedTask;
       AdminTenantSummary? selectedTenant;
       AdminAuditEvent? selectedEvent;
-      var createTenantTapped = 0;
       var manageUsersTapped = 0;
 
       await tester.pumpWidget(
@@ -30,7 +29,6 @@ void main() {
           home: Scaffold(
             body: AdminDashboardPage(
               viewModel: viewModel,
-              onCreateTenantRequested: (_) async => createTenantTapped++,
               onManageUsersRequested: (_) async => manageUsersTapped++,
               onMetricSelected: (_, metric, overview) async {
                 selectedMetric = metric;
@@ -58,13 +56,11 @@ void main() {
 
       await tester.tap(find.text('Usuarios'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Crear tenant'));
-      await tester.pumpAndSettle();
 
       expect(manageUsersTapped, 1);
-      expect(createTenantTapped, 1);
+      expect(find.text('Configurar organización'), findsNothing);
 
-      await tester.tap(find.text('Tenants activos'));
+      await tester.tap(find.text('Organización activa'));
       await tester.pumpAndSettle();
       expect(selectedMetric?.kind, AdminMetricKind.activeTenants);
       expect(selectedMetricOverview?.activeTenants, 2);
@@ -73,7 +69,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(selectedTask?.title, 'Task');
 
-      await tester.tap(find.text('Tenant 1'));
+      await tester.tap(find.text('Organización 1'));
       await tester.pumpAndSettle();
       expect(selectedTenant?.id, 'tenant-1');
 
@@ -99,7 +95,7 @@ final class _DashboardAdminRepository implements AdminRepository {
         AdminTenantSummary(
           id: 'tenant-1',
           code: 'TENANT-1',
-          name: 'Tenant 1',
+          name: 'Organización 1',
           sector: 'EMPRESA',
           createdAtLabel: 'Hoy',
         ),

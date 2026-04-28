@@ -16,14 +16,14 @@ final class DemoAdminRepository implements AdminRepository {
       storageAlerts: 1,
       tenants: [
         AdminTenantSummary(
-          id: 'tenant-norte-real',
+          id: 'org-norte-real',
           code: 'NORTE-REAL',
           name: 'Norte Real Estate',
           sector: 'INMOBILIARIA',
           createdAtLabel: '18 Mar 2026',
         ),
         AdminTenantSummary(
-          id: 'tenant-lex-ar',
+          id: 'org-lex-ar',
           code: 'LEX-AR',
           name: 'Lex Argentina',
           sector: 'JURIDICO',
@@ -51,7 +51,7 @@ final class DemoAdminRepository implements AdminRepository {
           priorityLabel: 'Alta',
         ),
         GovernanceTask(
-          title: 'Asignar COMPLIANCE_OFFICER al tenant NORTE-REAL',
+          title: 'Asignar COMPLIANCE_OFFICER a la organización NORTE-REAL',
           ownerLabel: 'Plataforma',
           priorityLabel: 'Media',
         ),

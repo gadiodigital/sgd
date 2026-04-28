@@ -4,7 +4,7 @@ Este modulo incorpora al GDMS el patron principal descrito en `C:\IA\SGD\context
 
 ## Alcance Implementado
 
-- Proyectos documentales dentro de un tenant.
+- Proyectos documentales dentro de una organización.
 - Tipos de contenedor por proyecto.
 - Esquema JSON de atributos por tipo de contenedor.
 - Reglas padre-hijo entre tipos de contenedor.
@@ -29,12 +29,12 @@ Tablas principales:
 - `documents.containers`
 - `documents.container_documents`
 
-El modelo usa `tenant_id` y `project_id` para mantener aislamiento logico. PostgreSQL tambien valida:
+El modelo usa `organization_id` y `project_id` para mantener aislamiento logico. PostgreSQL tambien valida:
 
 - que un tipo no raiz no pueda crearse como nodo raiz;
 - que un hijo solo pueda colgar de un padre permitido por regla;
 - que un nodo solo reciba documentos si su tipo tiene `accepts_documents = true`;
-- que el documento vinculado pertenezca al mismo tenant.
+- que el documento vinculado pertenezca al mismo organización.
 
 ## Actualizacion En Docker Local
 
@@ -51,27 +51,27 @@ El script aplica `020_document_structure_hierarchy.sql` dentro del servicio `pos
 Base:
 
 ```text
-/api/tenants/{tenantId}/structure/projects
+/api/organization/structure/projects
 ```
 
 Endpoints principales:
 
 ```text
-GET  /api/tenants/{tenantId}/structure/projects
-POST /api/tenants/{tenantId}/structure/projects
+GET  /api/organization/structure/projects
+POST /api/organization/structure/projects
 
-GET  /api/tenants/{tenantId}/structure/projects/{projectId}/container-types
-POST /api/tenants/{tenantId}/structure/projects/{projectId}/container-types
+GET  /api/organization/structure/projects/{projectId}/container-types
+POST /api/organization/structure/projects/{projectId}/container-types
 
-GET  /api/tenants/{tenantId}/structure/projects/{projectId}/container-type-rules
-POST /api/tenants/{tenantId}/structure/projects/{projectId}/container-type-rules
+GET  /api/organization/structure/projects/{projectId}/container-type-rules
+POST /api/organization/structure/projects/{projectId}/container-type-rules
 
-GET  /api/tenants/{tenantId}/structure/projects/{projectId}/containers
-GET  /api/tenants/{tenantId}/structure/projects/{projectId}/tree
-POST /api/tenants/{tenantId}/structure/projects/{projectId}/containers
+GET  /api/organization/structure/projects/{projectId}/containers
+GET  /api/organization/structure/projects/{projectId}/tree
+POST /api/organization/structure/projects/{projectId}/containers
 
-GET  /api/tenants/{tenantId}/structure/projects/{projectId}/containers/{containerId}/documents
-POST /api/tenants/{tenantId}/structure/projects/{projectId}/containers/{containerId}/documents
+GET  /api/organization/structure/projects/{projectId}/containers/{containerId}/documents
+POST /api/organization/structure/projects/{projectId}/containers/{containerId}/documents
 ```
 
 ## UI
@@ -97,3 +97,6 @@ Permite:
 ## Siguiente Paso Recomendado
 
 Completar escenarios automatizados end-to-end con PostgreSQL real para cubrir creacion de proyecto, jerarquia, carga documental y vinculo al nodo.
+
+
+

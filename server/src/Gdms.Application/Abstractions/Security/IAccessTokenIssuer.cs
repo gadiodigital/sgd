@@ -5,12 +5,12 @@ using Gdms.Domain.Tenancy;
 namespace Gdms.Application.Abstractions.Security;
 
 /// <summary>
-/// Issues access tokens for authenticated tenant users.
+/// Issues access tokens for authenticated organization users.
 /// </summary>
 public interface IAccessTokenIssuer
 {
     /// <summary>
-    /// Creates an access token for the specified tenant user.
+    /// Creates an access token for the specified organization user.
     /// </summary>
     Task<AuthenticatedAccessToken> IssueAsync(
         Tenant tenant,

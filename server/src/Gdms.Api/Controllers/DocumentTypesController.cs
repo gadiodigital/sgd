@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped document type catalog endpoints.
+/// Exposes organization-scoped document type catalog endpoints.
 /// </summary>
 [ApiController]
 [Authorize]

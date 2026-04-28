@@ -35,7 +35,7 @@ public sealed class UserService
     }
 
     /// <summary>
-    /// Lists the users of a tenant.
+    /// Lists the users of an organization.
     /// </summary>
     public async Task<IReadOnlyCollection<User>> ListByTenantAsync(Guid tenantId, CancellationToken cancellationToken)
     {
@@ -44,7 +44,7 @@ public sealed class UserService
     }
 
     /// <summary>
-    /// Returns a user by identifier inside a tenant.
+    /// Returns a user by identifier inside an organization.
     /// </summary>
     public async Task<User?> GetByIdAsync(Guid tenantId, Guid userId, CancellationToken cancellationToken)
     {
@@ -105,7 +105,7 @@ public sealed class UserService
     }
 
     /// <summary>
-    /// Assigns a platform role to an existing tenant user.
+    /// Assigns a platform role to an existing organization user.
     /// </summary>
     public async Task<User> AssignRoleAsync(
         Guid tenantId,

@@ -34,7 +34,7 @@ public sealed class NotificationsService
     }
 
     /// <summary>
-    /// Builds the current notification inbox of a tenant.
+    /// Builds the current notification inbox of an organization.
     /// </summary>
     public async Task<IReadOnlyCollection<NotificationItem>> ListByTenantAsync(
         Guid tenantId,

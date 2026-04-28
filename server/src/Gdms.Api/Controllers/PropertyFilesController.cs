@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped real-estate property files.
+/// Exposes organization-scoped real-estate property files.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -26,7 +26,7 @@ public sealed class PropertyFilesController : ControllerBase
     }
 
     /// <summary>
-    /// Lists property files visible to the current tenant scope.
+    /// Lists property files visible to the current organization scope.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<PropertyFileResponse>), StatusCodes.Status200OK)]
@@ -65,7 +65,7 @@ public sealed class PropertyFilesController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new property file inside the tenant.
+    /// Creates a new property file inside the organization.
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN,DOCUMENT_OPERATOR")]

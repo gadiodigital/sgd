@@ -8,7 +8,7 @@ import '../../infrastructure/api/gdms_api_client.dart';
 import '../domain/admin_role_option.dart';
 import '../domain/tenant_user_entry.dart';
 
-/// Manages tenant user listing and basic creation from the admin UI.
+/// Manages organization user listing and basic creation from the admin UI.
 final class IdentityManagementViewModel extends ViewModel {
   IdentityManagementViewModel(this._apiClient, this._sessionViewModel);
 
@@ -17,19 +17,20 @@ final class IdentityManagementViewModel extends ViewModel {
   List<TenantUserEntry> _users = const [];
   List<AdminRoleOption> _roles = const [];
 
-  UnmodifiableListView<TenantUserEntry> get users => UnmodifiableListView(_users);
-  UnmodifiableListView<AdminRoleOption> get roles => UnmodifiableListView(_roles);
+  UnmodifiableListView<TenantUserEntry> get users =>
+      UnmodifiableListView(_users);
+  UnmodifiableListView<AdminRoleOption> get roles =>
+      UnmodifiableListView(_roles);
 
   Future<void> load() async {
-    final tenantId = _tenantId;
-    if (tenantId == null) {
+    if (_sessionViewModel.session == null) {
       setMessage('No hay una sesión activa para gestionar usuarios.');
       return;
     }
 
     try {
       await run(() async {
-        final usersJson = await _apiClient.getList('/api/tenants/$tenantId/users');
+        final usersJson = await _apiClient.getList('/api/organization/users');
         final rolesJson = await _apiClient.getList('/api/roles');
         _users = usersJson
             .cast<Map<String, dynamic>>()
@@ -39,7 +40,7 @@ final class IdentityManagementViewModel extends ViewModel {
             .cast<Map<String, dynamic>>()
             .map(AdminRoleOption.fromJson)
             .toList(growable: false);
-        setMessage('Usuarios del tenant sincronizados.');
+        setMessage('Usuarios de la organización sincronizados.');
       });
     } catch (error) {
       setMessage(_mapError(error));
@@ -52,15 +53,14 @@ final class IdentityManagementViewModel extends ViewModel {
     required String temporaryPassword,
     required String roleCode,
   }) async {
-    final tenantId = _tenantId;
-    if (tenantId == null) {
+    if (_sessionViewModel.session == null) {
       setMessage('No hay una sesión activa para crear usuarios.');
       return false;
     }
 
     try {
       await run(() async {
-        await _apiClient.postObject('/api/tenants/$tenantId/users', {
+        await _apiClient.postObject('/api/organization/users', {
           'email': email.trim(),
           'fullName': fullName.trim(),
           'temporaryPassword': temporaryPassword,
@@ -89,15 +89,14 @@ final class IdentityManagementViewModel extends ViewModel {
     required String userId,
     required String roleCode,
   }) async {
-    final tenantId = _tenantId;
-    if (tenantId == null) {
+    if (_sessionViewModel.session == null) {
       setMessage('No hay una sesión activa para asignar roles.');
       return false;
     }
 
     try {
       await run(() async {
-        await _apiClient.postObject('/api/tenants/$tenantId/users/$userId/roles', {
+        await _apiClient.postObject('/api/organization/users/$userId/roles', {
           'roleCode': roleCode,
         });
         await load();
@@ -117,6 +116,4 @@ final class IdentityManagementViewModel extends ViewModel {
 
     return 'No se pudo completar la operación de usuarios.';
   }
-
-  String? get _tenantId => _sessionViewModel.session?.tenantId;
 }

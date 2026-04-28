@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped signature requests linked to documents.
+/// Exposes organization-scoped signature requests linked to documents.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -26,7 +26,7 @@ public sealed class SignaturesController : ControllerBase
     }
 
     /// <summary>
-    /// Lists signature envelopes visible to the current tenant scope.
+    /// Lists signature envelopes visible to the current organization scope.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<SignatureEnvelopeResponse>), StatusCodes.Status200OK)]

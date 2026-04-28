@@ -4,7 +4,7 @@ import '../../auth/application/app_session_view_model.dart';
 import '../api/api_exception.dart';
 import '../api/gdms_api_client.dart';
 
-/// Connects the integrations dashboard to the tenant integrations API.
+/// Connects the integrations dashboard to the organization integrations API.
 final class ApiIntegrationsRepository implements IntegrationsRepository {
   const ApiIntegrationsRepository(this._apiClient, this._sessionViewModel);
 

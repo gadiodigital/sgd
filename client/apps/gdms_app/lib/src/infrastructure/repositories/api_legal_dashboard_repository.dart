@@ -7,7 +7,7 @@ import '../api/api_exception.dart';
 import '../api/gdms_api_client.dart';
 import 'api_repository_formatters.dart';
 
-/// Builds the legal vertical dashboard from existing tenant APIs.
+/// Builds the legal vertical dashboard from existing organization APIs.
 final class ApiLegalDashboardRepository implements LegalDashboardRepository {
   const ApiLegalDashboardRepository(this._apiClient, this._sessionViewModel);
 
@@ -22,12 +22,12 @@ final class ApiLegalDashboardRepository implements LegalDashboardRepository {
     }
 
     final workflowJson = await _apiClient.getList(
-      '/api/tenants/${session.tenantId}/workflow/tasks',
+      '/api/organization/workflow/tasks',
     );
     final dispositionJson = await _safeGetDispositionCandidates(
       session.tenantId,
     );
-    final auditJson = await _safeGetAuditEvents(session.tenantId);
+    final auditJson = await _safeGetAuditEvents();
     final caseFilesJson = await _safeGetCaseFiles(session.tenantId);
 
     final openTasks = workflowJson
@@ -182,10 +182,10 @@ final class ApiLegalDashboardRepository implements LegalDashboardRepository {
     }
   }
 
-  Future<List<dynamic>> _safeGetAuditEvents(String tenantId) async {
+  Future<List<dynamic>> _safeGetAuditEvents() async {
     try {
       return await _apiClient.getList(
-        '/api/tenants/$tenantId/audit/events/recent?limit=50',
+        '/api/organization/audit/events/recent?limit=50',
       );
     } on ApiException catch (error) {
       if (error.statusCode == 403 || error.statusCode == 404) {

@@ -10,7 +10,7 @@ Widget buildWorkflowPage({
   required AppSessionViewModel sessionViewModel,
   required WorkflowViewModel workflowViewModel,
   required Future<void> Function(BuildContext context, WidgetBuilder builder)
-      showDialog,
+  showDialog,
 }) {
   return WorkflowDashboardPage(
     viewModel: workflowViewModel,

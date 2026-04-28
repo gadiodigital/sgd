@@ -7,10 +7,13 @@ import '../api/api_exception.dart';
 import '../api/gdms_api_client.dart';
 import 'api_repository_formatters.dart';
 
-/// Builds the corporate vertical dashboard from existing tenant APIs.
+/// Builds the corporate vertical dashboard from existing organization APIs.
 final class ApiCorporateDashboardRepository
     implements CorporateDashboardRepository {
-  const ApiCorporateDashboardRepository(this._apiClient, this._sessionViewModel);
+  const ApiCorporateDashboardRepository(
+    this._apiClient,
+    this._sessionViewModel,
+  );
 
   final GdmsApiClient _apiClient;
   final AppSessionViewModel _sessionViewModel;
@@ -22,9 +25,15 @@ final class ApiCorporateDashboardRepository
       throw const ApiException('No hay una sesion autenticada activa.');
     }
 
-    final recordFilesJson = await _safeGetCorporateRecordFiles(session.tenantId);
-    final workflowJson = await _apiClient.getList('/api/tenants/${session.tenantId}/workflow/tasks');
-    final notificationsJson = await _apiClient.getList('/api/tenants/${session.tenantId}/notifications');
+    final recordFilesJson = await _safeGetCorporateRecordFiles(
+      session.tenantId,
+    );
+    final workflowJson = await _apiClient.getList(
+      '/api/organization/workflow/tasks',
+    );
+    final notificationsJson = await _apiClient.getList(
+      '/api/organization/notifications',
+    );
 
     final governanceTasks = workflowJson
         .cast<Map<String, dynamic>>()
@@ -55,23 +64,29 @@ final class ApiCorporateDashboardRepository
           status: 'WARNING',
         );
       }),
-      ...notifications.where((item) {
-        final category = item['category'] as String? ?? '';
-        return category == 'SECURITY' || category == 'WORKFLOW';
-      }).take(4).map((item) {
-        return CorporateRecordItem(
-          title: item['title'] as String? ?? 'Alerta de control',
-          subtitle: item['detail'] as String? ?? '',
-          status: item['severity'] as String? ?? 'WARNING',
-        );
-      }),
+      ...notifications
+          .where((item) {
+            final category = item['category'] as String? ?? '';
+            return category == 'SECURITY' || category == 'WORKFLOW';
+          })
+          .take(4)
+          .map((item) {
+            return CorporateRecordItem(
+              title: item['title'] as String? ?? 'Alerta de control',
+              subtitle: item['detail'] as String? ?? '',
+              status: item['severity'] as String? ?? 'WARNING',
+            );
+          }),
     ];
 
     return CorporateDashboardOverview(
       activeContracts: recordFilesJson.length,
       pendingGovernanceTasks: governanceTasks.length,
       controlAlerts: notifications
-          .where((item) => item['severity'] == 'CRITICAL' || item['severity'] == 'WARNING')
+          .where(
+            (item) =>
+                item['severity'] == 'CRITICAL' || item['severity'] == 'WARNING',
+          )
           .length,
       records: records,
     );

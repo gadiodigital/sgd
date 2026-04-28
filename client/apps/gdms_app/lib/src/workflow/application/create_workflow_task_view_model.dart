@@ -75,15 +75,15 @@ final class CreateWorkflowTaskViewModel extends ViewModel {
     String? dueDate,
     String? assignedToUserId,
   }) async {
-    final tenantId = _sessionViewModel.session?.tenantId;
-    if (tenantId == null) {
+    final session = _sessionViewModel.session;
+    if (session == null) {
       setMessage('No hay una sesión activa para crear tareas.');
       return false;
     }
 
     try {
       await run(() async {
-        await _apiClient.postObject('/api/tenants/$tenantId/workflow/tasks', {
+        await _apiClient.postObject('/api/organization/workflow/tasks', {
           'documentId': documentId,
           'title': title.trim(),
           'notes': notes?.trim().isEmpty == true ? null : notes?.trim(),

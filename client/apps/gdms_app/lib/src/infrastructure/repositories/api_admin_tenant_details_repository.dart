@@ -5,14 +5,19 @@ import '../api/api_exception.dart';
 import '../api/gdms_api_client.dart';
 import 'api_repository_formatters.dart';
 
-/// Loads tenant-scoped governance detail for platform administration dialogs.
+/// Loads organization-scoped governance detail for platform administration dialogs.
 final class ApiAdminTenantDetailsRepository {
-  const ApiAdminTenantDetailsRepository(this._apiClient, this._sessionViewModel);
+  const ApiAdminTenantDetailsRepository(
+    this._apiClient,
+    this._sessionViewModel,
+  );
 
   final GdmsApiClient _apiClient;
   final AppSessionViewModel _sessionViewModel;
 
-  Future<AdminTenantDetails> loadTenantDetails(AdminTenantSummary tenant) async {
+  Future<AdminTenantDetails> loadTenantDetails(
+    AdminTenantSummary tenant,
+  ) async {
     final identity = _sessionViewModel.identity;
     if (identity == null) {
       throw const ApiException('No hay una sesion autenticada activa.');
@@ -21,23 +26,34 @@ final class ApiAdminTenantDetailsRepository {
     final eventsJson = await _apiClient.getList(
       '/api/tenants/${tenant.id}/audit/events/recent?limit=30',
     );
-    final recentEvents = eventsJson.cast<Map<String, dynamic>>().map((item) {
-      final occurredAt = DateTime.parse(item['occurredAtUtc'] as String).toUtc();
-      return AdminAuditEvent(
-        tenantCode: item['tenantCode'] as String? ?? tenant.code,
-        eventType: item['eventType'] as String? ?? 'UNKNOWN',
-        severity: item['severity'] as String? ?? 'INFO',
-        occurredAtLabel: ApiRepositoryFormatters.formatRelativeDate(occurredAt),
-      );
-    }).toList(growable: false);
+    final recentEvents = eventsJson
+        .cast<Map<String, dynamic>>()
+        .map((item) {
+          final occurredAt = DateTime.parse(
+            item['occurredAtUtc'] as String,
+          ).toUtc();
+          return AdminAuditEvent(
+            tenantCode: item['tenantCode'] as String? ?? tenant.code,
+            eventType: item['eventType'] as String? ?? 'UNKNOWN',
+            severity: item['severity'] as String? ?? 'INFO',
+            occurredAtLabel: ApiRepositoryFormatters.formatRelativeDate(
+              occurredAt,
+            ),
+          );
+        })
+        .toList(growable: false);
 
     final now = DateTime.now().toUtc();
-    final failedLogins24h = eventsJson.cast<Map<String, dynamic>>().where((item) {
+    final failedLogins24h = eventsJson.cast<Map<String, dynamic>>().where((
+      item,
+    ) {
       if ((item['eventType'] as String? ?? '') != 'LOGIN_FAILED') {
         return false;
       }
 
-      final occurredAt = DateTime.parse(item['occurredAtUtc'] as String).toUtc();
+      final occurredAt = DateTime.parse(
+        item['occurredAtUtc'] as String,
+      ).toUtc();
       return occurredAt.isAfter(now.subtract(const Duration(hours: 24)));
     }).length;
 
@@ -58,7 +74,7 @@ final class ApiAdminTenantDetailsRepository {
   }
 }
 
-/// Represents tenant governance detail derived from existing API endpoints.
+/// Represents organization governance detail derived from existing API endpoints.
 final class AdminTenantDetails {
   const AdminTenantDetails({
     required this.totalEvents,

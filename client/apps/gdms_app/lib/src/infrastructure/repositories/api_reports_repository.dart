@@ -4,7 +4,7 @@ import '../../auth/application/app_session_view_model.dart';
 import '../api/api_exception.dart';
 import '../api/gdms_api_client.dart';
 
-/// Connects the reports dashboard to the tenant reports API.
+/// Connects the reports dashboard to the organization reports API.
 final class ApiReportsRepository implements ReportsRepository {
   const ApiReportsRepository(this._apiClient, this._sessionViewModel);
 
@@ -13,13 +13,13 @@ final class ApiReportsRepository implements ReportsRepository {
 
   @override
   Future<OperationalReportOverview> loadOverview() async {
-    final tenantId = _sessionViewModel.session?.tenantId;
-    if (tenantId == null) {
+    final session = _sessionViewModel.session;
+    if (session == null) {
       throw const ApiException('No hay una sesion autenticada activa.');
     }
 
     final response = await _apiClient.getObject(
-      '/api/tenants/$tenantId/reports/operational-summary',
+      '/api/organization/reports/operational-summary',
     );
     final platformSummary = await _loadPlatformSummaryIfAvailable();
 

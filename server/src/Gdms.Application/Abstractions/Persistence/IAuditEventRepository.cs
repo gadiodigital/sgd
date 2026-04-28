@@ -30,7 +30,7 @@ public interface IAuditEventRepository
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Persists an audit event for a tenant-scoped operation.
+    /// Persists an audit event for an organization-scoped operation.
     /// </summary>
     Task WriteAsync(
         Guid tenantId,

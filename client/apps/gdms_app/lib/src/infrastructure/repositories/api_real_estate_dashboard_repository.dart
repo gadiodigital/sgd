@@ -7,10 +7,13 @@ import '../api/api_exception.dart';
 import '../api/gdms_api_client.dart';
 import 'api_repository_formatters.dart';
 
-/// Builds the real-estate vertical dashboard from existing tenant APIs.
+/// Builds the real-estate vertical dashboard from existing organization APIs.
 final class ApiRealEstateDashboardRepository
     implements RealEstateDashboardRepository {
-  const ApiRealEstateDashboardRepository(this._apiClient, this._sessionViewModel);
+  const ApiRealEstateDashboardRepository(
+    this._apiClient,
+    this._sessionViewModel,
+  );
 
   final GdmsApiClient _apiClient;
   final AppSessionViewModel _sessionViewModel;
@@ -23,8 +26,12 @@ final class ApiRealEstateDashboardRepository
     }
 
     final propertyFilesJson = await _safeGetPropertyFiles(session.tenantId);
-    final workflowJson = await _apiClient.getList('/api/tenants/${session.tenantId}/workflow/tasks');
-    final notificationsJson = await _apiClient.getList('/api/tenants/${session.tenantId}/notifications');
+    final workflowJson = await _apiClient.getList(
+      '/api/organization/workflow/tasks',
+    );
+    final notificationsJson = await _apiClient.getList(
+      '/api/organization/notifications',
+    );
 
     final openTasks = workflowJson
         .cast<Map<String, dynamic>>()
@@ -55,23 +62,29 @@ final class ApiRealEstateDashboardRepository
           status: 'WARNING',
         );
       }),
-      ...notifications.where((item) {
-        final category = item['category'] as String? ?? '';
-        return category == 'RECORDS' || category == 'SECURITY';
-      }).take(4).map((item) {
-        return RealEstateFileItem(
-          title: item['title'] as String? ?? 'Alerta operativa',
-          subtitle: item['detail'] as String? ?? '',
-          status: item['severity'] as String? ?? 'WARNING',
-        );
-      }),
+      ...notifications
+          .where((item) {
+            final category = item['category'] as String? ?? '';
+            return category == 'RECORDS' || category == 'SECURITY';
+          })
+          .take(4)
+          .map((item) {
+            return RealEstateFileItem(
+              title: item['title'] as String? ?? 'Alerta operativa',
+              subtitle: item['detail'] as String? ?? '',
+              status: item['severity'] as String? ?? 'WARNING',
+            );
+          }),
     ];
 
     return RealEstateDashboardOverview(
       activeFiles: propertyFilesJson.length,
       pendingApprovals: openTasks.length,
       complianceAlerts: notifications
-          .where((item) => item['severity'] == 'CRITICAL' || item['severity'] == 'WARNING')
+          .where(
+            (item) =>
+                item['severity'] == 'CRITICAL' || item['severity'] == 'WARNING',
+          )
           .length,
       files: files,
     );
@@ -84,12 +97,15 @@ final class ApiRealEstateDashboardRepository
     required String operationType,
   }) async {
     final session = _requireSession();
-    await _apiClient.postObject('/api/tenants/${session.tenantId}/property-files', {
-      'code': code,
-      'title': title,
-      'address': address,
-      'operationType': operationType,
-    });
+    await _apiClient.postObject(
+      '/api/tenants/${session.tenantId}/property-files',
+      {
+        'code': code,
+        'title': title,
+        'address': address,
+        'operationType': operationType,
+      },
+    );
   }
 
   Future<List<PropertyFileReference>> loadPropertyFiles() async {

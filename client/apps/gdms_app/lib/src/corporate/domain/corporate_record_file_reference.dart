@@ -1,4 +1,4 @@
-/// Represents one corporate record file available inside the tenant.
+/// Represents one corporate record file available inside the organization.
 final class CorporateRecordFileReference {
   const CorporateRecordFileReference({
     required this.id,

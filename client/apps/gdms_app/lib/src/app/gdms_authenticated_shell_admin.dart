@@ -2,7 +2,6 @@ import 'package:feature_admin/feature_admin.dart';
 import 'package:flutter/material.dart';
 
 import '../admin/presentation/admin_tenant_details_dialog.dart';
-import '../admin/presentation/create_tenant_dialog.dart';
 import '../admin/presentation/identity_management_dialog.dart';
 import '../auth/application/app_session_view_model.dart';
 import '../config/application/firebase_runtime_state.dart';
@@ -15,7 +14,7 @@ Widget buildAdminPage({
   required FirebaseRuntimeState firebaseRuntimeState,
   required AdminOverviewViewModel adminViewModel,
   required Future<void> Function(BuildContext context, WidgetBuilder builder)
-      showDialog,
+  showDialog,
 }) {
   return AdminDashboardPage(
     viewModel: adminViewModel,
@@ -46,8 +45,7 @@ Widget buildAdminPage({
         showDialog,
       );
     },
-    onTenantSelected:
-        sessionViewModel.identity?.isPlatformAdmin == true
+    onTenantSelected: sessionViewModel.identity?.isPlatformAdmin == true
         ? (pageContext, tenant) {
             return showDialog(
               pageContext,
@@ -71,19 +69,6 @@ Widget buildAdminPage({
                 sessionViewModel: sessionViewModel,
               ),
             );
-          }
-        : null,
-    onCreateTenantRequested:
-        sessionViewModel.identity?.isPlatformAdmin == true
-        ? (pageContext) async {
-            await showDialog(
-              pageContext,
-              (_) => CreateTenantDialog(
-                apiClient: sessionViewModel.apiClient,
-                onCreated: adminViewModel.load,
-              ),
-            );
-            await adminViewModel.load();
           }
         : null,
   );

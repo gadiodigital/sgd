@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped corporate record files.
+/// Exposes organization-scoped corporate record files.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -26,7 +26,7 @@ public sealed class CorporateRecordFilesController : ControllerBase
     }
 
     /// <summary>
-    /// Lists corporate record files visible to the current tenant scope.
+    /// Lists corporate record files visible to the current organization scope.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<CorporateRecordFileResponse>), StatusCodes.Status200OK)]
@@ -65,7 +65,7 @@ public sealed class CorporateRecordFilesController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new corporate record file inside the tenant.
+    /// Creates a new corporate record file inside the organization.
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN,DOCUMENT_OPERATOR")]

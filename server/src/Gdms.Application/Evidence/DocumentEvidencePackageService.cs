@@ -5,7 +5,7 @@ using Gdms.Domain.Common;
 namespace Gdms.Application.Evidence;
 
 /// <summary>
-/// Builds exportable evidence packages for tenant-scoped documents.
+/// Builds exportable evidence packages for organization-scoped documents.
 /// </summary>
 public sealed class DocumentEvidencePackageService
 {

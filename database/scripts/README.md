@@ -32,4 +32,7 @@ Para actualizar una base existente con la estructura documental configurable, ej
 - Crear el baseline relacional del sistema.
 - Reflejar integridad referencial, checks de dominio y comentarios de esquema.
 - Dejar seeds mínimos para roles, tipos documentales y políticas de retención.
-- Incorporar estructura documental configurable por tenant/proyecto de forma aditiva.
+- Incorporar estructura documental configurable por organización/proyecto de forma aditiva.
+
+
+

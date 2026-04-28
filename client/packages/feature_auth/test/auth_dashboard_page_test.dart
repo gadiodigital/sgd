@@ -29,11 +29,11 @@ void main() {
     expect(find.text('Sesion preparada para operar.'), findsOneWidget);
     expect(find.text('TENANT_ADMIN'), findsOneWidget);
     expect(find.text('MFA activo'), findsOneWidget);
-    expect(find.text('Tenant TENANT-01'), findsOneWidget);
+    expect(find.text('Organización TENANT-01'), findsOneWidget);
     expect(find.text('Usuario Demo'), findsOneWidget);
     expect(find.text('demo@example.com'), findsOneWidget);
     expect(find.text('Organizacion activa'), findsOneWidget);
-    expect(find.text('Tenant Demo'), findsOneWidget);
+    expect(find.text('Organización Demo'), findsOneWidget);
     expect(find.text('Ultimo acceso'), findsOneWidget);
     expect(find.text('Hoy'), findsOneWidget);
     expect(find.text('Rotacion de credencial'), findsOneWidget);
@@ -51,7 +51,7 @@ final class _DashboardSessionOverviewRepository
     return const SessionOverview(
       userName: 'Usuario Demo',
       email: 'demo@example.com',
-      tenantName: 'Tenant Demo',
+      tenantName: 'Organización Demo',
       tenantCode: 'TENANT-01',
       primaryRole: 'TENANT_ADMIN',
       lastLoginLabel: 'Hoy',

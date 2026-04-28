@@ -19,7 +19,9 @@ void main() {
   });
 
   test('load informa error cuando el repositorio falla', () async {
-    final viewModel = AuthOverviewViewModel(_FailingSessionOverviewRepository());
+    final viewModel = AuthOverviewViewModel(
+      _FailingSessionOverviewRepository(),
+    );
 
     await viewModel.load();
 
@@ -40,7 +42,7 @@ final class _RecordingSessionOverviewRepository
     return const SessionOverview(
       userName: 'Usuario Demo',
       email: 'demo@example.com',
-      tenantName: 'Tenant Demo',
+      tenantName: 'Organización Demo',
       tenantCode: 'TENANT-01',
       primaryRole: 'TENANT_ADMIN',
       lastLoginLabel: 'Hoy',

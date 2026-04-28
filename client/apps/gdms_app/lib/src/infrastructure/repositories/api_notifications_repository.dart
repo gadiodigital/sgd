@@ -5,7 +5,7 @@ import '../api/api_exception.dart';
 import '../api/gdms_api_client.dart';
 import 'api_repository_formatters.dart';
 
-/// Connects the notifications inbox to the tenant notifications API.
+/// Connects the notifications inbox to the organization notifications API.
 final class ApiNotificationsRepository implements NotificationsRepository {
   const ApiNotificationsRepository(this._apiClient, this._sessionViewModel);
 
@@ -14,12 +14,12 @@ final class ApiNotificationsRepository implements NotificationsRepository {
 
   @override
   Future<NotificationsOverview> loadOverview() async {
-    final tenantId = _sessionViewModel.session?.tenantId;
-    if (tenantId == null) {
+    final session = _sessionViewModel.session;
+    if (session == null) {
       throw const ApiException('No hay una sesion autenticada activa.');
     }
 
-    final response = await _apiClient.getList('/api/tenants/$tenantId/notifications');
+    final response = await _apiClient.getList('/api/organization/notifications');
     final items = response.cast<Map<String, dynamic>>().map((item) {
       return NotificationItem(
         category: item['category'] as String? ?? 'UNKNOWN',

@@ -18,6 +18,20 @@ public sealed class NotificationsControllerContractTests : IClassFixture<ApiCont
         using var client = _factory.CreateClient();
 
         var response = await client.GetAsync($"/api/tenants/{tenant.Id}/notifications");
+        var currentOrganizationResponse = await client.GetAsync("/api/organization/notifications");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, currentOrganizationResponse.StatusCode);
+    }
+
+    [PostgresContractFact]
+    public async Task Current_Organization_Notifications_Should_Return_401_When_Organization_Claim_Is_Missing()
+    {
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.EnabledHeader, "true");
+        client.DefaultRequestHeaders.Add(TestAuthHandler.RolesHeader, "AUDITOR");
+
+        var response = await client.GetAsync("/api/organization/notifications");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -52,17 +66,25 @@ public sealed class NotificationsControllerContractTests : IClassFixture<ApiCont
         platformClient.DefaultRequestHeaders.Add(TestAuthHandler.UserIdHeader, actor.Id.ToString());
 
         var tenantResponse = await tenantClient.GetAsync($"/api/tenants/{tenant.Id}/notifications");
+        var currentOrganizationResponse = await tenantClient.GetAsync("/api/organization/notifications");
         var platformResponse = await platformClient.GetAsync($"/api/tenants/{tenant.Id}/notifications");
 
         tenantResponse.EnsureSuccessStatusCode();
+        currentOrganizationResponse.EnsureSuccessStatusCode();
         platformResponse.EnsureSuccessStatusCode();
 
         var tenantPayload = await tenantResponse.Content.ReadFromJsonAsync<NotificationResponse[]>();
+        var currentOrganizationPayload =
+            await currentOrganizationResponse.Content.ReadFromJsonAsync<NotificationResponse[]>();
         var platformPayload = await platformResponse.Content.ReadFromJsonAsync<NotificationResponse[]>();
 
         Assert.NotNull(tenantPayload);
+        Assert.NotNull(currentOrganizationPayload);
         Assert.NotNull(platformPayload);
         Assert.True(tenantPayload!.Length >= 4);
+        Assert.Equal(
+            tenantPayload.Select(item => (item.Category, item.Title, item.Severity)).OrderBy(item => item.Category).ThenBy(item => item.Title),
+            currentOrganizationPayload!.Select(item => (item.Category, item.Title, item.Severity)).OrderBy(item => item.Category).ThenBy(item => item.Title));
         Assert.Equal(
             tenantPayload.Select(item => (item.Category, item.Title, item.Severity)).OrderBy(item => item.Category).ThenBy(item => item.Title),
             platformPayload!.Select(item => (item.Category, item.Title, item.Severity)).OrderBy(item => item.Category).ThenBy(item => item.Title));

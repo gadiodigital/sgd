@@ -124,7 +124,9 @@ final class DocumentScanViewModelHostSupport {
         final currentSessionId = vm.lastScannedFile?.sessionId;
         final currentStillExists =
             currentSessionId != null &&
-            vm.activeSessions.any((session) => session.sessionId == currentSessionId);
+            vm.activeSessions.any(
+              (session) => session.sessionId == currentSessionId,
+            );
         final knownStillExists =
             vm.lastKnownSessionId != null &&
             vm.activeSessions.any(

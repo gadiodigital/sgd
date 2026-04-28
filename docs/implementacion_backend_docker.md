@@ -74,58 +74,58 @@ Resultado esperado:
 Endpoints iniciales expuestos:
 
 - `GET /api/health`
-- `GET /api/tenants`
-- `POST /api/tenants`
-- `GET /api/tenants/{tenantId}/documents`
-- `GET /api/tenants/{tenantId}/documents/{documentId}`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/metadata`
-- `PUT /api/tenants/{tenantId}/documents/{documentId}/metadata`
-- `POST /api/tenants/{tenantId}/documents`
-- `POST /api/tenants/{tenantId}/documents/upload`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/download`
-- `POST /api/tenants/{tenantId}/documents/{documentId}/versions/upload`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/versions`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/versions/{versionNumber}/download`
-- `GET /api/tenants/{tenantId}/documents/search`
-- `GET /api/tenants/{tenantId}/cases`
-- `POST /api/tenants/{tenantId}/cases`
-- `GET /api/tenants/{tenantId}/cases/{caseFileId}/documents`
-- `POST /api/tenants/{tenantId}/cases/{caseFileId}/documents`
-- `GET /api/tenants/{tenantId}/signature/envelopes`
-- `POST /api/tenants/{tenantId}/signature/envelopes`
-- `POST /api/tenants/{tenantId}/signature/envelopes/{envelopeId}/complete`
-- `POST /api/tenants/{tenantId}/signature/envelopes/{envelopeId}/cancel`
-- `GET /api/tenants/{tenantId}/property-files`
-- `POST /api/tenants/{tenantId}/property-files`
-- `GET /api/tenants/{tenantId}/property-files/{propertyFileId}/documents`
-- `POST /api/tenants/{tenantId}/property-files/{propertyFileId}/documents`
-- `GET /api/tenants/{tenantId}/corporate-record-files`
-- `POST /api/tenants/{tenantId}/corporate-record-files`
-- `GET /api/tenants/{tenantId}/corporate-record-files/{corporateRecordFileId}/documents`
-- `POST /api/tenants/{tenantId}/corporate-record-files/{corporateRecordFileId}/documents`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/access-entries`
-- `POST /api/tenants/{tenantId}/documents/{documentId}/access-entries`
-- `GET /api/tenants/{tenantId}/document-types`
+- `GET /api/organization`
+- `POST /api/organization`
+- `GET /api/organization/documents`
+- `GET /api/organization/documents/{documentId}`
+- `GET /api/organization/documents/{documentId}/metadata`
+- `PUT /api/organization/documents/{documentId}/metadata`
+- `POST /api/organization/documents`
+- `POST /api/organization/documents/upload`
+- `GET /api/organization/documents/{documentId}/download`
+- `POST /api/organization/documents/{documentId}/versions/upload`
+- `GET /api/organization/documents/{documentId}/versions`
+- `GET /api/organization/documents/{documentId}/versions/{versionNumber}/download`
+- `GET /api/organization/documents/search`
+- `GET /api/organization/cases`
+- `POST /api/organization/cases`
+- `GET /api/organization/cases/{caseFileId}/documents`
+- `POST /api/organization/cases/{caseFileId}/documents`
+- `GET /api/organization/signature/envelopes`
+- `POST /api/organization/signature/envelopes`
+- `POST /api/organization/signature/envelopes/{envelopeId}/complete`
+- `POST /api/organization/signature/envelopes/{envelopeId}/cancel`
+- `GET /api/organization/property-files`
+- `POST /api/organization/property-files`
+- `GET /api/organization/property-files/{propertyFileId}/documents`
+- `POST /api/organization/property-files/{propertyFileId}/documents`
+- `GET /api/organization/corporate-record-files`
+- `POST /api/organization/corporate-record-files`
+- `GET /api/organization/corporate-record-files/{corporateRecordFileId}/documents`
+- `POST /api/organization/corporate-record-files/{corporateRecordFileId}/documents`
+- `GET /api/organization/documents/{documentId}/access-entries`
+- `POST /api/organization/documents/{documentId}/access-entries`
+- `GET /api/organization/document-types`
 - `GET /api/roles`
-- `GET /api/tenants/{tenantId}/users`
-- `GET /api/tenants/{tenantId}/users/{userId}`
-- `POST /api/tenants/{tenantId}/users`
-- `POST /api/tenants/{tenantId}/users/{userId}/roles`
+- `GET /api/organization/users`
+- `GET /api/organization/users/{userId}`
+- `POST /api/organization/users`
+- `POST /api/organization/users/{userId}/roles`
 - `POST /api/auth/bootstrap-platform-admin`
-- `POST /api/auth/bootstrap-tenant-admin`
+- `POST /api/auth/bootstrap-organization-admin`
 - `POST /api/auth/token`
 - `GET /api/auth/me`
-- `GET /api/tenants/{tenantId}/records/retention-policies`
-- `POST /api/tenants/{tenantId}/records/documents/{documentId}/retention-policy`
-- `GET /api/tenants/{tenantId}/records/documents/{documentId}/legal-holds`
-- `POST /api/tenants/{tenantId}/records/documents/{documentId}/legal-holds`
-- `POST /api/tenants/{tenantId}/records/legal-holds/{legalHoldId}/release`
+- `GET /api/organization/records/retention-policies`
+- `POST /api/organization/records/documents/{documentId}/retention-policy`
+- `GET /api/organization/records/documents/{documentId}/legal-holds`
+- `POST /api/organization/records/documents/{documentId}/legal-holds`
+- `POST /api/organization/records/legal-holds/{legalHoldId}/release`
 
 ### 5. Validar base de datos
 
 Conectarse a PostgreSQL y revisar:
 
-- `platform.tenants`
+- `platform.organizations`
 - `identity.users`
 - `identity.roles`
 - `configuration.document_types`
@@ -164,8 +164,8 @@ Backlog inmediato sugerido:
 
 ## Limitaciones de esta iteración
 
-- La persistencia real ya cubre tenants, documentos, usuarios, roles, credenciales locales, metadatos documentales y records management base.
-- La persistencia real ya cubre expedientes tenant-scoped y vínculo expediente-documento para el vertical jurídico.
+- La persistencia real ya cubre organizaciones, documentos, usuarios, roles, credenciales locales, metadatos documentales y records management base.
+- La persistencia real ya cubre expedientes scoped a organización y vínculo expediente-documento para el vertical jurídico.
 - La persistencia real ya cubre legajos inmobiliarios y vínculo legajo-documento.
 - La persistencia real ya cubre legajos corporativos y vínculo legajo-documento.
 - El núcleo documental ya soporta ACL documentales explícitas con enforcement sobre lectura, descarga, metadata y versionado.
@@ -178,3 +178,8 @@ Backlog inmediato sugerido:
 - La máquina actual no tiene Docker instalado, por lo que el build final en contenedores debe validarse en un entorno compatible.
 - Firebase quedó preparado por configuración, no integrado todavía a nivel de runtime.
 - El frontend Flutter ya tiene shell modular, pruebas, convención Gradle Android y capa HTTP real para auth, documents, records y parte de admin.
+
+
+
+
+

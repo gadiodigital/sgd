@@ -5,7 +5,7 @@ import '../api/api_exception.dart';
 import '../api/gdms_api_client.dart';
 import 'api_repository_formatters.dart';
 
-/// Connects the signature dashboard to the tenant signature API.
+/// Connects the signature dashboard to the organization signature API.
 final class ApiSignatureRepository implements SignatureRepository {
   const ApiSignatureRepository(this._apiClient, this._sessionViewModel);
 

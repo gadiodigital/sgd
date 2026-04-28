@@ -46,17 +46,17 @@ powershell -ExecutionPolicy Bypass -File .\scripts\ops\run_gdms_app_ui_validatio
 En la pantalla `Ingreso al GDMS`:
 
 - `URL API backend`: usar la misma URL con la que lanzaste la app
-- `Modo de acceso`: elegir `Tenant admin`
-- `Codigo de tenant`: por ejemplo `SCAN-DEMO`
-- `Email`: por ejemplo `scan.demo.admin@tenant.ar`
+- `Modo de acceso`: elegir `Organización admin`
+- `Codigo de organización`: por ejemplo `SCAN-DEMO`
+- `Email`: por ejemplo `scan.demo.admin@organización.ar`
 - `Nombre completo`: por ejemplo `Scan Demo Admin`
 - `Password`: una clave de al menos `8` caracteres
-- botón: `Crear tenant admin`
+- botón: `Crear administrador de organización`
 
 Resultado esperado:
 
 - ingreso exitoso a la shell autenticada;
-- banner superior mostrando tenant activo y base URL de API.
+- banner superior mostrando organización activo y base URL de API.
 
 ### 2. Abrir el flujo documental
 
@@ -110,7 +110,7 @@ Desde el flujo de carga:
 Resultado esperado:
 
 - upload exitoso al backend;
-- el documento aparece en el listado del tenant;
+- el documento aparece en el listado dla organización;
 - al abrir detalle, la descarga del binario responde.
 
 ## Verificaciones mínimas
@@ -144,7 +144,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\ops\run_gdms_app_ui_automatio
 
 Esa prueba monta un backend fake y un host `windows-twain` fake en puertos dedicados y valida:
 
-- bootstrap `Tenant admin`
+- bootstrap `Organización admin`
 - navegación a `Documentos`
 - apertura del flujo real de escaneo
 - escaneo y confirmación `Usar escaneo`
@@ -170,3 +170,6 @@ Artifacts esperados:
 Para lectura rápida en CI, el archivo más útil es:
 
 - `artifacts\ui-tests\gdms_app_ui_automation_summary.md`
+
+
+

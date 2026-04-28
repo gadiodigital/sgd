@@ -37,6 +37,7 @@ melos_*.iml
 .env
 .env.*
 !.env.example
+!.env.preproduction.example
 *.local
 appsettings.Local.json
 appsettings.*.local.json
@@ -120,6 +121,8 @@ windows-twain/**/exports/
 # -----------------------------------------------------------------------------
 __pycache__/
 *.pyc
+.venv/
+venv/
 
 # -----------------------------------------------------------------------------
 # Misc tooling outputs

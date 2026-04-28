@@ -20,7 +20,7 @@ final class ApiWorkflowRepository implements WorkflowRepository {
     }
 
     final response = await _apiClient.getList(
-      '/api/tenants/${session.tenantId}/workflow/tasks?mine=$onlyMine',
+      '/api/organization/workflow/tasks?mine=$onlyMine',
     );
     final today = DateTime.now();
     final tasks = response.cast<Map<String, dynamic>>().map((item) {
@@ -57,13 +57,13 @@ final class ApiWorkflowRepository implements WorkflowRepository {
 
   @override
   Future<void> completeTask(String taskId) async {
-    final tenantId = _sessionViewModel.session?.tenantId;
-    if (tenantId == null) {
+    final session = _sessionViewModel.session;
+    if (session == null) {
       throw const ApiException('No hay una sesion autenticada activa.');
     }
 
     await _apiClient.postNoContent(
-      '/api/tenants/$tenantId/workflow/tasks/$taskId/complete',
+      '/api/organization/workflow/tasks/$taskId/complete',
       const {},
     );
   }

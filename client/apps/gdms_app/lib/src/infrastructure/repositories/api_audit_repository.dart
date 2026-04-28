@@ -23,7 +23,7 @@ final class ApiAuditRepository implements AuditRepository {
     final eventsJson = await _apiClient.getList(
       identity.isPlatformAdmin
           ? '/api/audit/events/recent?limit=100'
-          : '/api/tenants/${session.tenantId}/audit/events/recent?limit=100',
+          : '/api/organization/audit/events/recent?limit=100',
     );
     final events = eventsJson.cast<Map<String, dynamic>>().map((item) {
       return AuditEventItem(

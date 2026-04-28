@@ -16,6 +16,20 @@ public sealed class ReportsControllerContractTests : IClassFixture<ApiContractTe
         using var client = _factory.CreateClient();
 
         var response = await client.GetAsync($"/api/tenants/{tenant.Id}/reports/operational-summary");
+        var currentOrganizationResponse = await client.GetAsync("/api/organization/reports/operational-summary");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, currentOrganizationResponse.StatusCode);
+    }
+
+    [PostgresContractFact]
+    public async Task Current_Organization_OperationalSummary_Should_Return_401_When_Organization_Claim_Is_Missing()
+    {
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Add(TestAuthHandler.EnabledHeader, "true");
+        client.DefaultRequestHeaders.Add(TestAuthHandler.RolesHeader, "TENANT_ADMIN");
+
+        var response = await client.GetAsync("/api/organization/reports/operational-summary");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -41,18 +55,25 @@ public sealed class ReportsControllerContractTests : IClassFixture<ApiContractTe
         using var platformClient = _factory.CreateClientForPlatformAdmin();
 
         var operationalResponse = await tenantClient.GetAsync($"/api/tenants/{tenant.Id}/reports/operational-summary");
+        var currentOrganizationOperationalResponse = await tenantClient.GetAsync("/api/organization/reports/operational-summary");
         var platformResponse = await platformClient.GetAsync("/api/reports/platform-summary");
         var operationalBody = await operationalResponse.Content.ReadAsStringAsync();
+        var currentOrganizationOperationalBody = await currentOrganizationOperationalResponse.Content.ReadAsStringAsync();
         var platformBody = await platformResponse.Content.ReadAsStringAsync();
 
         Assert.True(
             operationalResponse.IsSuccessStatusCode,
             $"Operational summary devolvió {(int)operationalResponse.StatusCode}: {operationalBody}");
         Assert.True(
+            currentOrganizationOperationalResponse.IsSuccessStatusCode,
+            $"Current organization operational summary devolvió {(int)currentOrganizationOperationalResponse.StatusCode}: {currentOrganizationOperationalBody}");
+        Assert.True(
             platformResponse.IsSuccessStatusCode,
             $"Platform summary devolvió {(int)platformResponse.StatusCode}: {platformBody}");
 
         var operational = await operationalResponse.Content.ReadFromJsonAsync<OperationalReportResponse>();
+        var currentOrganizationOperational =
+            await currentOrganizationOperationalResponse.Content.ReadFromJsonAsync<OperationalReportResponse>();
         var platform = await platformResponse.Content.ReadFromJsonAsync<PlatformReportResponse>();
 
         Assert.NotNull(operational);
@@ -63,6 +84,15 @@ public sealed class ReportsControllerContractTests : IClassFixture<ApiContractTe
         Assert.Equal(1, operational.CancelledSignatures);
         Assert.Equal(1, operational.PendingDispositionItems);
         Assert.Equal(1, operational.FailedLoginsLast24Hours);
+
+        Assert.NotNull(currentOrganizationOperational);
+        Assert.Equal(operational.TotalDocuments, currentOrganizationOperational!.TotalDocuments);
+        Assert.Equal(operational.ActiveLegalHolds, currentOrganizationOperational.ActiveLegalHolds);
+        Assert.Equal(operational.OpenWorkflowTasks, currentOrganizationOperational.OpenWorkflowTasks);
+        Assert.Equal(operational.PendingSignatures, currentOrganizationOperational.PendingSignatures);
+        Assert.Equal(operational.CancelledSignatures, currentOrganizationOperational.CancelledSignatures);
+        Assert.Equal(operational.PendingDispositionItems, currentOrganizationOperational.PendingDispositionItems);
+        Assert.Equal(operational.FailedLoginsLast24Hours, currentOrganizationOperational.FailedLoginsLast24Hours);
 
         Assert.NotNull(platform);
         Assert.True(platform!.TotalTenants >= 1);

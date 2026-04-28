@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../application/reports_view_model.dart';
 
-/// Renders the operational summary of the current tenant.
+/// Renders the operational summary of the current organization.
 class ReportsDashboardPage extends StatefulWidget {
   const ReportsDashboardPage({
     required this.viewModel,
@@ -15,7 +15,7 @@ class ReportsDashboardPage extends StatefulWidget {
 
   final ReportsViewModel viewModel;
   final Future<void> Function(BuildContext context, ReportMetricItem metric)?
-      onMetricSelected;
+  onMetricSelected;
   final Future<void> Function(
     BuildContext context,
     PlatformReportMetricItem metric,
@@ -48,7 +48,7 @@ class _ReportsDashboardPageState extends State<ReportsDashboardPage> {
           children: [
             const GdmsPageHeader(
               title: 'Reportes',
-              subtitle: 'Resumen operativo consolidado del tenant actual.',
+              subtitle: 'Resumen operativo consolidado de la organización.',
             ),
             const SizedBox(height: 16),
             if (widget.viewModel.message != null)
@@ -90,7 +90,8 @@ class _ReportsLensSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return GdmsSectionCard(
       title: 'Lentes operativas',
-      subtitle: 'Enfoca los KPIs por cumplimiento, workflow, firma o seguridad.',
+      subtitle:
+          'Enfoca los KPIs por cumplimiento, workflow, firma o seguridad.',
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
@@ -172,14 +173,11 @@ class _PlatformReportsSection extends StatelessWidget {
 }
 
 class _ReportsMetricsGrid extends StatelessWidget {
-  const _ReportsMetricsGrid({
-    required this.viewModel,
-    this.onMetricSelected,
-  });
+  const _ReportsMetricsGrid({required this.viewModel, this.onMetricSelected});
 
   final ReportsViewModel viewModel;
   final Future<void> Function(BuildContext context, ReportMetricItem metric)?
-      onMetricSelected;
+  onMetricSelected;
 
   @override
   Widget build(BuildContext context) {

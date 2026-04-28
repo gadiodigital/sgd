@@ -21,13 +21,13 @@ El sistema está orientado a:
 
 ## 2. Perfiles de uso
 
-Según el rol y el tenant, el usuario puede ver distintas secciones:
+Según el rol y la organización, el usuario puede ver distintas secciones:
 
 - usuario operativo documental;
 - usuario jurídico;
 - usuario de records/compliance;
 - usuario de firma;
-- administrador de tenant;
+- administrador de organización;
 - usuario con alcance de plataforma.
 
 ## 3. Acceso al sistema
@@ -38,7 +38,7 @@ Para ingresar:
 
 1. Abrir la aplicación.
 2. Ingresar:
-   - código de tenant;
+   - código de organización;
    - correo electrónico;
    - contraseña.
 3. Presionar `Iniciar sesión`.
@@ -332,7 +332,7 @@ Puede incluir:
 - actividad documental;
 - firmas;
 - records;
-- eventos de plataforma o tenant.
+- eventos de plataforma o organización.
 
 Uso recomendado:
 
@@ -342,7 +342,7 @@ Uso recomendado:
 
 ## 13. Notificaciones
 
-El inbox de notificaciones consolida alertas operativas tenant-scoped.
+El inbox de notificaciones consolida alertas operativas scoped a organización.
 
 Puede mostrar:
 
@@ -358,7 +358,7 @@ El módulo de reportes ofrece visibilidad operativa.
 
 Puede incluir:
 
-- KPIs del tenant;
+- KPIs de la organización;
 - indicadores de plataforma;
 - métricas documentales;
 - métricas de workflow;
@@ -383,7 +383,7 @@ El módulo de configuración permite revisar y operar parámetros dinámicos.
 
 Puede incluir:
 
-- preferencias del tenant;
+- preferencias de la organización;
 - configuración remota;
 - valores provenientes de Firebase con fallback local.
 
@@ -393,9 +393,9 @@ El módulo administrativo permite operar entidades de gobierno del sistema.
 
 Incluye:
 
-- alta de tenant;
-- revisión de tenants recientes;
-- gestión de usuarios del tenant;
+- alta de organización;
+- revisión de organizaciones recientes;
+- gestión de usuarios de la organización;
 - asignación de roles;
 - visibilidad de actividad auditada reciente.
 
@@ -439,7 +439,7 @@ Algunas señales frecuentes del sistema:
 - `Nueva versión subida correctamente.`
 - `Selecciona un archivo antes de subir.`
 - `No hay una sesión autenticada activa.`
-- `No hay tipos documentales activos para este tenant.`
+- `No hay tipos documentales activos para este organización.`
 - `Escaneo finalizado con N página(s).`
 - `Servicio no disponible`
 - `No hay escáneres detectados`
@@ -463,7 +463,7 @@ Recomendación:
 
 ### No puedo iniciar sesión
 
-- Verificar tenant, correo y contraseña.
+- Verificar organización, correo y contraseña.
 - Confirmar que el backend esté disponible.
 
 ### No puedo subir un documento
@@ -496,3 +496,7 @@ El recorrido recomendado para usuarios nuevos es:
 4. revisar el detalle documental;
 5. explorar búsqueda, workflow y firma;
 6. usar records, auditoría y reportes según el rol.
+
+
+
+

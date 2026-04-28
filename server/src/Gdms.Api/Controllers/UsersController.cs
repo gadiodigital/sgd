@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped user management endpoints.
+/// Exposes organization-scoped user management endpoints.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -26,7 +26,7 @@ public sealed class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Lists the users of a tenant.
+    /// Lists the users of an organization.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<UserResponse>), StatusCodes.Status200OK)]
@@ -40,6 +40,31 @@ public sealed class UsersController : ControllerBase
             return Forbid();
         }
 
+        return await GetAllForOrganization(tenantId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Lists the users of the current organization.
+    /// </summary>
+    [HttpGet("/api/organization/users")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<UserResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IReadOnlyCollection<UserResponse>>> GetCurrentOrganizationUsers(
+        CancellationToken cancellationToken)
+    {
+        var tenantId = ResolveCurrentOrganizationId();
+        if (tenantId is null)
+        {
+            return Unauthorized();
+        }
+
+        return await GetAllForOrganization(tenantId.Value, cancellationToken);
+    }
+
+    private async Task<ActionResult<IReadOnlyCollection<UserResponse>>> GetAllForOrganization(
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var users = await _userService.ListByTenantAsync(tenantId, cancellationToken);
         return Ok(users.Select(Map).ToArray());
     }
@@ -71,7 +96,7 @@ public sealed class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new user inside a tenant.
+    /// Creates a new user inside an organization.
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN")]
@@ -87,6 +112,35 @@ public sealed class UsersController : ControllerBase
             return Forbid();
         }
 
+        return await CreateForOrganization(tenantId, request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates a new user inside the current organization.
+    /// </summary>
+    [HttpPost("/api/organization/users")]
+    [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN")]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<UserResponse>> CreateCurrentOrganizationUser(
+        [FromBody] CreateUserRequest request,
+        CancellationToken cancellationToken)
+    {
+        var tenantId = ResolveCurrentOrganizationId();
+        if (tenantId is null)
+        {
+            return Unauthorized();
+        }
+
+        return await CreateForOrganization(tenantId.Value, request, cancellationToken);
+    }
+
+    private async Task<ActionResult<UserResponse>> CreateForOrganization(
+        Guid tenantId,
+        CreateUserRequest request,
+        CancellationToken cancellationToken)
+    {
         var user = await _userService.CreateAsync(
             tenantId,
             request.Email,
@@ -105,7 +159,7 @@ public sealed class UsersController : ControllerBase
     }
 
     /// <summary>
-    /// Assigns a role to an existing tenant user.
+    /// Assigns a role to an existing organization user.
     /// </summary>
     [HttpPost("{userId:guid}/roles")]
     [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN")]
@@ -123,6 +177,38 @@ public sealed class UsersController : ControllerBase
             return Forbid();
         }
 
+        return await AssignRoleForOrganization(tenantId, userId, request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Assigns a role to an existing user in the current organization.
+    /// </summary>
+    [HttpPost("/api/organization/users/{userId:guid}/roles")]
+    [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN")]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<UserResponse>> AssignCurrentOrganizationUserRole(
+        Guid userId,
+        [FromBody] AssignRoleRequest request,
+        CancellationToken cancellationToken)
+    {
+        var tenantId = ResolveCurrentOrganizationId();
+        if (tenantId is null)
+        {
+            return Unauthorized();
+        }
+
+        return await AssignRoleForOrganization(tenantId.Value, userId, request, cancellationToken);
+    }
+
+    private async Task<ActionResult<UserResponse>> AssignRoleForOrganization(
+        Guid tenantId,
+        Guid userId,
+        AssignRoleRequest request,
+        CancellationToken cancellationToken)
+    {
         var existingUser = await _userService.GetByIdAsync(tenantId, userId, cancellationToken);
         if (existingUser is null)
         {
@@ -165,6 +251,12 @@ public sealed class UsersController : ControllerBase
 
         var tenantClaim = User.FindFirstValue("tenant_id");
         return Guid.TryParse(tenantClaim, out var claimedTenantId) && claimedTenantId == tenantId;
+    }
+
+    private Guid? ResolveCurrentOrganizationId()
+    {
+        var tenantClaim = User.FindFirstValue("tenant_id");
+        return Guid.TryParse(tenantClaim, out var tenantId) ? tenantId : null;
     }
 
     private Guid RequireUserId()

@@ -13,7 +13,7 @@ const _apiBaseUrl = String.fromEnvironment(
 );
 const _windowsTwainBaseUrl = String.fromEnvironment(
   'WINDOWS_TWAIN_BASE_URL',
-  defaultValue: 'http://127.0.0.1:43128',
+  defaultValue: 'http://127.0.0.1:43127',
 );
 
 void main() {
@@ -36,7 +36,7 @@ void main() {
   });
 
   testWidgets(
-    'bootstrap tenant admin navega a documentos escanea y sube un documento',
+    'bootstrap de administrador de organización navega a documentos escanea y sube un documento',
     (tester) async {
       tester.view.physicalSize = const Size(1600, 1200);
       tester.view.devicePixelRatio = 1.0;
@@ -46,7 +46,7 @@ void main() {
       await tester.pumpWidget(const GdmsApp());
       await _pumpUntilFound(tester, find.text('Ingreso al GDMS'));
 
-      await tester.tap(find.text('Tenant admin'));
+      await tester.tap(find.text('Organización admin'));
       await tester.pump(const Duration(milliseconds: 300));
 
       final fields = find.byType(TextFormField);
@@ -58,7 +58,7 @@ void main() {
       await tester.enterText(fields.at(3), 'Scan Demo Admin');
       await tester.enterText(fields.at(4), 'ScanDemo123!');
 
-      await tester.tap(find.text('Crear tenant admin'));
+      await tester.tap(find.text('Crear administrador de organización'));
       await tester.pump(const Duration(milliseconds: 500));
 
       await _pumpUntilFound(tester, find.text('Documentos'));
@@ -105,7 +105,12 @@ void main() {
       await _pumpUntilFound(tester, find.text('scan-ui-flow'));
 
       expect(apiServer.uploadCount, 1);
-      expect(apiServer.documents.any((document) => document['title'] == 'scan-ui-flow'), isTrue);
+      expect(
+        apiServer.documents.any(
+          (document) => document['title'] == 'scan-ui-flow',
+        ),
+        isTrue,
+      );
     },
   );
 
@@ -123,7 +128,7 @@ void main() {
         await tester.pumpWidget(const GdmsApp());
         await _pumpUntilFound(tester, find.text('Ingreso al GDMS'));
 
-        await tester.tap(find.text('Tenant admin'));
+        await tester.tap(find.text('Organización admin'));
         await tester.pump(const Duration(milliseconds: 300));
 
         final fields = find.byType(TextFormField);
@@ -135,7 +140,7 @@ void main() {
         await tester.enterText(fields.at(3), 'Scan Demo Admin');
         await tester.enterText(fields.at(4), 'ScanDemo123!');
 
-        await tester.tap(find.text('Crear tenant admin'));
+        await tester.tap(find.text('Crear administrador de organización'));
         await tester.pump(const Duration(milliseconds: 500));
 
         await _pumpUntilFound(tester, find.text('Documentos'));
@@ -194,7 +199,7 @@ void main() {
       await tester.pumpWidget(const GdmsApp());
       await _pumpUntilFound(tester, find.text('Ingreso al GDMS'));
 
-      await tester.tap(find.text('Tenant admin'));
+      await tester.tap(find.text('Organización admin'));
       await tester.pump(const Duration(milliseconds: 300));
 
       final fields = find.byType(TextFormField);
@@ -206,7 +211,7 @@ void main() {
       await tester.enterText(fields.at(3), 'Scan Demo Admin');
       await tester.enterText(fields.at(4), 'ScanDemo123!');
 
-      await tester.tap(find.text('Crear tenant admin'));
+      await tester.tap(find.text('Crear administrador de organización'));
       await tester.pump(const Duration(milliseconds: 500));
 
       await _pumpUntilFound(tester, find.text('Documentos'));
@@ -221,7 +226,9 @@ void main() {
       await _pumpUntilFound(tester, find.text('Rehidratada'));
       await _pumpUntilFound(tester, find.textContaining('rehydrated-session'));
 
-      final resumeButton = find.widgetWithText(OutlinedButton, 'Reanudar').first;
+      final resumeButton = find
+          .widgetWithText(OutlinedButton, 'Reanudar')
+          .first;
       await tester.ensureVisible(resumeButton);
       await tester.tap(resumeButton);
       await tester.pump(const Duration(milliseconds: 300));
@@ -316,7 +323,8 @@ final class _FakeGdmsApiServer {
   Future<void> _serve() async {
     await for (final request in _server) {
       final path = request.uri.path;
-      if (request.method == 'POST' && path == '/api/auth/bootstrap-tenant-admin') {
+      if (request.method == 'POST' &&
+          path == '/api/auth/bootstrap-tenant-admin') {
         await _writeJson(request.response, <String, Object?>{
           'accessToken': 'token-123',
           'tokenType': 'Bearer',
@@ -346,7 +354,20 @@ final class _FakeGdmsApiServer {
         continue;
       }
 
-      if (request.method == 'GET' && path == '/api/tenants/tenant-1/documents') {
+      if (request.method == 'GET' && path == '/api/organization/current') {
+        await _writeJson(request.response, <String, Object?>{
+          'id': 'tenant-1',
+          'code': 'SCAN-DEMO',
+          'name': 'Scan Demo',
+          'sector': 'CORPORATE',
+          'primaryCountryCode': 'AR',
+          'createdAtUtc': '2026-04-10T18:00:00Z',
+        });
+        continue;
+      }
+
+      if (request.method == 'GET' &&
+          path == '/api/tenants/tenant-1/documents') {
         await _writeJson(request.response, documents);
         continue;
       }
@@ -357,7 +378,8 @@ final class _FakeGdmsApiServer {
         continue;
       }
 
-      if (request.method == 'GET' && path == '/api/tenants/tenant-1/document-types') {
+      if (request.method == 'GET' &&
+          path == '/api/tenants/tenant-1/document-types') {
         await _writeJson(request.response, <Object>[
           <String, Object?>{
             'id': 'type-1',
@@ -390,10 +412,9 @@ final class _FakeGdmsApiServer {
       }
 
       request.response.statusCode = HttpStatus.notFound;
-      await _writeJson(
-        request.response,
-        <String, Object?>{'message': 'Ruta no soportada: $path'},
-      );
+      await _writeJson(request.response, <String, Object?>{
+        'message': 'Ruta no soportada: $path',
+      });
     }
   }
 
@@ -415,7 +436,8 @@ final class _FakeWindowsTwainServer {
 
   final Uri _baseUri;
   late HttpServer _server;
-  final Map<String, Map<String, Object?>> _sessions = <String, Map<String, Object?>>{};
+  final Map<String, Map<String, Object?>> _sessions =
+      <String, Map<String, Object?>>{};
   final Map<String, List<int>> _sessionPdfBytes = <String, List<int>>{};
   static final List<int> _pdfBytes = utf8.encode('%PDF-1.4 fake gdms scan');
 
@@ -462,7 +484,10 @@ final class _FakeWindowsTwainServer {
       }
 
       if (request.method == 'GET' && path == '/api/sessions') {
-        await _writeJson(request.response, _sessions.values.toList(growable: false));
+        await _writeJson(
+          request.response,
+          _sessions.values.toList(growable: false),
+        );
         continue;
       }
 
@@ -484,7 +509,8 @@ final class _FakeWindowsTwainServer {
       }
 
       if (request.method == 'POST' &&
-          (path == '/api/scans/adf/duplex' || path == '/api/scans/adf/simplex')) {
+          (path == '/api/scans/adf/duplex' ||
+              path == '/api/scans/adf/simplex')) {
         final sessionId = 'scan-ui-flow';
         final mode = path.endsWith('/duplex') ? 'adf-duplex' : 'adf-simplex';
         upsertSession(
@@ -509,18 +535,22 @@ final class _FakeWindowsTwainServer {
           path.startsWith('/api/scans/') &&
           path.contains('/pages/')) {
         request.response.statusCode = HttpStatus.notFound;
-        await _writeJson(
-          request.response,
-          <String, Object?>{'message': 'Preview no disponible en entorno fake.'},
-        );
+        await _writeJson(request.response, <String, Object?>{
+          'message': 'Preview no disponible en entorno fake.',
+        });
         continue;
       }
 
-      if (request.method == 'GET' && path.startsWith('/api/scans/') && path.endsWith('/pdf')) {
+      if (request.method == 'GET' &&
+          path.startsWith('/api/scans/') &&
+          path.endsWith('/pdf')) {
         final sessionId = _extractSessionId(path);
         final session = sessionId == null ? null : _sessions[sessionId];
         if (session != null) {
-          request.response.headers.contentType = ContentType('application', 'pdf');
+          request.response.headers.contentType = ContentType(
+            'application',
+            'pdf',
+          );
           request.response.headers.set(
             'content-disposition',
             'attachment; filename="$sessionId.pdf"',
@@ -551,10 +581,9 @@ final class _FakeWindowsTwainServer {
       }
 
       request.response.statusCode = HttpStatus.notFound;
-      await _writeJson(
-        request.response,
-        <String, Object?>{'message': 'Ruta no soportada: $path'},
-      );
+      await _writeJson(request.response, <String, Object?>{
+        'message': 'Ruta no soportada: $path',
+      });
     }
   }
 
@@ -565,9 +594,7 @@ final class _FakeWindowsTwainServer {
       'baseUrl': _baseUri.toString(),
       'runMode': 'headless',
       'startupLogPath': 'C:/tmp/windows-twain.log',
-      'scanner': <String, Object?>{
-        'message': '1 scanner disponible',
-      },
+      'scanner': <String, Object?>{'message': '1 scanner disponible'},
       'sessions': <String, Object?>{
         'activeSessions': _sessions.length,
         'sessionsRootPath': 'C:/tmp/windows-twain/sessions',

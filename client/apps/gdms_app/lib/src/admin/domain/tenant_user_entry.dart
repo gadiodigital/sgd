@@ -1,4 +1,4 @@
-/// Represents one tenant user shown in the admin access dialog.
+/// Represents one organization user shown in the admin access dialog.
 final class TenantUserEntry {
   const TenantUserEntry({
     required this.id,

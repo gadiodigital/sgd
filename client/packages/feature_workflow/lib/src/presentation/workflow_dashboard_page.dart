@@ -58,7 +58,8 @@ class _WorkflowDashboardPageState extends State<WorkflowDashboardPage> {
           children: [
             const GdmsPageHeader(
               title: 'Workflow',
-              subtitle: 'Aprobaciones y tareas documentales simples por tenant.',
+              subtitle:
+                  'Aprobaciones y tareas documentales simples de la organización.',
             ),
             const SizedBox(height: 16),
             if (widget.viewModel.message != null)

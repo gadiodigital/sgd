@@ -1,0 +1,1 @@
+"""GDMS OCR service package."""

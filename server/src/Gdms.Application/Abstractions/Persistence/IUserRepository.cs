@@ -3,7 +3,7 @@ using Gdms.Domain.Identity;
 namespace Gdms.Application.Abstractions.Persistence;
 
 /// <summary>
-/// Defines persistence operations for tenant-scoped users.
+/// Defines persistence operations for organization-scoped users.
 /// </summary>
 public interface IUserRepository
 {
@@ -23,7 +23,7 @@ public interface IUserRepository
     Task<IReadOnlyCollection<User>> ListByTenantAsync(Guid tenantId, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns a tenant user by identifier.
+    /// Returns an organization user by identifier.
     /// </summary>
     Task<User?> GetByIdAsync(Guid tenantId, Guid userId, CancellationToken cancellationToken);
 

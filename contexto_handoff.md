@@ -2,7 +2,7 @@
 
 ## Objetivo del proyecto
 
-Desarrollar un sistema de gestion documental/ECM modular, hibrido, multi-tenant, seguro y auditable para empresas, inmobiliarias, estudios juridicos y organizaciones similares en la Republica Argentina.
+Desarrollar un sistema de gestion documental/ECM modular, hibrido, instancia única, seguro y auditable para empresas, inmobiliarias, estudios juridicos y organizaciónes similares en la Republica Argentina.
 
 El sistema debe cumplir y trazar:
 - normativa argentina aplicable;
@@ -62,7 +62,7 @@ Tests iniciales:
 
 La API ya expone Swagger y tiene endpoints base documentados:
 - `C:\IA\codex\server\src\Gdms.Api\Controllers\HealthController.cs`
-- `C:\IA\codex\server\src\Gdms.Api\Controllers\TenantsController.cs`
+- `C:\IA\codex\server\src\Gdms.Api\Controllers\OrganizaciónesController.cs`
 - `C:\IA\codex\server\src\Gdms.Api\Controllers\DocumentsController.cs`
 - `C:\IA\codex\server\src\Gdms.Api\Controllers\RolesController.cs`
 - `C:\IA\codex\server\src\Gdms.Api\Controllers\UsersController.cs`
@@ -75,24 +75,24 @@ Configuracion central:
 ### Dominio y aplicacion
 
 Modelos y reglas iniciales:
-- `C:\IA\codex\server\src\Gdms.Domain\Tenancy\Tenant.cs`
+- `C:\IA\codex\server\src\Gdms.Domain\Tenancy\Organización.cs`
 - `C:\IA\codex\server\src\Gdms.Domain\Documents\Document.cs`
 - `C:\IA\codex\server\src\Gdms.Domain\Documents\DocumentVersion.cs`
 - `C:\IA\codex\server\src\Gdms.Domain\Documents\DocumentStatus.cs`
 - `C:\IA\codex\server\src\Gdms.Domain\Common\DomainRuleException.cs`
 
 Servicios de aplicacion:
-- `C:\IA\codex\server\src\Gdms.Application\Tenants\TenantService.cs`
+- `C:\IA\codex\server\src\Gdms.Application\Organizaciónes\OrganizationService.cs`
 - `C:\IA\codex\server\src\Gdms.Application\Documents\DocumentService.cs`
 
 Puertos actuales:
-- `C:\IA\codex\server\src\Gdms.Application\Abstractions\Persistence\ITenantRepository.cs`
+- `C:\IA\codex\server\src\Gdms.Application\Abstractions\Persistence\IOrganizaciónRepository.cs`
 - `C:\IA\codex\server\src\Gdms.Application\Abstractions\Persistence\IDocumentRepository.cs`
 
 ### Persistencia real
 
 Se reemplazaron los repositorios en memoria por repositorios PostgreSQL:
-- `C:\IA\codex\server\src\Gdms.Infrastructure\Persistence\PostgresTenantRepository.cs`
+- `C:\IA\codex\server\src\Gdms.Infrastructure\Persistence\PostgresOrganizaciónRepository.cs`
 - `C:\IA\codex\server\src\Gdms.Infrastructure\Persistence\PostgresDocumentRepository.cs`
 - `C:\IA\codex\server\src\Gdms.Infrastructure\Persistence\PostgresAuditEventRepository.cs`
 - `C:\IA\codex\server\src\Gdms.Infrastructure\Persistence\PostgresRoleRepository.cs`
@@ -179,8 +179,8 @@ Estado actual del frontend:
 - modulo dedicado de busqueda documental;
 - modulo dedicado de firma documental con solicitudes y cierre de firmas;
 - modulo dedicado de integraciones con estado de conectividad y configuración;
-- inbox operativo de notificaciones tenant-scoped;
-- modulo dedicado de reportes operativos con vista tenant y plataforma;
+- inbox operativo de notificaciones scoped a organización;
+- modulo dedicado de reportes operativos con vista organización y plataforma;
 - primer vertical sectorial juridico;
 - vertical sectorial inmobiliario inicial;
 - vertical sectorial corporativo inicial;
@@ -199,10 +199,10 @@ Se implemento el modulo inicial de identidad y acceso del backend:
 - contratos API para alta de usuarios y asignacion de roles;
 - controladores Swagger para:
   - `GET /api/roles`
-  - `GET /api/tenants/{tenantId}/users`
-  - `GET /api/tenants/{tenantId}/users/{userId}`
-  - `POST /api/tenants/{tenantId}/users`
-  - `POST /api/tenants/{tenantId}/users/{userId}/roles`
+  - `GET /api/organization/users`
+  - `GET /api/organization/users/{userId}`
+  - `POST /api/organization/users`
+  - `POST /api/organization/users/{userId}/roles`
 - persistencia PostgreSQL real para usuarios y roles.
 
 Validacion realizada:
@@ -213,24 +213,24 @@ Resultado:
 - build exitoso;
 - tests exitosos.
 
-## Avance nuevo incorporado en la iteracion documental tenant-aware
+## Avance nuevo incorporado en la iteracion documental orientado a organización
 
 Se endurecio el modulo documental:
-- los endpoints documentales pasaron a ser tenant-scoped;
-- el `tenantId` se toma del route y ya no del body;
+- los endpoints documentales pasaron a ser scoped a organización;
+- el `organizationId` se toma del route y ya no del body;
 - el `uploadedByUserId` se deriva desde el JWT y ya no del cliente;
-- se protege acceso por tenant en documentos;
-- se agrego listado documental por tenant;
+- se protege acceso por organización en documentos;
+- se agrego listado documental por organización;
 - se agrego auditoria inmutable de lectura y alta documental.
 
 Endpoints documentales actuales:
-- `GET /api/tenants/{tenantId}/documents`
-- `GET /api/tenants/{tenantId}/documents/{documentId}`
-- `POST /api/tenants/{tenantId}/documents`
+- `GET /api/organization/documents`
+- `GET /api/organization/documents/{documentId}`
+- `POST /api/organization/documents`
 
 Persistencia nueva:
 - `PostgresAuditEventRepository` inserta eventos en `audit.audit_events`;
-- `PostgresDocumentRepository` ya soporta lectura por tenant y rehidratacion de versiones.
+- `PostgresDocumentRepository` ya soporta lectura por organización y rehidratacion de versiones.
 
 Validacion realizada:
 - `dotnet build C:\IA\codex\server\Gdms.sln`
@@ -246,17 +246,17 @@ Se implemento la base de autenticacion y autorizacion HTTP del backend:
 - JWT bearer para autenticacion local;
 - hashing de contraseñas con primitives de ASP.NET Core Identity;
 - bootstrap seguro del primer `PLATFORM_ADMIN` de la plataforma;
-- bootstrap seguro del primer `TENANT_ADMIN` por tenant;
-- login local por `tenantCode + email + password`;
+- bootstrap seguro del primer `ORGANIZATION_ADMIN` por organización;
+- login local por `organizationCode + email + password`;
 - endpoint autenticado `GET /api/auth/me`;
 - bloqueo temporal por intentos fallidos;
 - tracking de ultimo acceso exitoso;
 - proteccion de endpoints de usuarios y roles con JWT;
-- control de acceso por tenant en la administracion de usuarios.
+- control de acceso por organización en la administracion de usuarios.
 
 Endpoints nuevos:
 - `POST /api/auth/bootstrap-platform-admin`
-- `POST /api/auth/bootstrap-tenant-admin`
+- `POST /api/auth/bootstrap-organization-admin`
 - `POST /api/auth/token`
 - `GET /api/auth/me`
 
@@ -272,13 +272,13 @@ Resultado:
 - build exitoso;
 - tests exitosos.
 
-## Avance nuevo incorporado en la iteracion de cierre de administracion de tenants
+## Avance nuevo incorporado en la iteracion de cierre de administracion de organizaciónes
 
-Se redujo la exposicion anonima de administracion de tenants:
-- `GET /api/tenants` ahora exige `PLATFORM_ADMIN`;
-- `POST /api/tenants` queda libre solo mientras no exista ningun `PLATFORM_ADMIN`;
-- una vez bootstrappeado el primer `PLATFORM_ADMIN`, la alta de tenants requiere ese rol;
-- `POST /api/auth/bootstrap-platform-admin` permite inicializar la gobernanza global usando un tenant existente.
+Se redujo la exposicion anonima de administracion de organizaciónes:
+- `GET /api/organization` ahora exige `PLATFORM_ADMIN`;
+- `POST /api/organization` queda libre solo mientras no exista ningun `PLATFORM_ADMIN`;
+- una vez bootstrappeado el primer `PLATFORM_ADMIN`, la alta de organizaciónes requiere ese rol;
+- `POST /api/auth/bootstrap-platform-admin` permite inicializar la gobernanza global usando una organización existente.
 
 Validacion realizada:
 - `dotnet build C:\IA\codex\server\Gdms.sln`
@@ -291,18 +291,18 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion de records management
 
 Se implemento la primera capa operativa de records management:
-- listado de politicas de retencion disponibles por tenant;
+- listado de politicas de retencion disponibles por organización;
 - aplicacion de politica de retencion a documentos;
 - alta de `legal hold` por documento;
 - liberacion de `legal hold` con motivo y trazabilidad;
 - auditoria inmutable para aplicacion de retencion, alta y liberacion de `legal hold`.
 
 Endpoints nuevos:
-- `GET /api/tenants/{tenantId}/records/retention-policies`
-- `POST /api/tenants/{tenantId}/records/documents/{documentId}/retention-policy`
-- `GET /api/tenants/{tenantId}/records/documents/{documentId}/legal-holds`
-- `POST /api/tenants/{tenantId}/records/documents/{documentId}/legal-holds`
-- `POST /api/tenants/{tenantId}/records/legal-holds/{legalHoldId}/release`
+- `GET /api/organization/records/retention-policies`
+- `POST /api/organization/records/documents/{documentId}/retention-policy`
+- `GET /api/organization/records/documents/{documentId}/legal-holds`
+- `POST /api/organization/records/documents/{documentId}/legal-holds`
+- `POST /api/organization/records/legal-holds/{legalHoldId}/release`
 
 Persistencia nueva:
 - `PostgresRetentionPolicyRepository`;
@@ -328,8 +328,8 @@ Se completo la siguiente capa de cumplimiento en backend:
 - nuevo estado documental `DISPOSED`.
 
 Endpoints nuevos:
-- `GET /api/tenants/{tenantId}/records/disposition-candidates`
-- `POST /api/tenants/{tenantId}/records/documents/{documentId}/disposition/execute`
+- `GET /api/organization/records/disposition-candidates`
+- `POST /api/organization/records/documents/{documentId}/disposition/execute`
 
 Persistencia nueva:
 - `PostgresDocumentDispositionRepository`;
@@ -374,7 +374,7 @@ Resultado:
 
 Se conecto la app Flutter con el backend real:
 - login local contra `POST /api/auth/token`;
-- bootstrap de `TENANT_ADMIN` y `PLATFORM_ADMIN` desde la UI;
+- bootstrap de `ORGANIZATION_ADMIN` y `PLATFORM_ADMIN` desde la UI;
 - lectura de identidad con `GET /api/auth/me`;
 - carga real de documentos y records desde la API;
 - tablero admin parcialmente conectado segun rol;
@@ -404,13 +404,13 @@ Se avanzo sobre el nucleo ECM operativo:
 - upload binario real a traves de multipart form-data;
 - descarga del binario mas reciente por documento;
 - storage local desacoplado mediante puerto `IDocumentBinaryStore`;
-- busqueda documental por tenant desde PostgreSQL;
+- busqueda documental por organización desde PostgreSQL;
 - UI Flutter para subir documentos y buscar por titulo o tipo documental.
 
 Endpoints nuevos:
-- `POST /api/tenants/{tenantId}/documents/upload`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/download`
-- `GET /api/tenants/{tenantId}/documents/search`
+- `POST /api/organization/documents/upload`
+- `GET /api/organization/documents/{documentId}/download`
+- `GET /api/organization/documents/search`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Api\Controllers\DocumentContentController.cs`
@@ -432,36 +432,36 @@ Resultado:
 
 ## Actualizacion mas reciente
 
-Se agregaron permisos documentales finos tenant-scoped:
+Se agregaron permisos documentales finos scoped a organización:
 - tabla `documents.document_access_entries`;
-- endpoint `GET /api/tenants/{tenantId}/documents/{documentId}/access-entries`;
-- endpoint `POST /api/tenants/{tenantId}/documents/{documentId}/access-entries`;
+- endpoint `GET /api/organization/documents/{documentId}/access-entries`;
+- endpoint `POST /api/organization/documents/{documentId}/access-entries`;
 - enforcement de `READ`, `DOWNLOAD`, `EDITMETADATA` y `UPLOADVERSION` sobre detalle, metadata y contenido documental;
 - dialogo Flutter para consulta y otorgamiento de permisos desde el detalle documental.
 
 Se agrego vertical inmobiliario real:
 - tablas `documents.property_files` y `documents.property_file_documents`;
-- endpoint `GET /api/tenants/{tenantId}/property-files`;
-- endpoint `POST /api/tenants/{tenantId}/property-files`;
-- endpoint `GET /api/tenants/{tenantId}/property-files/{propertyFileId}/documents`;
-- endpoint `POST /api/tenants/{tenantId}/property-files/{propertyFileId}/documents`;
+- endpoint `GET /api/organization/property-files`;
+- endpoint `POST /api/organization/property-files`;
+- endpoint `GET /api/organization/property-files/{propertyFileId}/documents`;
+- endpoint `POST /api/organization/property-files/{propertyFileId}/documents`;
 - dashboard inmobiliario con creacion de legajos, detalle de legajo y vinculacion de documentos.
 
 Se agrego vertical corporativo real:
 - tablas `documents.corporate_record_files` y `documents.corporate_record_file_documents`;
-- endpoint `GET /api/tenants/{tenantId}/corporate-record-files`;
-- endpoint `POST /api/tenants/{tenantId}/corporate-record-files`;
-- endpoint `GET /api/tenants/{tenantId}/corporate-record-files/{corporateRecordFileId}/documents`;
-- endpoint `POST /api/tenants/{tenantId}/corporate-record-files/{corporateRecordFileId}/documents`;
+- endpoint `GET /api/organization/corporate-record-files`;
+- endpoint `POST /api/organization/corporate-record-files`;
+- endpoint `GET /api/organization/corporate-record-files/{corporateRecordFileId}/documents`;
+- endpoint `POST /api/organization/corporate-record-files/{corporateRecordFileId}/documents`;
 - dashboard corporativo con creacion de legajos, detalle de legajo y vinculacion de documentos.
 
 Se mejoro la busqueda documental:
-- endpoint `GET /api/tenants/{tenantId}/documents/search` ahora acepta `documentTypeCode`, `status` y `onLegalHold`;
+- endpoint `GET /api/organization/documents/search` ahora acepta `documentTypeCode`, `status` y `onLegalHold`;
 - la UI de busqueda permite combinar texto libre con filtros por tipo documental, estado y legal hold;
 - el backend audita tambien los filtros usados en `DOCUMENT_SEARCH`.
 
 Se mejoro workflow documental:
-- endpoint `GET /api/tenants/{tenantId}/workflow/tasks` ahora acepta `mine=true`;
+- endpoint `GET /api/organization/workflow/tasks` ahora acepta `mine=true`;
 - las tareas soportan `assignedToUserId` opcional;
 - la UI permite asignar un responsable al crear una tarea;
 - el dashboard de workflow permite filtrar por `Solo mis tareas`.
@@ -498,14 +498,14 @@ Estado del roadmap estimado al 21/03/2026:
 ## Avance nuevo incorporado en la iteracion del modulo reports
 
 Se incorporo una primera capa real de reportes operativos:
-- backend tenant-scoped para resumen operativo consolidado;
+- backend scoped a organización para resumen operativo consolidado;
 - backend platform-scoped para vista global visible solo a `PLATFORM_ADMIN`;
 - paquete `feature_reports` agregado al workspace;
 - shell principal extendida con seccion dedicada de reportes;
-- dashboard Flutter con métricas tenant y bloque extra de plataforma cuando corresponde.
+- dashboard Flutter con métricas organización y bloque extra de plataforma cuando corresponde.
 
 Endpoints nuevos:
-- `GET /api/tenants/{tenantId}/reports/operational-summary`
+- `GET /api/organization/reports/operational-summary`
 - `GET /api/reports/platform-summary`
 
 Archivos principales nuevos o modificados:
@@ -534,8 +534,8 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion de metadatos y taxonomias
 
 Se avanzo sobre la capa tipada de metadata documental:
-- catalogo de tipos documentales tenant-aware con prioridad a overrides del tenant;
-- endpoint Swagger para listar tipos documentales visibles por tenant;
+- catalogo de tipos documentales orientado a organización con prioridad a overrides dla organización;
+- endpoint Swagger para listar tipos documentales visibles por organización;
 - validacion y normalizacion de metadatos segun esquema JSON del tipo documental;
 - persistencia de metadatos actuales en `documents.document_metadata`;
 - carga Flutter con selector de tipo documental, campos dinamicos y validacion en UI;
@@ -544,9 +544,9 @@ Se avanzo sobre la capa tipada de metadata documental:
 - edicion de metadatos desde Flutter con validacion y persistencia contra la API.
 
 Endpoints nuevos:
-- `GET /api/tenants/{tenantId}/document-types`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/metadata`
-- `PUT /api/tenants/{tenantId}/documents/{documentId}/metadata`
+- `GET /api/organization/document-types`
+- `GET /api/organization/documents/{documentId}/metadata`
+- `PUT /api/organization/documents/{documentId}/metadata`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Application\Documents\DocumentTypeCatalogService.cs`
@@ -598,25 +598,25 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion de administracion y auditoria
 
 Se completo otra capa real del modulo admin:
-- backend con lectura de eventos recientes de auditoria a nivel plataforma y tenant;
-- dashboard admin con tenants recientes y actividad auditada real;
-- alta de tenant desde la UI para `PLATFORM_ADMIN`;
-- listado y alta basica de usuarios del tenant actual desde la UI para perfiles con gobierno de identidades;
-- asignacion de roles a usuarios existentes desde la misma UI, reutilizando el endpoint tenant-scoped del backend.
+- backend con lectura de eventos recientes de auditoria a nivel plataforma y organización;
+- dashboard admin con organizaciónes recientes y actividad auditada real;
+- alta de organización desde la UI para `PLATFORM_ADMIN`;
+- listado y alta basica de usuarios dla organización actual desde la UI para perfiles con gobierno de identidades;
+- asignacion de roles a usuarios existentes desde la misma UI, reutilizando el endpoint scoped a organización del backend.
 
 Endpoints nuevos:
 - `GET /api/audit/events/recent`
-- `GET /api/tenants/{tenantId}/audit/events/recent`
+- `GET /api/organization/audit/events/recent`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Application\Audit\AuditEventService.cs`
 - `C:\IA\codex\server\src\Gdms.Api\Controllers\AuditController.cs`
 - `C:\IA\codex\server\src\Gdms.Infrastructure\Persistence\PostgresAuditEventRepository.cs`
-- `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\create_tenant_dialog.dart`
+- `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\create_organization_dialog.dart`
 - `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\identity_management_dialog.dart`
 - `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\assign_user_role_dialog.dart`
-- `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\tenant_user_card.dart`
-- `C:\IA\codex\client\apps\gdms_app\lib\src\admin\application\create_tenant_view_model.dart`
+- `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\organization_user_card.dart`
+- `C:\IA\codex\client\apps\gdms_app\lib\src\admin\application\create_organization_view_model.dart`
 - `C:\IA\codex\client\apps\gdms_app\lib\src\admin\application\identity_management_view_model.dart`
 - `C:\IA\codex\client\apps\gdms_app\lib\src\infrastructure\repositories\api_admin_repository.dart`
 - `C:\IA\codex\client\packages\feature_admin\lib\src\presentation\admin_dashboard_page.dart`
@@ -632,12 +632,12 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion de trazabilidad documental visible
 
 Se amplio la trazabilidad operativa del nucleo documental:
-- endpoint tenant-scoped para consultar auditoria reciente por documento;
+- endpoint scoped a organización para consultar auditoria reciente por documento;
 - detalle Flutter enriquecido con historial de eventos recientes del documento;
 - continuidad de administracion de identidades con asignacion de roles a usuarios ya existentes desde la UI.
 
 Endpoint nuevo:
-- `GET /api/tenants/{tenantId}/documents/{documentId}/audit-events`
+- `GET /api/organization/documents/{documentId}/audit-events`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Api\Controllers\AuditController.cs`
@@ -645,7 +645,7 @@ Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Application\Abstractions\Persistence\IAuditEventRepository.cs`
 - `C:\IA\codex\server\src\Gdms.Infrastructure\Persistence\PostgresAuditEventRepository.cs`
 - `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\assign_user_role_dialog.dart`
-- `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\tenant_user_card.dart`
+- `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\organization_user_card.dart`
 - `C:\IA\codex\client\apps\gdms_app\lib\src\admin\presentation\identity_management_dialog.dart`
 - `C:\IA\codex\client\apps\gdms_app\lib\src\admin\application\identity_management_view_model.dart`
 - `C:\IA\codex\client\apps\gdms_app\lib\src\documents\domain\document_audit_event.dart`
@@ -666,7 +666,7 @@ Resultado:
 Se incorporo un bounded context nuevo en Flutter:
 - paquete `feature_audit` agregado al workspace;
 - shell principal extendida con seccion dedicada de auditoria;
-- consumo real de endpoints de auditoria de plataforma o tenant segun el rol autenticado;
+- consumo real de endpoints de auditoria de plataforma o organización segun el rol autenticado;
 - quality gates actualizados para validar tambien el nuevo modulo.
 
 Archivos principales nuevos o modificados:
@@ -693,16 +693,16 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion del modulo workflow
 
 Se incorporo la primera capa real de workflow documental:
-- backend tenant-scoped para listar, crear y completar tareas documentales simples;
+- backend scoped a organización para listar, crear y completar tareas documentales simples;
 - script relacional para `workflow.workflow_tasks`;
 - shell Flutter extendida con modulo `feature_workflow`;
 - dialogo de alta de tarea con seleccion de documento, notas y vencimiento;
 - cierre de tareas desde la UI y recarga de la cola operativa.
 
 Endpoints nuevos:
-- `GET /api/tenants/{tenantId}/workflow/tasks`
-- `POST /api/tenants/{tenantId}/workflow/tasks`
-- `POST /api/tenants/{tenantId}/workflow/tasks/{taskId}/complete`
+- `GET /api/organization/workflow/tasks`
+- `POST /api/organization/workflow/tasks`
+- `POST /api/organization/workflow/tasks/{taskId}/complete`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Domain\Workflow\WorkflowTask.cs`
@@ -735,7 +735,7 @@ Resultado:
 Se incorporo un bounded context nuevo en Flutter para busqueda:
 - paquete `feature_search` agregado al workspace;
 - shell principal extendida con seccion dedicada de busqueda documental;
-- consumo real del endpoint tenant-scoped `/documents/search`;
+- consumo real del endpoint scoped a organización `/documents/search`;
 - apertura del detalle documental desde resultados de busqueda;
 - quality gates actualizados para validar tambien el nuevo modulo.
 
@@ -796,13 +796,13 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion del modulo notifications
 
 Se incorporo un inbox operativo transversal:
-- backend tenant-scoped para notificaciones accionables;
+- backend scoped a organización para notificaciones accionables;
 - agregacion sobre workflow, records y auditoria de seguridad existentes;
 - paquete `feature_notifications` agregado al workspace;
 - shell principal extendida con seccion dedicada de notificaciones.
 
 Endpoint nuevo:
-- `GET /api/tenants/{tenantId}/notifications`
+- `GET /api/organization/notifications`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Application\Notifications\NotificationItem.cs`
@@ -879,7 +879,7 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion del modulo signature
 
 Se incorporo la primera capa real de firma documental:
-- backend tenant-scoped para listar, crear y completar solicitudes de firma;
+- backend scoped a organización para listar, crear y completar solicitudes de firma;
 - esquema PostgreSQL nuevo para `signature.signature_envelopes`;
 - auditoria para `SIGNATURE_REQUESTED` y `SIGNATURE_COMPLETED`;
 - inbox de notificaciones ampliado con alertas de firma pendiente;
@@ -889,9 +889,9 @@ Se incorporo la primera capa real de firma documental:
 - cierre de solicitudes desde la UI y quality gates actualizados.
 
 Endpoints nuevos:
-- `GET /api/tenants/{tenantId}/signature/envelopes`
-- `POST /api/tenants/{tenantId}/signature/envelopes`
-- `POST /api/tenants/{tenantId}/signature/envelopes/{envelopeId}/complete`
+- `GET /api/organization/signature/envelopes`
+- `POST /api/organization/signature/envelopes`
+- `POST /api/organization/signature/envelopes/{envelopeId}/complete`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Domain\Signatures\SignatureEnvelope.cs`
@@ -923,7 +923,7 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion del modulo integrations y hooks de firma
 
 Se incorporo una nueva capa de integraciones y se preparo firma para proveedores externos:
-- backend tenant-scoped para listar el estado de integraciones configuradas;
+- backend scoped a organización para listar el estado de integraciones configuradas;
 - puerto `ISignatureProviderGateway` agregado para desacoplar firma de futuros proveedores PKI;
 - adaptador `InternalSignatureProviderGateway` agregado como placeholder productivo para entornos sin proveedor externo;
 - configuracion nueva `SignatureProvider` en `appsettings`;
@@ -932,7 +932,7 @@ Se incorporo una nueva capa de integraciones y se preparo firma para proveedores
 - dashboard Flutter con estado de PostgreSQL, Firebase, storage y proveedor de firma.
 
 Endpoint nuevo:
-- `GET /api/tenants/{tenantId}/integrations/status`
+- `GET /api/organization/integrations/status`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Application\Abstractions\Integrations\ISignatureProviderGateway.cs`
@@ -963,13 +963,13 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion de exportacion probatoria
 
 Se incorporo una primera capa real de exportacion de evidencia documental:
-- backend tenant-scoped para construir y descargar paquetes de evidencia por documento;
+- backend scoped a organización para construir y descargar paquetes de evidencia por documento;
 - consolidacion de versiones, metadatos, auditoria, workflow, firmas y legal holds en un JSON exportable;
 - auditoria del evento `EVIDENCE_PACKAGE_EXPORTED`;
 - boton nuevo en el detalle documental Flutter para descargar el paquete probatorio.
 
 Endpoint nuevo:
-- `GET /api/tenants/{tenantId}/documents/{documentId}/evidence-package`
+- `GET /api/organization/documents/{documentId}/evidence-package`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Application\Evidence\DocumentEvidencePackage.cs`
@@ -992,7 +992,7 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion de expedientes y vínculo jurídico
 
 Se incorporó una capa operativa real para expedientes del vertical legal:
-- backend tenant-scoped para crear y listar expedientes;
+- backend scoped a organización para crear y listar expedientes;
 - persistencia PostgreSQL nueva para `documents.case_files`;
 - vínculo documento-expediente con integridad referencial en `documents.case_file_documents`;
 - auditoría del evento `CASE_FILE_CREATED` y `CASE_FILE_DOCUMENT_ATTACHED`;
@@ -1001,10 +1001,10 @@ Se incorporó una capa operativa real para expedientes del vertical legal:
 - diálogo de expediente con listado de documentos vinculados y apertura del detalle documental.
 
 Endpoints nuevos:
-- `GET /api/tenants/{tenantId}/cases`
-- `POST /api/tenants/{tenantId}/cases`
-- `GET /api/tenants/{tenantId}/cases/{caseFileId}/documents`
-- `POST /api/tenants/{tenantId}/cases/{caseFileId}/documents`
+- `GET /api/organization/cases`
+- `POST /api/organization/cases`
+- `GET /api/organization/cases/{caseFileId}/documents`
+- `POST /api/organization/cases/{caseFileId}/documents`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Domain\Cases\CaseFile.cs`
@@ -1039,7 +1039,7 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion de versionado documental operativo
 
 Se fortaleció el núcleo ECM con versionado real:
-- backend tenant-scoped para subir una nueva versión sobre un documento existente;
+- backend scoped a organización para subir una nueva versión sobre un documento existente;
 - endpoint para consultar historial de versiones por documento;
 - endpoint para descargar una versión específica, además de la última;
 - refactor interno para separar `DocumentService` de `DocumentContentService` y mantener el límite de 300 líneas;
@@ -1047,9 +1047,9 @@ Se fortaleció el núcleo ECM con versionado real:
 - historial visible de versiones con descarga puntual desde la misma pantalla.
 
 Endpoints nuevos:
-- `POST /api/tenants/{tenantId}/documents/{documentId}/versions/upload`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/versions`
-- `GET /api/tenants/{tenantId}/documents/{documentId}/versions/{versionNumber}/download`
+- `POST /api/organization/documents/{documentId}/versions/upload`
+- `GET /api/organization/documents/{documentId}/versions`
+- `GET /api/organization/documents/{documentId}/versions/{versionNumber}/download`
 
 Archivos principales nuevos o modificados:
 - `C:\IA\codex\server\src\Gdms.Application\Documents\DocumentContentService.cs`
@@ -1081,17 +1081,17 @@ Se completo la integracion de firma directamente dentro del detalle documental:
 - el detalle documental ya lista solicitudes de firma asociadas al documento actual;
 - desde el detalle se pueden crear solicitudes con documento preseleccionado;
 - desde el detalle se pueden completar solicitudes pendientes;
-- el endpoint `GET /api/tenants/{tenantId}/signature/envelopes` ahora acepta `documentId` opcional para filtrar por documento.
+- el endpoint `GET /api/organization/signature/envelopes` ahora acepta `documentId` opcional para filtrar por documento.
 
 Se amplio ademas el ciclo de vida de firma con cancelacion controlada:
 - nuevo estado `CANCELLED` en firma documental;
 - persistencia PostgreSQL extendida con `cancelled_by_user_id`, `cancelled_at_utc` y `cancellation_reason`;
-- endpoint nuevo `POST /api/tenants/{tenantId}/signature/envelopes/{envelopeId}/cancel`;
+- endpoint nuevo `POST /api/organization/signature/envelopes/{envelopeId}/cancel`;
 - auditoria nueva `SIGNATURE_CANCELLED`;
 - dashboard de firma y detalle documental ya permiten cancelar solicitudes pendientes con motivo.
 
 Se incorporo tambien visibilidad operativa en reportes:
-- reportes tenant y plataforma ahora incluyen el KPI `cancelledSignatures`;
+- reportes organización y plataforma ahora incluyen el KPI `cancelledSignatures`;
 - el dashboard Flutter de reportes muestra firmas canceladas junto a pendientes, workflow y disposición.
 
 Archivos principales nuevos o modificados:
@@ -1138,7 +1138,7 @@ Resultado:
 ## Avance nuevo incorporado en la iteracion de notificaciones de firma cancelada
 
 Se extendio el inbox operativo para reflejar cancelaciones recientes de firma:
-- las notificaciones tenant-scoped ahora incluyen solicitudes de firma canceladas en los ultimos 7 dias;
+- las notificaciones scoped a organización ahora incluyen solicitudes de firma canceladas en los ultimos 7 dias;
 - se conserva tambien la visibilidad de firmas pendientes con vencimiento;
 - la UI del inbox ya comunica que cubre tareas, records, firmas y alertas de seguridad.
 
@@ -1230,7 +1230,7 @@ Cobertura actual del pipeline:
 - ampliar metadata, taxonomias y permisos documentales finos;
 - ampliar records con legal holds, politicas de retencion y trazabilidad operativa desde UI;
 - ampliar admin con endpoints reales de auditoria y plataforma;
-- ampliar admin con asignacion de roles a usuarios ya existentes y gestion mas rica de tenants;
+- ampliar admin con asignacion de roles a usuarios ya existentes y gestion mas rica de organizaciónes;
 - ampliar verticales de frontend faltantes: search, workflow, audit, signature e integraciones;
 - integrar Firebase Remote Config y Cloud Firestore segun ownership definido;
 - avanzar el modulo `signature` hacia hooks reales de proveedor PKI/sellado temporal;
@@ -1240,3 +1240,7 @@ Cobertura actual del pipeline:
 ## Nota de continuidad
 
 Si se pierde el contexto del chat, este archivo debe usarse como punto de reingreso para continuar el desarrollo sin depender de la conversacion previa.
+
+
+
+

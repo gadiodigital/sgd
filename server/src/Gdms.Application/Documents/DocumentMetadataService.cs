@@ -5,7 +5,7 @@ using Gdms.Domain.Common;
 namespace Gdms.Application.Documents;
 
 /// <summary>
-/// Coordinates tenant-scoped read access to current document metadata.
+/// Coordinates organization-scoped read access to current document metadata.
 /// </summary>
 public sealed class DocumentMetadataService
 {

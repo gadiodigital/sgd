@@ -13,7 +13,7 @@ class ShellBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final session = sessionViewModel.session;
     final tenantLabel = session == null
-        ? 'Sin tenant activo'
+        ? 'Sin organización activa'
         : '${session.tenantName} (${session.tenantCode})';
 
     return GdmsSectionCard(
@@ -62,7 +62,7 @@ class _BannerCopy extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tenant activo: $tenantLabel\n'
+            'Organización activa: $tenantLabel\n'
             'API: $apiBaseUrl\n'
             'La interfaz ya consume o prepara consumo real del backend para '
             'identidad, documentos, records y gobierno.',

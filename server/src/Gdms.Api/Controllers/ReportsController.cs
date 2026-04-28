@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped operational reports.
+/// Exposes organization-scoped operational reports.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -25,7 +25,7 @@ public sealed class ReportsController : ControllerBase
     }
 
     /// <summary>
-    /// Returns the current operational summary of the tenant.
+    /// Returns the current operational summary of the organization.
     /// </summary>
     [HttpGet("operational-summary")]
     [ProducesResponseType(typeof(OperationalReportResponse), StatusCodes.Status200OK)]
@@ -39,6 +39,31 @@ public sealed class ReportsController : ControllerBase
             return Forbid();
         }
 
+        return await GetOperationalSummaryForOrganization(tenantId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Returns the current operational summary of the current organization.
+    /// </summary>
+    [HttpGet("/api/organization/reports/operational-summary")]
+    [ProducesResponseType(typeof(OperationalReportResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<OperationalReportResponse>> GetCurrentOrganizationOperationalSummary(
+        CancellationToken cancellationToken)
+    {
+        var tenantId = ResolveCurrentOrganizationId();
+        if (tenantId is null)
+        {
+            return Unauthorized();
+        }
+
+        return await GetOperationalSummaryForOrganization(tenantId.Value, cancellationToken);
+    }
+
+    private async Task<ActionResult<OperationalReportResponse>> GetOperationalSummaryForOrganization(
+        Guid tenantId,
+        CancellationToken cancellationToken)
+    {
         var report = await _reportsService.GetOperationalSummaryAsync(tenantId, cancellationToken);
         return Ok(new OperationalReportResponse(
             report.TotalDocuments,
@@ -79,5 +104,11 @@ public sealed class ReportsController : ControllerBase
 
         var tenantClaim = User.FindFirstValue("tenant_id");
         return Guid.TryParse(tenantClaim, out var claimedTenantId) && claimedTenantId == tenantId;
+    }
+
+    private Guid? ResolveCurrentOrganizationId()
+    {
+        var tenantClaim = User.FindFirstValue("tenant_id");
+        return Guid.TryParse(tenantClaim, out var tenantId) ? tenantId : null;
     }
 }

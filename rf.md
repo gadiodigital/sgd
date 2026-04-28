@@ -10,17 +10,17 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 
 - Arquitectura backend: `.NET 10 LTS`, `modular monolith`, Clean Architecture por módulo.
 - Frontend: `Flutter` con `MVVM` en la capa visual y Clean Architecture para el resto.
-- Despliegue: híbrido, con soporte SaaS multi-tenant y opción single-tenant/on-premise.
+- Despliegue: híbrido, con soporte de instalación dedicada en nube u on-premise.
 - Persistencia base: `PostgreSQL 18.3` sobre la rama mayor `18` vigente al `2026-03-18` para metadatos relacionales y transaccionales; `Firebase Remote Config` para configuración dinámica no sensible; `Cloud Firestore` para datos y proyecciones no relacionales; almacenamiento `S3-compatible` para binarios; `OpenSearch` para búsqueda.
 - Eventos: `Outbox` para integración confiable.
-- Seguridad: MFA, RBAC/ABAC, cifrado, claves por tenant, auditoría inmutable.
+- Seguridad: MFA, RBAC/ABAC, cifrado, claves por organización, auditoría inmutable.
 - Validaciones: todas las entradas y persistencias deben contemplar validaciones de dominio, integridad referencial y tipos de datos en UI, API, dominio y base de datos.
 - Modularidad: el proyecto debe dividirse en módulos; en frontend debe usarse `convention plugins` para build/config compartida.
 
 ## 3. Actores principales
 
 - Administrador de plataforma
-- Administrador de tenant
+- Administrador de organización
 - Oficial de cumplimiento
 - Responsable de seguridad
 - Operador documental
@@ -57,9 +57,9 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 ## RF-001 Gestión del ciclo de vida de usuarios
 
 - Descripción: el sistema debe permitir alta, modificación, suspensión, baja lógica y reactivación de usuarios internos y externos.
-- Actor: administrador de plataforma, administrador de tenant.
-- Precondiciones: tenant creado; política de identidad definida.
-- Reglas de negocio: toda alta debe asociarse a tenant, rol y estado; toda baja debe preservar trazabilidad histórica.
+- Actor: administrador de plataforma, administrador de organización.
+- Precondiciones: organización creada; política de identidad definida.
+- Reglas de negocio: toda alta debe asociarse a organización, rol y estado; toda baja debe preservar trazabilidad histórica.
 - Criterios de aceptación:
   - se puede invitar un usuario y asignarle perfil inicial;
   - la baja lógica impide acceso futuro sin borrar trazas previas;
@@ -89,7 +89,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 - Descripción: el sistema debe combinar roles con atributos de contexto para controlar acceso a documentos, carpetas, expedientes, reportes y funciones administrativas.
 - Actor: administrador, usuario de negocio.
 - Precondiciones: usuarios, roles y atributos definidos.
-- Reglas de negocio: la decisión de acceso debe evaluar tenant, rol, confidencialidad, área, asunto, sector y estado documental.
+- Reglas de negocio: la decisión de acceso debe evaluar organización, rol, confidencialidad, área, asunto, sector y estado documental.
 - Criterios de aceptación:
   - puede negarse acceso a un usuario con rol válido pero sin atributo contextual;
   - se soportan niveles de clasificación documental;
@@ -106,7 +106,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 - Precondiciones: IdP corporativo disponible.
 - Reglas de negocio: el sistema debe soportar al menos OIDC/SAML y mapear grupos a roles internos.
 - Criterios de aceptación:
-  - un tenant puede autenticar con su IdP;
+  - una organización puede autenticar con su IdP;
   - la sincronización de grupos actualiza permisos sin tocar el dominio documental;
   - la pérdida de federación no elimina auditoría previa.
 - Prioridad: Alta.
@@ -129,28 +129,28 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 - Módulo: `auth`, `audit`.
 - Observaciones sectoriales: útil para reemplazos de oficiales de cumplimiento o socios responsables.
 
-## 5.2 Multi-tenant y parametrización
+## 5.2 Organización y parametrización
 
-## RF-006 Alta y configuración de tenants
+## RF-006 Configuración de organización única
 
-- Descripción: el sistema debe permitir crear tenants con branding, dominios, cuotas, políticas base y aislamiento lógico.
+- Descripción: el sistema debe permitir configurar la organización principal de la instalación con branding, dominios, cuotas y políticas base.
 - Actor: administrador de plataforma.
 - Precondiciones: plataforma operativa.
-- Reglas de negocio: un tenant no puede ver datos ni configuraciones de otro tenant.
+- Reglas de negocio: una instalación GDMS opera para una única organización; no debe existir alta operativa de organizaciones adicionales como modalidad de producto.
 - Criterios de aceptación:
-  - se crea tenant con configuración inicial;
-  - usuarios y documentos quedan aislados por tenant;
-  - el tenant puede desactivarse sin perder historial.
+  - se configura la organización principal;
+  - usuarios y documentos quedan asociados a esa organización;
+  - la configuración puede actualizarse sin perder historial.
 - Prioridad: Crítica.
 - Normas relacionadas: Ley 25.326, ISO/IEC 27017, ISO/IEC 27018.
 - Módulo: `admin`.
-- Observaciones sectoriales: fundamental para SaaS multi-tenant y despliegues dedicados.
+- Observaciones sectoriales: fundamental para instalaciones dedicadas y despliegues on-premise.
 
 ## RF-007 Parametrización por sector y jurisdicción
 
-- Descripción: el sistema debe permitir activar verticales, tipos documentales, plazos de retención y políticas de compliance por tenant.
-- Actor: administrador de tenant.
-- Precondiciones: tenant creado.
+- Descripción: el sistema debe permitir activar verticales, tipos documentales, plazos de retención y políticas de compliance por organización.
+- Actor: administrador de organización.
+- Precondiciones: organización creada.
 - Reglas de negocio: la parametrización no debe requerir recompilar el producto.
 - Criterios de aceptación:
   - se puede activar el pack inmobiliario, jurídico o corporativo;
@@ -164,8 +164,8 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 ## RF-008 Administración de catálogos y políticas
 
 - Descripción: el sistema debe administrar catálogos de tipos documentales, esquemas de metadatos, niveles de confidencialidad, calendarios de retención, plantillas y reglas de workflow.
-- Actor: administrador de tenant, oficial de cumplimiento.
-- Precondiciones: tenant configurado.
+- Actor: administrador de organización, oficial de cumplimiento.
+- Precondiciones: organización configurada.
 - Reglas de negocio: toda política debe estar versionada y con vigencia.
 - Criterios de aceptación:
   - se pueden crear políticas y activarlas por fecha;
@@ -196,7 +196,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 ## RF-010 Carga masiva e importación
 
 - Descripción: el sistema debe admitir importación masiva desde carpetas, repositorios legacy o planillas de control.
-- Actor: administrador de tenant, operador documental.
+- Actor: administrador de organización, operador documental.
 - Precondiciones: mapeo de origen definido.
 - Reglas de negocio: toda importación masiva debe soportar prevalidación, reintentos y reporte de errores.
 - Criterios de aceptación:
@@ -288,7 +288,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 ## RF-016 Esquemas dinámicos por tipo documental
 
 - Descripción: el sistema debe permitir definir distintos formularios y validaciones para cada tipo documental.
-- Actor: administrador de tenant.
+- Actor: administrador de organización.
 - Precondiciones: catálogo documental activo.
 - Reglas de negocio: el esquema debe ser versionable y compatible con cambios progresivos.
 - Criterios de aceptación:
@@ -335,7 +335,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 - Descripción: el sistema debe previsualizar documentos sin exigir descarga y aplicar marca de agua cuando la política lo requiera.
 - Actor: usuario autorizado.
 - Precondiciones: documento apto para render.
-- Reglas de negocio: la marca de agua debe poder incluir usuario, fecha y tenant.
+- Reglas de negocio: la marca de agua debe poder incluir usuario, fecha y organización.
 - Criterios de aceptación:
   - se visualiza el documento en navegador o app;
   - la política puede forzar watermark;
@@ -441,7 +441,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 
 ## RF-026 Calendario de retención y disposición
 
-- Descripción: el sistema debe aplicar calendarios de retención por tipo documental, sector, tenant y estado del expediente.
+- Descripción: el sistema debe aplicar calendarios de retención por tipo documental, sector, organización y estado del expediente.
 - Actor: oficial de cumplimiento, administrador.
 - Precondiciones: política aprobada y publicada.
 - Reglas de negocio: el plazo debe ser parametrizable y soportar excepciones justificadas.
@@ -507,7 +507,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 - Reglas de negocio: la bitácora debe ser tamper-evident y exportable.
 - Criterios de aceptación:
   - toda acción relevante genera evento;
-  - el evento incluye actor, tenant, timestamp, origen y objeto;
+  - el evento incluye actor, organización, timestamp, origen y objeto;
   - un auditor puede consultar secuencia cronológica verificable.
 - Prioridad: Crítica.
 - Normas relacionadas: Ley 25.506, Ley 26.388, ISO/IEC 27001, ISO/IEC 27037.
@@ -534,7 +534,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 ## RF-032 Gestión de derechos del titular de datos
 
 - Descripción: el sistema debe soportar la localización, revisión, exportación, rectificación, bloqueo o supresión de información vinculada a una persona.
-- Actor: administrador de tenant, DPO o responsable designado.
+- Actor: administrador de organización, DPO o responsable designado.
 - Precondiciones: identidad del solicitante validada.
 - Reglas de negocio: el cumplimiento puede estar limitado por retención legal, hold o base legal prevalente.
 - Criterios de aceptación:
@@ -548,8 +548,8 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 
 ## RF-033 Gestión de encargados, terceros y transferencias
 
-- Descripción: el sistema debe identificar procesadores, subprocesadores, integraciones externas y transferencias de datos vinculadas al tenant.
-- Actor: administrador de plataforma, administrador de tenant.
+- Descripción: el sistema debe identificar procesadores, subprocesadores, integraciones externas y transferencias de datos vinculadas a la organización.
+- Actor: administrador de plataforma, administrador de organización.
 - Precondiciones: integraciones configuradas.
 - Reglas de negocio: toda integración que procese datos personales debe registrarse con finalidad y responsable.
 - Criterios de aceptación:
@@ -615,7 +615,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 - Criterios de aceptación:
   - existe tablero de actividad;
   - se pueden exportar reportes;
-  - los reportes pueden parametrizarse por tenant y período.
+  - los reportes pueden parametrizarse por organización y período.
 - Prioridad: Alta.
 - Normas relacionadas: ISO 30301, ISO/IEC 27001, UIF.
 - Módulo: `admin`, `audit`, `sector_*`.
@@ -673,7 +673,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 ## RF-041 Muros éticos y privilegio profesional
 
 - Descripción: el sistema debe permitir separar equipos o usuarios para evitar accesos impropios entre asuntos o clientes con conflicto.
-- Actor: socio responsable, administrador de tenant.
+- Actor: socio responsable, administrador de organización.
 - Precondiciones: asunto creado.
 - Reglas de negocio: el muro ético debe impedir visibilidad, búsqueda y acceso indirecto.
 - Criterios de aceptación:
@@ -766,7 +766,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 
 ## RF-047 Validaciones referenciales entre entidades y catálogos
 
-- Descripción: el sistema debe impedir referencias huérfanas o inconsistentes entre tenants, usuarios, documentos, expedientes, legajos, retenciones, holds, configuraciones y catálogos.
+- Descripción: el sistema debe impedir referencias huérfanas o inconsistentes entre organizaciones, usuarios, documentos, expedientes, legajos, retenciones, holds, configuraciones y catálogos.
 - Actor: sistema, administrador.
 - Precondiciones: catálogos y entidades base existentes.
 - Reglas de negocio: toda referencia a un objeto de negocio debe ser validada en capa de aplicación y reforzada con integridad relacional cuando corresponda.
@@ -782,7 +782,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 ## RF-048 Validación estricta de tipos de datos, formatos y esquemas
 
 - Descripción: el sistema debe validar tipos de datos, formatos, rangos, precision, unicidad lógica y compatibilidad de esquemas para datos estructurados y configuraciones.
-- Actor: sistema, administrador de tenant.
+- Actor: sistema, administrador de organización.
 - Precondiciones: contratos, DTOs y esquemas versionados.
 - Reglas de negocio: identificadores, fechas, importes, porcentajes, estados, enums y estructuras JSON deben ajustarse a contratos tipados explícitos.
 - Criterios de aceptación:
@@ -797,7 +797,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 ## RF-049 Configuración dinámica centralizada con Firebase Remote Config
 
 - Descripción: el sistema debe administrar feature flags, parámetros operativos, umbrales, textos configurables y comportamiento no sensible mediante `Firebase Remote Config`.
-- Actor: administrador de plataforma, administrador de tenant.
+- Actor: administrador de plataforma, administrador de organización.
 - Precondiciones: proyecto Firebase configurado y credenciales de despliegue disponibles.
 - Reglas de negocio: no se debe almacenar información confidencial ni secretos en Remote Config; toda publicación debe quedar versionada y poder revertirse.
 - Criterios de aceptación:
@@ -807,7 +807,7 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 - Prioridad: Alta.
 - Normas relacionadas: NIST SSDF, OWASP ASVS.
 - Módulo: `config`, `admin`.
-- Observaciones sectoriales: útil para activar verticales, umbrales AML y experiencias diferenciadas por tenant.
+- Observaciones sectoriales: útil para activar verticales, umbrales AML y experiencias diferenciadas por organización.
 
 ## RF-050 Uso de Cloud Firestore para datos no relacionales y proyecciones
 
@@ -822,11 +822,11 @@ Diseñar un sistema de gestión documental y ECM para Argentina, modular, híbri
 - Prioridad: Alta.
 - Normas relacionadas: ISO/IEC 27017, Firebase Security Rules.
 - Módulo: `config`, `integrations`, `admin`.
-- Observaciones sectoriales: conveniente para preferencias, dashboards materializados y configuraciones de tenant no críticas.
+- Observaciones sectoriales: conveniente para preferencias, dashboards materializados y configuraciones de organización no críticas.
 
 ## 6. Tipos y contratos públicos mínimos del dominio
 
-- `Tenant`
+- `Organización`
 - `User`
 - `Role`
 - `Document`
@@ -862,7 +862,7 @@ Puertos mínimos:
 | Fase | Objetivo | Entregables funcionales | Criterio de salida |
 | --- | --- | --- | --- |
 | 0 | análisis normativo y trazabilidad | matriz norma-requisito, glosario, backlog inicial | RF/RNF aprobados |
-| 1 | fundación técnica y seguridad | skeleton modular, auth, tenants, auditoría, CI/CD, convenciones | plataforma base desplegable |
+| 1 | fundación técnica y seguridad | skeleton modular, auth, organización única, auditoría, CI/CD, convenciones | plataforma base desplegable |
 | 2 | núcleo documental | carga, metadatos, repositorio, búsqueda inicial, expedientes | operación documental básica estable |
 | 3 | captura avanzada | OCR, clasificación asistida, notificaciones y workflows simples | productividad y búsquedas avanzadas operativas |
 | 4 | records y compliance | retención, legal hold, record declaration, disposición, exportación probatoria | cumplimiento documental verificable |
@@ -874,4 +874,8 @@ Puertos mínimos:
 
 - El MVP funcional no busca paridad total con Alfresco, pero sí cubrir las capacidades ECM esenciales para Argentina.
 - La firma digital avanzada se deja preparada desde la fase 1 y se implementa funcionalmente en una fase posterior.
-- La parametrización por tenant y vertical es obligatoria para evitar forks del producto.
+- La parametrización por organización y vertical es obligatoria para evitar forks del producto.
+
+
+
+

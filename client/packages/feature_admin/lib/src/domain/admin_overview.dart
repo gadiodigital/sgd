@@ -35,7 +35,7 @@ final class GovernanceTask {
   final String priorityLabel;
 }
 
-/// Aggregates tenant and platform governance health indicators.
+/// Aggregates organization and platform governance health indicators.
 final class AdminOverview {
   const AdminOverview({
     required this.activeTenants,

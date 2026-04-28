@@ -63,7 +63,8 @@ final class AppSessionViewModel extends ViewModel {
         'fullName': fullName,
         'password': password,
       }),
-      successMessage: 'Tenant admin inicializado correctamente.',
+      successMessage:
+          'Administrador de organización inicializado correctamente.',
     );
   }
 

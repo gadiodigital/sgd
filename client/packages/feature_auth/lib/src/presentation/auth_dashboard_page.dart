@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../application/auth_overview_view_model.dart';
 import '../infrastructure/demo_session_overview_repository.dart';
 
-/// Shows the current authentication, tenant and session controls overview.
+/// Shows the current authentication, organization and session controls overview.
 class AuthDashboardPage extends StatefulWidget {
   const AuthDashboardPage({super.key, AuthOverviewViewModel? viewModel})
     : _viewModel = viewModel;
@@ -49,7 +49,7 @@ class _AuthDashboardPageState extends State<AuthDashboardPage> {
               title: 'Identidad y acceso',
               subtitle:
                   'Controla el contexto de sesion, MFA y privilegios activos '
-                  'para operar con trazabilidad sobre el tenant.',
+                  'para operar con trazabilidad sobre la organización.',
             ),
             const SizedBox(height: 24),
             GdmsSectionCard(
@@ -70,7 +70,7 @@ class _AuthDashboardPageState extends State<AuthDashboardPage> {
                         : GdmsStatusTone.warning,
                   ),
                   GdmsStatusBadge(
-                    label: 'Tenant ${session.tenantCode}',
+                    label: 'Organización ${session.tenantCode}',
                     tone: GdmsStatusTone.neutral,
                   ),
                 ],

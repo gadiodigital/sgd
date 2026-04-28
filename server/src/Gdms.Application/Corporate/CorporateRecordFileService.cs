@@ -31,7 +31,7 @@ public sealed class CorporateRecordFileService
     }
 
     /// <summary>
-    /// Lists corporate record files of a tenant.
+    /// Lists corporate record files of an organization.
     /// </summary>
     public async Task<IReadOnlyCollection<CorporateRecordFile>> ListByTenantAsync(
         Guid tenantId,
@@ -54,7 +54,7 @@ public sealed class CorporateRecordFileService
     }
 
     /// <summary>
-    /// Creates a new corporate record file inside a tenant.
+    /// Creates a new corporate record file inside an organization.
     /// </summary>
     public async Task<CorporateRecordFile> CreateAsync(
         Guid tenantId,

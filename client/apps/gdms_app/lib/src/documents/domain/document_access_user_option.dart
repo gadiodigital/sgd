@@ -1,4 +1,4 @@
-/// Represents a tenant user available for ACL assignment.
+/// Represents an organization user available for ACL assignment.
 final class DocumentAccessUserOption {
   const DocumentAccessUserOption({
     required this.id,

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped workflow tasks linked to documents.
+/// Exposes organization-scoped workflow tasks linked to documents.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -26,7 +26,7 @@ public sealed class WorkflowController : ControllerBase
     }
 
     /// <summary>
-    /// Lists workflow tasks visible to the current tenant scope.
+    /// Lists workflow tasks visible to the current organization scope.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<WorkflowTaskResponse>), StatusCodes.Status200OK)]
@@ -41,6 +41,33 @@ public sealed class WorkflowController : ControllerBase
             return Forbid();
         }
 
+        return await GetAllForOrganization(tenantId, mine, cancellationToken);
+    }
+
+    /// <summary>
+    /// Lists workflow tasks visible to the current organization scope.
+    /// </summary>
+    [HttpGet("/api/organization/workflow/tasks")]
+    [ProducesResponseType(typeof(IReadOnlyCollection<WorkflowTaskResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<IReadOnlyCollection<WorkflowTaskResponse>>> GetAllForCurrentOrganization(
+        [FromQuery] bool mine,
+        CancellationToken cancellationToken)
+    {
+        var tenantId = ResolveCurrentOrganizationId();
+        if (tenantId is null)
+        {
+            return Unauthorized();
+        }
+
+        return await GetAllForOrganization(tenantId.Value, mine, cancellationToken);
+    }
+
+    private async Task<ActionResult<IReadOnlyCollection<WorkflowTaskResponse>>> GetAllForOrganization(
+        Guid tenantId,
+        bool mine,
+        CancellationToken cancellationToken)
+    {
         var tasks = await _workflowService.ListByTenantAsync(
             tenantId,
             mine ? RequireUserId() : null,
@@ -66,6 +93,35 @@ public sealed class WorkflowController : ControllerBase
             return Forbid();
         }
 
+        return await CreateForOrganization(tenantId, request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates a new workflow task linked to a document in the current organization.
+    /// </summary>
+    [HttpPost("/api/organization/workflow/tasks")]
+    [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN,DOCUMENT_OPERATOR")]
+    [ProducesResponseType(typeof(WorkflowTaskResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<WorkflowTaskResponse>> CreateForCurrentOrganization(
+        [FromBody] CreateWorkflowTaskRequest request,
+        CancellationToken cancellationToken)
+    {
+        var tenantId = ResolveCurrentOrganizationId();
+        if (tenantId is null)
+        {
+            return Unauthorized();
+        }
+
+        return await CreateForOrganization(tenantId.Value, request, cancellationToken);
+    }
+
+    private async Task<ActionResult<WorkflowTaskResponse>> CreateForOrganization(
+        Guid tenantId,
+        CreateWorkflowTaskRequest request,
+        CancellationToken cancellationToken)
+    {
         var task = await _workflowService.CreateAsync(
             tenantId,
             request.DocumentId,
@@ -97,6 +153,35 @@ public sealed class WorkflowController : ControllerBase
             return Forbid();
         }
 
+        return await CompleteForOrganization(tenantId, taskId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Completes an existing workflow task in the current organization.
+    /// </summary>
+    [HttpPost("/api/organization/workflow/tasks/{taskId:guid}/complete")]
+    [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN,DOCUMENT_OPERATOR")]
+    [ProducesResponseType(typeof(WorkflowTaskResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<WorkflowTaskResponse>> CompleteForCurrentOrganization(
+        Guid taskId,
+        CancellationToken cancellationToken)
+    {
+        var tenantId = ResolveCurrentOrganizationId();
+        if (tenantId is null)
+        {
+            return Unauthorized();
+        }
+
+        return await CompleteForOrganization(tenantId.Value, taskId, cancellationToken);
+    }
+
+    private async Task<ActionResult<WorkflowTaskResponse>> CompleteForOrganization(
+        Guid tenantId,
+        Guid taskId,
+        CancellationToken cancellationToken)
+    {
         var task = await _workflowService.CompleteAsync(
             tenantId,
             taskId,
@@ -132,6 +217,12 @@ public sealed class WorkflowController : ControllerBase
 
         var tenantClaim = User.FindFirstValue("tenant_id");
         return Guid.TryParse(tenantClaim, out var claimedTenantId) && claimedTenantId == tenantId;
+    }
+
+    private Guid? ResolveCurrentOrganizationId()
+    {
+        var tenantClaim = User.FindFirstValue("tenant_id");
+        return Guid.TryParse(tenantClaim, out var tenantId) ? tenantId : null;
     }
 
     private Guid RequireUserId()

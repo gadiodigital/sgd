@@ -4,7 +4,7 @@ using Gdms.Domain.Common;
 namespace Gdms.Application.Documents;
 
 /// <summary>
-/// Coordinates tenant-scoped access to document type catalog definitions.
+/// Coordinates organization-scoped access to document type catalog definitions.
 /// </summary>
 public sealed class DocumentTypeCatalogService
 {

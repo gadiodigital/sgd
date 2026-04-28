@@ -1,4 +1,4 @@
-/// Represents one property file available inside the tenant.
+/// Represents one property file available inside the organization.
 final class PropertyFileReference {
   const PropertyFileReference({
     required this.id,

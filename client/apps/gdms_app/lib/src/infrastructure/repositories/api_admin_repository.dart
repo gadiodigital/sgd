@@ -21,42 +21,53 @@ final class ApiAdminRepository implements AdminRepository {
       throw const ApiException('No hay una sesion autenticada activa.');
     }
 
-    final tenants = await _loadTenants(identity.isPlatformAdmin);
+    final organization = await _loadCurrentOrganization();
     final auditEvents = await _loadRecentEvents(identity.isPlatformAdmin);
     final failedLogins24h = auditEvents
         .where((item) => item.eventType == 'LOGIN_FAILED')
-        .where((item) => item.occurredAt.isAfter(DateTime.now().toUtc().subtract(const Duration(hours: 24))))
+        .where(
+          (item) => item.occurredAt.isAfter(
+            DateTime.now().toUtc().subtract(const Duration(hours: 24)),
+          ),
+        )
         .length;
 
     return AdminOverview(
-      activeTenants: tenants.length,
+      activeTenants: 1,
       pendingProvisioning: identity.isPlatformAdmin ? 0 : 0,
       failedLogins24h: failedLogins24h,
       storageAlerts: 0,
-      tenants: tenants.map((item) {
-        return AdminTenantSummary(
-          id: item.id,
-          code: item.code,
-          name: item.name,
-          sector: item.sector,
-          createdAtLabel: ApiRepositoryFormatters.formatShortDate(item.createdAt),
-        );
-      }).toList(growable: false),
-      recentEvents: auditEvents.map((item) {
-        return AdminAuditEvent(
-          tenantCode: item.tenantCode,
-          eventType: item.eventType,
-          severity: item.severity,
-          occurredAtLabel: ApiRepositoryFormatters.formatRelativeDate(
-            item.occurredAt,
+      tenants: [
+        AdminTenantSummary(
+          id: organization.id,
+          code: organization.code,
+          name: organization.name,
+          sector: organization.sector,
+          createdAtLabel: ApiRepositoryFormatters.formatShortDate(
+            organization.createdAt,
           ),
-        );
-      }).toList(growable: false),
+        ),
+      ],
+      recentEvents: auditEvents
+          .map((item) {
+            return AdminAuditEvent(
+              tenantCode: item.tenantCode,
+              eventType: item.eventType,
+              severity: item.severity,
+              occurredAtLabel: ApiRepositoryFormatters.formatRelativeDate(
+                item.occurredAt,
+              ),
+            );
+          })
+          .toList(growable: false),
       tasks: [
         if (failedLogins24h > 0)
           GovernanceTask(
-            title: 'Investigar $failedLogins24h intentos fallidos de login recientes',
-            ownerLabel: identity.isPlatformAdmin ? 'Plataforma' : 'Tenant',
+            title:
+                'Investigar $failedLogins24h intentos fallidos de login recientes',
+            ownerLabel: identity.isPlatformAdmin
+                ? 'Plataforma'
+                : 'Organización',
             priorityLabel: 'Alta',
           ),
         if (session.mustChangePassword)
@@ -67,7 +78,7 @@ final class ApiAdminRepository implements AdminRepository {
           ),
         GovernanceTask(
           title: 'Revisar permisos vigentes para ${session.tenantCode}',
-          ownerLabel: identity.isPlatformAdmin ? 'Plataforma' : 'Tenant',
+          ownerLabel: identity.isPlatformAdmin ? 'Plataforma' : 'Organización',
           priorityLabel: 'Media',
         ),
         if (identity.isPlatformAdmin)
@@ -80,51 +91,52 @@ final class ApiAdminRepository implements AdminRepository {
     );
   }
 
-  Future<List<_TenantSnapshot>> _loadTenants(bool isPlatformAdmin) async {
-    if (!isPlatformAdmin) {
-      final session = _sessionViewModel.session!;
-      return [
-        _TenantSnapshot(
-          id: session.tenantId,
-          code: session.tenantCode,
-          name: session.tenantName,
-          sector: 'TENANT_ACTUAL',
-          createdAt: DateTime.now().toUtc(),
-        ),
-      ];
-    }
-
+  Future<_TenantSnapshot> _loadCurrentOrganization() async {
+    final session = _sessionViewModel.session!;
     try {
-      final tenantsJson = await _apiClient.getList('/api/tenants');
-      return tenantsJson.cast<Map<String, dynamic>>().map((item) {
-        return _TenantSnapshot(
-          id: item['id'] as String,
-          code: item['code'] as String,
-          name: item['name'] as String,
-          sector: item['sector'] as String,
-          createdAt: DateTime.parse(item['createdAtUtc'] as String),
-        );
-      }).toList(growable: false);
+      final organizationJson = await _apiClient.getObject(
+        '/api/organization/current',
+      );
+      return _TenantSnapshot(
+        id: organizationJson['id'] as String,
+        code: organizationJson['code'] as String,
+        name: organizationJson['name'] as String,
+        sector: organizationJson['sector'] as String,
+        createdAt: DateTime.parse(organizationJson['createdAtUtc'] as String),
+      );
     } on ApiException {
-      return const [];
+      return _TenantSnapshot(
+        id: session.tenantId,
+        code: session.tenantCode,
+        name: session.tenantName,
+        sector: 'ORGANIZACION_ACTUAL',
+        createdAt: DateTime.now().toUtc(),
+      );
     }
   }
 
-  Future<List<_AuditEventSnapshot>> _loadRecentEvents(bool isPlatformAdmin) async {
+  Future<List<_AuditEventSnapshot>> _loadRecentEvents(
+    bool isPlatformAdmin,
+  ) async {
     try {
       final eventsJson = await _apiClient.getList(
         isPlatformAdmin
             ? '/api/audit/events/recent?limit=100'
-            : '/api/tenants/${_sessionViewModel.session!.tenantId}/audit/events/recent?limit=100',
+            : '/api/organization/audit/events/recent?limit=100',
       );
-      return eventsJson.cast<Map<String, dynamic>>().map((item) {
-        return _AuditEventSnapshot(
-          tenantCode: item['tenantCode'] as String,
-          eventType: item['eventType'] as String,
-          severity: item['severity'] as String,
-          occurredAt: DateTime.parse(item['occurredAtUtc'] as String).toUtc(),
-        );
-      }).toList(growable: false);
+      return eventsJson
+          .cast<Map<String, dynamic>>()
+          .map((item) {
+            return _AuditEventSnapshot(
+              tenantCode: item['tenantCode'] as String,
+              eventType: item['eventType'] as String,
+              severity: item['severity'] as String,
+              occurredAt: DateTime.parse(
+                item['occurredAtUtc'] as String,
+              ).toUtc(),
+            );
+          })
+          .toList(growable: false);
     } on ApiException {
       return const [];
     }

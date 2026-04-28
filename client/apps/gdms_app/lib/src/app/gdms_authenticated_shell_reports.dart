@@ -11,7 +11,7 @@ Widget buildReportsPage({
   required AppSessionViewModel sessionViewModel,
   required FirebaseRuntimeState firebaseRuntimeState,
   required Future<void> Function(BuildContext context, WidgetBuilder builder)
-      showDialog,
+  showDialog,
 }) {
   return ReportsDashboardPage(
     viewModel: reportsViewModel,
@@ -49,13 +49,14 @@ Widget buildReportsPage({
         ),
       };
     },
-    onPlatformMetricSelected: (context, metric) => openReportsPlatformMetricPreview(
-      context,
-      metric,
-      sessionViewModel,
-      firebaseRuntimeState,
-      showDialog,
-    ),
+    onPlatformMetricSelected: (context, metric) =>
+        openReportsPlatformMetricPreview(
+          context,
+          metric,
+          sessionViewModel,
+          firebaseRuntimeState,
+          showDialog,
+        ),
   );
 }
 
@@ -79,7 +80,9 @@ Future<void> _openSignatureMetricPreview(
   AppSessionViewModel sessionViewModel,
   Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog,
 ) {
-  final status = metric.label.toUpperCase().contains('CANCELADAS') ? 'CANCELLED' : 'PENDING';
+  final status = metric.label.toUpperCase().contains('CANCELADAS')
+      ? 'CANCELLED'
+      : 'PENDING';
   return openReportsSignaturePreview(
     context,
     metric.label,

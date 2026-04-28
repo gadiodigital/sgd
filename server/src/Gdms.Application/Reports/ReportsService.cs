@@ -6,7 +6,7 @@ using Gdms.Domain.Workflow;
 namespace Gdms.Application.Reports;
 
 /// <summary>
-/// Builds tenant-scoped operational reports from existing bounded contexts.
+/// Builds organization-scoped operational reports from existing bounded contexts.
 /// </summary>
 public sealed class ReportsService
 {
@@ -40,7 +40,7 @@ public sealed class ReportsService
     }
 
     /// <summary>
-    /// Builds the current operational summary of a tenant.
+    /// Builds the current operational summary of an organization.
     /// </summary>
     public async Task<OperationalReportSummary> GetOperationalSummaryAsync(
         Guid tenantId,

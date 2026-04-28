@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../application/audit_overview_view_model.dart';
 
-/// Renders a dedicated audit workspace with recent platform or tenant events.
+/// Renders a dedicated audit workspace with recent platform or organization events.
 class AuditDashboardPage extends StatefulWidget {
-  const AuditDashboardPage({
-    required this.viewModel,
-    super.key,
-  });
+  const AuditDashboardPage({required this.viewModel, super.key});
 
   final AuditOverviewViewModel viewModel;
 
@@ -69,7 +66,7 @@ class _AuditDashboardPageState extends State<AuditDashboardPage> {
                     TextField(
                       controller: _queryController,
                       decoration: const InputDecoration(
-                        labelText: 'Buscar evento o tenant',
+                        labelText: 'Buscar evento u organización',
                         prefixIcon: Icon(Icons.search),
                       ),
                       onChanged: widget.viewModel.updateQuery,
@@ -92,7 +89,7 @@ class _AuditDashboardPageState extends State<AuditDashboardPage> {
                       runSpacing: 8,
                       children: [
                         FilterChip(
-                          label: const Text('Todos los tenants'),
+                          label: const Text('Todas las organizaciones'),
                           selected: widget.viewModel.tenantFilter == 'ALL',
                           onSelected: (_) =>
                               widget.viewModel.updateTenantFilter('ALL'),
@@ -102,8 +99,8 @@ class _AuditDashboardPageState extends State<AuditDashboardPage> {
                             label: Text(tenantCode),
                             selected:
                                 widget.viewModel.tenantFilter == tenantCode,
-                            onSelected: (_) => widget.viewModel
-                                .updateTenantFilter(tenantCode),
+                            onSelected: (_) =>
+                                widget.viewModel.updateTenantFilter(tenantCode),
                           ),
                         ),
                       ],

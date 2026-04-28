@@ -31,7 +31,7 @@ public sealed class PropertyFileService
     }
 
     /// <summary>
-    /// Lists property files of a tenant.
+    /// Lists property files of an organization.
     /// </summary>
     public async Task<IReadOnlyCollection<PropertyFile>> ListByTenantAsync(
         Guid tenantId,
@@ -54,7 +54,7 @@ public sealed class PropertyFileService
     }
 
     /// <summary>
-    /// Creates a new property file inside a tenant.
+    /// Creates a new property file inside an organization.
     /// </summary>
     public async Task<PropertyFile> CreateAsync(
         Guid tenantId,

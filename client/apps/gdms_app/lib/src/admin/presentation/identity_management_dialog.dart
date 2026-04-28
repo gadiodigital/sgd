@@ -9,7 +9,7 @@ import '../domain/tenant_user_entry.dart';
 import 'assign_user_role_dialog.dart';
 import 'tenant_user_card.dart';
 
-/// Shows tenant users and allows basic identity administration.
+/// Shows organization users and allows basic identity administration.
 class IdentityManagementDialog extends StatefulWidget {
   const IdentityManagementDialog({
     required this.apiClient,
@@ -68,9 +68,9 @@ class _IdentityManagementDialogState extends State<IdentityManagementDialog> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const GdmsPageHeader(
-                      title: 'Usuarios del tenant',
+                      title: 'Usuarios de la organización',
                       subtitle:
-                          'Listado y alta básica de identidades del tenant actual.',
+                          'Listado y alta básica de identidades de la organización.',
                     ),
                     const SizedBox(height: 16),
                     if (_viewModel.message != null)
@@ -166,7 +166,7 @@ class _IdentityManagementDialogState extends State<IdentityManagementDialog> {
     return GdmsSectionCard(
       title: 'Usuarios registrados',
       child: _viewModel.users.isEmpty
-          ? const Text('No hay usuarios cargados para este tenant.')
+          ? const Text('No hay usuarios cargados para esta organización.')
           : Column(
               children: _viewModel.users
                   .map(
@@ -175,7 +175,8 @@ class _IdentityManagementDialogState extends State<IdentityManagementDialog> {
                       child: TenantUserCard(
                         user: user,
                         isBusy: _viewModel.isBusy,
-                        onAssignRoleRequested: () => _showAssignRoleDialog(user),
+                        onAssignRoleRequested: () =>
+                            _showAssignRoleDialog(user),
                       ),
                     ),
                   )
@@ -206,7 +207,9 @@ class _IdentityManagementDialogState extends State<IdentityManagementDialog> {
     _fullNameController.clear();
     _passwordController.clear();
     setState(() {
-      _selectedRoleCode = _viewModel.roles.isEmpty ? null : _viewModel.roles.first.code;
+      _selectedRoleCode = _viewModel.roles.isEmpty
+          ? null
+          : _viewModel.roles.first.code;
     });
   }
 

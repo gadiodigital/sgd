@@ -60,7 +60,7 @@ class _SignInPageState extends State<SignInPage> {
                         title: 'Ingreso al GDMS',
                         subtitle:
                             'Conecta la app Flutter con el backend .NET para '
-                            'operar tenants, documentos y records reales.',
+                            'operar organización, documentos y records reales.',
                       ),
                       const SizedBox(height: 24),
                       GdmsSectionCard(
@@ -80,7 +80,7 @@ class _SignInPageState extends State<SignInPage> {
                                 ),
                                 ButtonSegment(
                                   value: _AuthMode.bootstrapTenantAdmin,
-                                  label: Text('Tenant admin'),
+                                  label: Text('Organización admin'),
                                 ),
                                 ButtonSegment(
                                   value: _AuthMode.bootstrapPlatformAdmin,
@@ -116,13 +116,13 @@ class _SignInPageState extends State<SignInPage> {
                                   TextFormField(
                                     controller: _tenantCodeController,
                                     decoration: const InputDecoration(
-                                      labelText: 'Codigo de tenant',
+                                      labelText: 'Código de organización',
                                       hintText: 'DELTA-LAW',
                                     ),
                                     validator: (value) {
                                       if (value == null ||
                                           value.trim().isEmpty) {
-                                        return 'Ingresa el codigo de tenant.';
+                                        return 'Ingresa el código de organización.';
                                       }
                                       return null;
                                     },
@@ -246,7 +246,7 @@ class _SignInPageState extends State<SignInPage> {
   String get _buttonLabel {
     return switch (_mode) {
       _AuthMode.signIn => 'Ingresar',
-      _AuthMode.bootstrapTenantAdmin => 'Crear tenant admin',
+      _AuthMode.bootstrapTenantAdmin => 'Crear administrador de organización',
       _AuthMode.bootstrapPlatformAdmin => 'Crear platform admin',
     };
   }

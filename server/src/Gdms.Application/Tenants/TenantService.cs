@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace Gdms.Application.Tenants;
 
 /// <summary>
-/// Coordinates tenant use cases for the API layer.
+/// Coordinates legacy organization use cases for the API layer.
 /// </summary>
 public sealed class TenantService
 {
@@ -22,7 +22,7 @@ public sealed class TenantService
     }
 
     /// <summary>
-    /// Returns all known tenants.
+    /// Returns all known legacy organization records.
     /// </summary>
     public Task<IReadOnlyCollection<Tenant>> ListAsync(CancellationToken cancellationToken)
     {
@@ -30,7 +30,15 @@ public sealed class TenantService
     }
 
     /// <summary>
-    /// Creates and persists a new tenant.
+    /// Returns one organization by identifier.
+    /// </summary>
+    public Task<Tenant?> GetByIdAsync(Guid organizationId, CancellationToken cancellationToken)
+    {
+        return _tenantRepository.GetByIdAsync(organizationId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Creates and persists the initial organization record.
     /// </summary>
     public Task<Tenant> CreateAsync(
         string code,

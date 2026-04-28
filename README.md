@@ -1,6 +1,6 @@
 # GDMS
 
-Sistema de gestión documental y `ECM` modular, multi-tenant, auditable y orientado a operación real.
+Sistema de gestión documental y `ECM` modular, instancia única, auditable y orientado a operación real.
 
 El repositorio incluye:
 
@@ -120,3 +120,6 @@ El detalle del plan de desarrollo y del roadmap está en:
 El manual funcional del sistema está en:
 
 - [MANUAL_USUARIO.md](C:\IA\codex\MANUAL_USUARIO.md)
+
+
+

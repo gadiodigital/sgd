@@ -5,6 +5,7 @@ import '../domain/operational_report_overview.dart';
 import '../domain/reports_repository.dart';
 
 enum ReportsLens { all, compliance, workflow, signatures, security }
+
 enum PlatformReportMetricKind {
   tenants,
   documents,
@@ -78,7 +79,9 @@ final class ReportsViewModel extends ViewModel {
 
     final filtered = _selectedLens == ReportsLens.all
         ? metrics
-        : metrics.where((item) => item.lens == _selectedLens).toList(growable: false);
+        : metrics
+              .where((item) => item.lens == _selectedLens)
+              .toList(growable: false);
     return UnmodifiableListView(filtered);
   }
 
@@ -90,7 +93,7 @@ final class ReportsViewModel extends ViewModel {
 
     return UnmodifiableListView([
       PlatformReportMetricItem(
-        label: 'Tenants',
+        label: 'Organizaciones',
         value: platformSummary.totalTenants,
         colorHex: 0xFF3949AB,
         kind: PlatformReportMetricKind.tenants,

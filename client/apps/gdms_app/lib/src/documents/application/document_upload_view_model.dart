@@ -54,7 +54,7 @@ final class DocumentUploadViewModel extends ViewModel {
             .toList(growable: false);
         setMessage(
           _documentTypes.isEmpty
-              ? 'No hay tipos documentales activos para este tenant.'
+              ? 'No hay tipos documentales activos para esta organización.'
               : 'Selecciona el tipo documental y completa sus metadatos.',
         );
       });

@@ -81,7 +81,7 @@ public sealed class TenantsControllerContractTests : IClassFixture<ApiContractTe
     }
 
     [PostgresContractFact]
-    public async Task Tenants_Endpoints_Should_Return_Expected_Payloads_For_Platform_Admin()
+    public async Task Tenants_Endpoints_Should_List_And_Block_Additional_Create_For_Platform_Admin()
     {
         var seedTenant = await CreateTenantAsync("seed_ok", "Seed OK");
         var platformAdmin = await SeedPlatformAdminAsync(seedTenant.Id, $"platform.{Guid.NewGuid():N}@tenant.ar");
@@ -94,21 +94,15 @@ public sealed class TenantsControllerContractTests : IClassFixture<ApiContractTe
         var createResponse = await client.PostAsJsonAsync("/api/tenants", BuildCreateTenantRequest("tenant_ok"));
         var listResponse = await client.GetAsync("/api/tenants");
 
-        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, createResponse.StatusCode);
         listResponse.EnsureSuccessStatusCode();
 
-        var createdPayload = await createResponse.Content.ReadFromJsonAsync<TenantResponse>();
         var listPayload = await listResponse.Content.ReadFromJsonAsync<TenantResponse[]>();
 
-        Assert.NotNull(createdPayload);
-        Assert.Equal("TENANT_OK", createdPayload!.Code);
-        Assert.Equal("Tenant tenant_ok", createdPayload.Name);
-        Assert.Equal("CORPORATE", createdPayload.Sector);
-        Assert.Equal("AR", createdPayload.PrimaryCountryCode);
-
         Assert.NotNull(listPayload);
-        Assert.Contains(listPayload!, item => item.Id == createdPayload.Id && item.Code == "TENANT_OK");
+        Assert.Contains(listPayload!, item => item.Code == "SEED_OK");
         Assert.Contains(listPayload, item => item.Code == "LISTED_A");
+        Assert.DoesNotContain(listPayload, item => item.Code == "TENANT_OK");
     }
 
     private async Task<Tenant> CreateTenantAsync(string code, string name)

@@ -1,7 +1,7 @@
 namespace Gdms.Contracts.Identity;
 
 /// <summary>
-/// Represents a tenant user returned by the public API.
+/// Represents an organization user returned by the public API.
 /// </summary>
 public sealed record UserResponse(
     Guid Id,

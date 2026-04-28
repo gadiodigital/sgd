@@ -52,12 +52,13 @@ Future<void> openReportsPlatformMetricPreview(
       showDialog,
       status: 'CANCELLED',
     ),
-    PlatformReportMetricKind.failedLoginsLast24Hours => _openFailedLoginsPreview(
-      context,
-      metric.label,
-      sessionViewModel,
-      showDialog,
-    ),
+    PlatformReportMetricKind.failedLoginsLast24Hours =>
+      _openFailedLoginsPreview(
+        context,
+        metric.label,
+        sessionViewModel,
+        showDialog,
+      ),
     PlatformReportMetricKind.tenants => openReportsPlatformTenantsPreview(
       context,
       metric,
@@ -90,7 +91,8 @@ Future<void> openReportsSignaturePreview(
   BuildContext context,
   String title,
   AppSessionViewModel sessionViewModel,
-  Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog, {
+  Future<void> Function(BuildContext context, WidgetBuilder builder)
+  showDialog, {
   required String status,
 }) {
   return _openSignaturePreview(
@@ -162,7 +164,8 @@ Future<void> _openSignaturePreview(
   BuildContext context,
   String title,
   AppSessionViewModel sessionViewModel,
-  Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog, {
+  Future<void> Function(BuildContext context, WidgetBuilder builder)
+  showDialog, {
   required String status,
 }) {
   final viewModel = SignatureViewModel(
@@ -194,11 +197,12 @@ Future<void> _openFailedLoginsPreview(
   AppSessionViewModel sessionViewModel,
   Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog,
 ) {
-  final viewModel = AuditOverviewViewModel(
-    ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
-  )
-    ..updateSeverityFilter('WARNING')
-    ..updateQuery('LOGIN_FAILED');
+  final viewModel =
+      AuditOverviewViewModel(
+          ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
+        )
+        ..updateSeverityFilter('WARNING')
+        ..updateQuery('LOGIN_FAILED');
   return showDialog(
     context,
     (_) => ModulePreviewDialog(

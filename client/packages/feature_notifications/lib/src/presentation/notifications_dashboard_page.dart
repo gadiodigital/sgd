@@ -6,7 +6,7 @@ import '../application/notifications_view_model.dart';
 import '../domain/notification_category_actions.dart';
 import '../domain/notification_item.dart';
 
-/// Renders the tenant notifications inbox.
+/// Renders the organization notifications inbox.
 class NotificationsDashboardPage extends StatefulWidget {
   const NotificationsDashboardPage({
     required this.viewModel,

@@ -36,6 +36,28 @@ services:
       - postgres_data:/var/lib/postgresql
       - ./database/scripts:/docker-entrypoint-initdb.d:ro
 
+  ocr-service:
+    build:
+      context: ./ocr-service
+      dockerfile: Dockerfile
+    image: gdms/ocr-service:0.1.0
+    container_name: gdms-ocr-service
+    environment:
+      OCR_HOST: 0.0.0.0
+      OCR_PORT: 8091
+      OCR_ARTIFACTS_ROOT: /app/artifacts
+      OCR_DEFAULT_ENGINE: ${GDMS_OCR_DEFAULT_ENGINE:-tesseract}
+      OCR_DEFAULT_LANGUAGES: ${GDMS_OCR_DEFAULT_LANGUAGES:-spa+eng}
+      OCR_ALLOWED_SOURCE_ROOTS: ${GDMS_OCR_ALLOWED_SOURCE_ROOTS:-/app/artifacts}
+      OCR_MAX_PAGES: ${GDMS_OCR_MAX_PAGES:-100}
+      OCR_MAX_FILE_MB: ${GDMS_OCR_MAX_FILE_MB:-200}
+      OCR_RETENTION_HOURS: ${GDMS_OCR_RETENTION_HOURS:-72}
+    ports:
+      - "8091:8091"
+    volumes:
+      - ocr_artifacts:/app/artifacts
+
 volumes:
   postgres_data:
   api_data_protection:
+  ocr_artifacts:

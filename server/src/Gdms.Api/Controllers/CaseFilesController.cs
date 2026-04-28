@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Exposes tenant-scoped case files.
+/// Exposes organization-scoped case files.
 /// </summary>
 [ApiController]
 [Authorize]
@@ -26,7 +26,7 @@ public sealed class CaseFilesController : ControllerBase
     }
 
     /// <summary>
-    /// Lists case files visible to the current tenant scope.
+    /// Lists case files visible to the current organization scope.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<CaseFileResponse>), StatusCodes.Status200OK)]
@@ -65,7 +65,7 @@ public sealed class CaseFilesController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new case file inside the tenant.
+    /// Creates a new case file inside the organization.
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "PLATFORM_ADMIN,TENANT_ADMIN,DOCUMENT_OPERATOR")]

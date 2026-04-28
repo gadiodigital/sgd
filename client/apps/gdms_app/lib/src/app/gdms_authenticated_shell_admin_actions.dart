@@ -61,11 +61,12 @@ Future<void> openAdminEventAction(
   AppSessionViewModel sessionViewModel,
   Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog,
 ) {
-  final viewModel = AuditOverviewViewModel(
-    ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
-  )
-    ..updateQuery(event.eventType)
-    ..updateSeverityFilter(event.severity == 'INFO' ? '' : event.severity);
+  final viewModel =
+      AuditOverviewViewModel(
+          ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
+        )
+        ..updateQuery(event.eventType)
+        ..updateSeverityFilter(event.severity == 'INFO' ? '' : event.severity);
   return showDialog(
     context,
     (_) => ModulePreviewDialog(
@@ -84,11 +85,12 @@ Future<void> openAdminTaskAction(
 ) {
   final normalizedTitle = task.title.toUpperCase();
   if (normalizedTitle.contains('LOGIN') || normalizedTitle.contains('JWT')) {
-    final viewModel = AuditOverviewViewModel(
-      ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
-    )
-      ..updateSeverityFilter('WARNING')
-      ..updateQuery('LOGIN');
+    final viewModel =
+        AuditOverviewViewModel(
+            ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
+          )
+          ..updateSeverityFilter('WARNING')
+          ..updateQuery('LOGIN');
     return showDialog(
       context,
       (_) => ModulePreviewDialog(
@@ -139,11 +141,12 @@ Future<void> _openFailedLoginsPreview(
   AppSessionViewModel sessionViewModel,
   Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog,
 ) {
-  final viewModel = AuditOverviewViewModel(
-    ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
-  )
-    ..updateSeverityFilter('WARNING')
-    ..updateQuery('LOGIN_FAILED');
+  final viewModel =
+      AuditOverviewViewModel(
+          ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
+        )
+        ..updateSeverityFilter('WARNING')
+        ..updateQuery('LOGIN_FAILED');
   return showDialog(
     context,
     (_) => ModulePreviewDialog(
@@ -166,7 +169,7 @@ Future<void> _openActiveTenantsPreview(
     (_) => AdminMetricDrilldownDialog(
       title: metric.label,
       subtitle:
-          'KPI actual: ${metric.value}. Explora tenants activos y señales recientes de gobierno.',
+          'KPI actual: ${metric.value}. Explora la organización activa y señales recientes de gobierno.',
       tenants: overview.tenants,
       tasks: overview.tasks,
       events: overview.recentEvents,
@@ -223,7 +226,7 @@ Future<void> _openProvisioningPreview(
     (_) => AdminMetricDrilldownDialog(
       title: metric.label,
       subtitle:
-          'KPI actual: ${metric.value}. Revisa nuevas altas y backlog de activación.',
+          'KPI actual: ${metric.value}. Revisa configuración y backlog de activación.',
       tenants: overview.tenants,
       tasks: relevantTasks,
       events: overview.recentEvents,

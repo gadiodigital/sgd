@@ -23,17 +23,19 @@ final class AuditOverviewViewModel extends ViewModel {
   UnmodifiableListView<AuditEventItem> get filteredEvents {
     final events = _overview?.recentEvents ?? const <AuditEventItem>[];
     final normalizedQuery = _query.trim().toUpperCase();
-    final filtered = events.where((item) {
-      final matchesSeverity =
-          _severityFilter == 'ALL' || item.severity == _severityFilter;
-      final matchesTenant =
-          _tenantFilter == 'ALL' || item.tenantCode == _tenantFilter;
-      final matchesQuery =
-          normalizedQuery.isEmpty ||
-          item.eventType.contains(normalizedQuery) ||
-          item.tenantCode.contains(normalizedQuery);
-      return matchesSeverity && matchesTenant && matchesQuery;
-    }).toList(growable: false);
+    final filtered = events
+        .where((item) {
+          final matchesSeverity =
+              _severityFilter == 'ALL' || item.severity == _severityFilter;
+          final matchesTenant =
+              _tenantFilter == 'ALL' || item.tenantCode == _tenantFilter;
+          final matchesQuery =
+              normalizedQuery.isEmpty ||
+              item.eventType.contains(normalizedQuery) ||
+              item.tenantCode.contains(normalizedQuery);
+          return matchesSeverity && matchesTenant && matchesQuery;
+        })
+        .toList(growable: false);
     return UnmodifiableListView(filtered);
   }
 

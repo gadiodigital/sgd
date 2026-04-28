@@ -1,6 +1,6 @@
 # Plan de desarrollo para sesiones grandes
 
-Fecha de actualización: `2026-04-09`
+Fecha de actualización: `2026-04-28`
 
 ## 1. Objetivo
 
@@ -56,7 +56,7 @@ Al `2026-04-06` quedó incorporado:
 - `windows-twain` agregado al gate de workspace mediante build;
 - validación automatizada mínima para `database/scripts`;
 - límite de `300` líneas extendido a `windows-twain`.
-- suite `server/tests/Gdms.UnitTests` agregada a la solución con cobertura inicial en `Auth`, `TenantService` y `Document`.
+- suite `server/tests/Gdms.UnitTests` agregada a la solución con cobertura inicial en `Auth`, `OrganizationService` y `Document`.
 - suite `server/tests/Gdms.IntegrationTests` agregada a la solución con base real para PostgreSQL sobre base efímera.
 - suite `server/tests/Gdms.ApiContractTests` agregada a la solución con host HTTP real, auth de prueba y PostgreSQL efímero.
 - suite `server/tests/Gdms.E2eSmokeTests` agregada a la solución con host HTTP real, JWT real y PostgreSQL efímero.
@@ -145,29 +145,29 @@ Estado actual de integración backend:
 - `Gdms.IntegrationTests` corre contra PostgreSQL real cuando existe `GDMS_TEST_POSTGRES_CONNECTION`;
 - cada corrida crea una base efímera, aplica `database/scripts` y destruye la base al finalizar;
 - el gate principal no lo exige todavía en todos los entornos, pero `validate_workspace.ps1` ya lo ejecuta automáticamente cuando la variable está disponible.
-- la suite ya cubre persistencia real de `Tenant`, `User`, `Documents`, `DocumentMetadata` y `Auth`;
+- la suite ya cubre persistencia real de `Organización`, `User`, `Documents`, `DocumentMetadata` y `Auth`;
 - la suite ya cubre también `Records` con políticas de retención, legal holds y candidatos de disposición;
 - la suite ya cubre también `Workflow` y `Signature` con persistencia real, auditoría y transiciones principales de estado;
-- la suite ya cubre también `Reports` con agregación operacional tenant-scoped y resumen de plataforma;
+- la suite ya cubre también `Reports` con agregación operacional scoped a organización y resumen de plataforma;
 - la suite `Gdms.ApiContractTests` ya cubre `ReportsController` con contratos HTTP `401`, `403` y `200`;
 - la suite `Gdms.ApiContractTests` ya cubre también `RecordsController` sobre `disposition-candidates`, aplicación de retención y ciclo de `legal hold` con contratos HTTP `401`, `403`, `200`, `201` y `204`;
 - la suite `Gdms.ApiContractTests` ya cubre también `DocumentsController` sobre lectura, ACL y creación con contratos HTTP `401`, `403`, `200` y `201`;
 - la suite `Gdms.ApiContractTests` ya cubre también `DocumentContentController` sobre upload multipart, nueva versión, download y `Range`, incluyendo `401`, `403`, `200`, `201` y `206`;
 - la suite `Gdms.ApiContractTests` ya cubre también `DocumentAccessController` sobre listado y grant de ACL documental, incluyendo `401`, `403`, `400`, `200` y `201`;
 - la suite `Gdms.ApiContractTests` ya cubre también `DocumentMetadataController` sobre lectura y reemplazo de metadatos, incluyendo `401`, `403`, `400`, `200` y validación contra ACL de `EditMetadata`;
-- la suite `Gdms.ApiContractTests` ya cubre también `DocumentTypesController` sobre catálogo tenant-scoped de tipos documentales, incluyendo `401`, `403` y payload autorizado con validación de seeds y schema JSON;
-- la suite `Gdms.ApiContractTests` ya cubre también `NotificationsController` sobre inbox tenant-scoped, incluyendo `401`, `403` y agregación real de `workflow`, `signature`, `records` y `security`;
-- la suite `Gdms.ApiContractTests` ya cubre también `IntegrationsController` sobre discovery tenant-scoped de integraciones configuradas, incluyendo `401`, `403` y validación del catálogo efectivo expuesto por infraestructura;
+- la suite `Gdms.ApiContractTests` ya cubre también `DocumentTypesController` sobre catálogo scoped a organización de tipos documentales, incluyendo `401`, `403` y payload autorizado con validación de seeds y schema JSON;
+- la suite `Gdms.ApiContractTests` ya cubre también `NotificationsController` sobre inbox scoped a organización, incluyendo `401`, `403` y agregación real de `workflow`, `signature`, `records` y `security`;
+- la suite `Gdms.ApiContractTests` ya cubre también `IntegrationsController` sobre discovery scoped a organización de integraciones configuradas, incluyendo `401`, `403` y validación del catálogo efectivo expuesto por infraestructura;
 - la suite `Gdms.ApiContractTests` ya cubre también `HealthController` sobre payload público de healthcheck, validando `200`, `Status`, ventana temporal UTC y ruta de documentación;
 - la suite `Gdms.ApiContractTests` ya cubre también `CaseFilesController` sobre listado, documentos vinculados, creación y attach documental, incluyendo `401`, `403`, `200`, `201` y `204`;
 - la suite `Gdms.ApiContractTests` ya cubre también `PropertyFilesController` sobre listado, documentos vinculados, creación y attach documental, incluyendo `401`, `403`, `200`, `201` y `204`;
 - la suite `Gdms.ApiContractTests` ya cubre también `CorporateRecordFilesController` sobre listado, documentos vinculados, creación y attach documental, incluyendo `401`, `403`, `200`, `201` y `204`;
 - la suite `Gdms.ApiContractTests` ya cubre también `EvidencePackagesController` sobre export de evidencia documental en JSON descargable, incluyendo `401`, `403`, validación de documento inexistente y verificación de auditoría persistida tras exportar;
-- la suite `Gdms.ApiContractTests` ya cubre también `AuditController` sobre vistas recientes de plataforma, tenant y documento, incluyendo `401`, `403`, normalización de `limit` y validación de documento inexistente;
+- la suite `Gdms.ApiContractTests` ya cubre también `AuditController` sobre vistas recientes de plataforma, organización y documento, incluyendo `401`, `403`, normalización de `limit` y validación de documento inexistente;
 - la suite `Gdms.ApiContractTests` ya cubre también `UsersController` sobre listado, detalle, creación y asignación de roles, incluyendo `401`, `403`, `400`, `404`, `200` y `201`;
-- la suite `Gdms.ApiContractTests` ya cubre también `TenantsController` sobre listado y creación, incluyendo bootstrap inicial sin `PLATFORM_ADMIN`, protección posterior por rol y contratos `401`, `403`, `200` y `201`;
+- la suite `Gdms.ApiContractTests` ya cubre también `OrganizacionesController` sobre listado y creación, incluyendo bootstrap inicial sin `PLATFORM_ADMIN`, protección posterior por rol y contratos `401`, `403`, `200` y `201`;
 - la suite `Gdms.ApiContractTests` ya cubre también `RolesController` sobre discovery de roles asignables, incluyendo `401` y listado autenticado exitoso;
-- la suite `Gdms.ApiContractTests` ya cubre también `AuthController` sobre bootstrap de `PLATFORM_ADMIN`, bootstrap de `TENANT_ADMIN`, login local y `me`, incluyendo `201`, `200`, `400`, `401` y mapeo explícito de claims requeridos;
+- la suite `Gdms.ApiContractTests` ya cubre también `AuthController` sobre bootstrap de `PLATFORM_ADMIN`, bootstrap de `ORGANIZATION_ADMIN`, login local y `me`, incluyendo `201`, `200`, `400`, `401` y mapeo explícito de claims requeridos;
 - la suite `Gdms.ApiContractTests` ya cubre también `SignaturesController` sobre listado, creación, completado y cancelación con contratos HTTP `401`, `403`, `200` y `201`;
 - la suite `Gdms.ApiContractTests` ya cubre también `WorkflowController` sobre listado, creación y completado con contratos HTTP `401`, `403`, `200` y `201`;
 - la suite `Gdms.E2eSmokeTests` ya cubre un flujo cross-system real con `bootstrap/login` JWT, upload multipart, metadata, workflow, signature y reporte operacional;
@@ -196,13 +196,13 @@ Estado actual de integración backend:
 - `client/packages/feature_signature` ya salió del smoke test único y ahora cubre comportamiento real de `SignatureViewModel` y `SignatureDashboardPage`, incluyendo filtros, selección, completado, cancelación con motivo y corrección del ciclo de vida del diálogo de cancelación;
 - `client/packages/feature_workflow` ya salió del smoke test único y ahora cubre comportamiento real de `WorkflowViewModel` y `WorkflowDashboardPage`, incluyendo filtros, toggle de `solo mis tareas`, selección, creación y completado de tareas;
 - `client/packages/feature_notifications` ya salió del smoke test único y ahora cubre comportamiento real de `NotificationsViewModel` y `NotificationsDashboardPage`, incluyendo filtros por severidad y categoría, búsqueda, limpieza y acción contextual por alerta;
-- `client/packages/feature_admin` ya salió del smoke test único y ahora cubre comportamiento real de `AdminOverviewViewModel` y `AdminDashboardPage`, incluyendo carga, mensajes, acciones de header y navegación/callbacks sobre métricas, backlog, tenants y eventos;
+- `client/packages/feature_admin` ya salió del smoke test único y ahora cubre comportamiento real de `AdminOverviewViewModel` y `AdminDashboardPage`, incluyendo carga, mensajes, acciones de header y navegación/callbacks sobre métricas, backlog, organizaciones y eventos;
 - `client/packages/feature_reports` ya salió del smoke test único y ahora cubre comportamiento real de `ReportsViewModel` y `ReportsDashboardPage`, incluyendo carga, filtros por lente operativa, métricas visibles y callbacks sobre KPIs operativos y de plataforma;
 - `client/packages/feature_search` ya salió del smoke test único y ahora cubre comportamiento real de `SearchViewModel` y `SearchDashboardPage`, incluyendo presets, saved searches, filtros, limpieza, ejecución de búsqueda y selección de resultados;
 - `client/packages/feature_auth` ya salió del smoke test único y ahora cubre comportamiento real de `AuthOverviewViewModel` y `AuthDashboardPage`, incluyendo carga de sesión, manejo de error, badges operativos y datos del contexto autenticado;
 - `client/packages/feature_config` ya salió del smoke test único y ahora cubre comportamiento real de `ConfigViewModel` y `ConfigDashboardPage`, incluyendo carga de snapshot, edición de preferencias, guardado y recomposición del estado visible;
 - `client/packages/feature_integrations` ya salió del smoke test único y ahora cubre comportamiento real de `IntegrationsViewModel` y `IntegrationsDashboardPage`, incluyendo carga, filtros por texto/categoría/estado, métricas visibles, limpieza y selección de integraciones;
-- `client/packages/feature_audit` ya salió del smoke test único y ahora cubre comportamiento real de `AuditOverviewViewModel` y `AuditDashboardPage`, incluyendo carga, filtros por severidad/tenant/query, métricas derivadas y manejo explícito de error;
+- `client/packages/feature_audit` ya salió del smoke test único y ahora cubre comportamiento real de `AuditOverviewViewModel` y `AuditDashboardPage`, incluyendo carga, filtros por severidad/organización/query, métricas derivadas y manejo explícito de error;
 - `client/packages/feature_sector_corporate` ya salió del smoke test único y ahora cubre comportamiento real de `CorporateDashboardViewModel` y `CorporateDashboardPage`, incluyendo carga, métricas del vertical, CTA de creación y selección de legajos/alertas;
 - `client/packages/feature_sector_legal` ya salió del smoke test único y ahora cubre comportamiento real de `LegalDashboardViewModel` y `LegalDashboardPage`, incluyendo carga, métricas del vertical, CTA de creación, selección de expedientes y render de asuntos jurídicos;
 - `client/packages/feature_sector_real_estate` ya salió del smoke test único y ahora cubre comportamiento real de `RealEstateDashboardViewModel` y `RealEstateDashboardPage`, incluyendo carga, métricas del vertical, CTA de creación y selección de legajos/alertas inmobiliarias;
@@ -215,7 +215,7 @@ Para este proyecto, "cobertura completa" no debe significar perseguir `100%` lin
 - `100%` del código nuevo o modificado en una sesión debe salir cubierto por pruebas automáticas.
 - `100%` de los flujos críticos debe tener al menos una combinación de `unit`, `integration`, `contract` o `e2e-smoke`.
 - `Gdms.Domain` y `Gdms.Application` deben converger al objetivo `>= 80%` indicado en `rnf.md`.
-- APIs críticas deben tener pruebas positivas, negativas y tenant-scoped.
+- APIs críticas deben tener pruebas positivas, negativas y scoped a organización.
 - integraciones locales y externas deben tener pruebas de contrato o dobles de prueba explícitos.
 
 ## 5. Principios para sesiones grandes
@@ -435,7 +435,7 @@ Avance inicial de `Fase 4` ya abierto:
 - el fixture de recovery ya cubre dos versiones documentales y ACL explícita restauradas junto con el binario.
 - el fixture de recovery ya cubre además una tarea de `workflow` completada y un `signature envelope` firmado, ambos restaurados y verificados post-restore.
 - el fixture de recovery ya cubre además un `legal hold` activo y un evento de `audit` documental, ambos restaurados y verificados post-restore.
-- el fixture de recovery ya deja un usuario autenticable del tenant para validar `evidence package` por HTTP real contra la API local restaurada.
+- el fixture de recovery ya deja un usuario autenticable de la organización para validar `evidence package` por HTTP real contra la API local restaurada.
 - `verify_local_backup_restore.ps1 -RunSmokeAfterRestore -RunBusinessIntegrityChecks -EnsureBusinessFixture` ya quedó estable y validado en verde con ese fixture enriquecido.
 - `reprovision_stack_from_backup.ps1 -CreateFreshBackup -RunSmokeAfterRestore -RunBusinessIntegrityChecks -EnsureBusinessFixture` ya quedó validado en verde sobre el stack principal con restore completo del fixture.
 - `scripts\ops\assert_evidence_package_export.ps1` ya valida por HTTP el `evidence package` del fixture y `reprovision_stack_from_backup.ps1 -RunEvidencePackageChecks` ya quedó en verde.
@@ -504,3 +504,232 @@ Siguiente corte recomendado:
 
 - seguir endureciendo el perfil `preproduction-strict` con thresholds preventivos más cercanos a una preproducción cargada real;
 - o poblar baseline propia del escenario `preproduction-smoke` con varias corridas reales, hasta que el `BaselineSource` quede estable en `scenario-tagged-only`.
+
+## 12. Plan de simplificación instancia única y módulo de digitalización
+
+Objetivo:
+quitar la opción múltiples organizaciones del GDMS, alinear toda la documentación al nuevo modelo de instancia única y planificar la incorporación del flujo de digitalización física descrito en `requisitos_sgd_antiguo.md`.
+
+Decisiones base:
+
+- GDMS deja de ofrecer modalidad múltiples organizaciones y se orienta a una única organización por instalación.
+- El aislamiento por `organization` deja de ser una capacidad de producto y debe reemplazarse en documentación por organización, instancia, proyecto, área o perfil, según corresponda.
+- El nuevo flujo de digitalización se implementará como módulo independiente `digitization`, integrado con `documents`, `workflow`, `audit`, `records`, `search`, `signature`, `notifications`, `config`, `integrations` y `windows-twain`.
+- En esta versión no habrá integración automática con depósitos externos como Iron Mountain.
+- El visualizador externo será el mismo cliente GDMS con permisos externos, no una aplicación separada.
+- Los manifiestos oficiales de organismos quedan como formato pendiente, por lo que el diseño inicial debe admitir importadores configurables y carga manual controlada.
+- Las etiquetas usarán inicialmente numeración autoincremental para contenedores y documentos.
+- Las imágenes escaneadas se preservarán como páginas individuales durante la operación y se convertirán a PDF/A al finalizar; si el proyecto tiene OCR, el PDF/A final debe incluir OCR.
+- La eliminación de blancos se apoyará primero en configuración del escáner cuando exista y además podrá validarse en el módulo de escaneo por contenido mínimo configurable.
+- El proveedor de firma digital/electrónica queda pendiente; el módulo debe conservar el puerto de integración y operar con adaptador simulado o pendiente de configuración.
+- Los remitos firmados deben escanearse y adjuntarse al sistema como evidencia.
+
+### Fase 12.1. Inventario y limpieza documental de instancia única
+
+Objetivo:
+eliminar de la documentación existente toda referencia a múltiples organizaciones como opción de producto y dejar explícito el nuevo modelo de instancia única.
+
+Entregables:
+
+- Inventario completo de menciones en `README.md`, `wiki.md`, `rf.md`, `rnf.md`, `MANUAL_USUARIO.md`, `contexto_handoff.md`, `normas_relacionadas.md`, `client/README.md`, `database/scripts/README.md`, `docs/*.md` y `requisitos_sgd_antiguo.md`.
+- Reescritura de `rf.md` para quitar `RF-006 Configuración de organización única` como requisito de producto y reemplazarlo por configuración de organización/instancia.
+- Reescritura de `rnf.md` para quitar separación por organización, claves por organización y disponibilidad instalación dedicada.
+- Actualización de manuales y runbooks que hoy piden código de organización, administrador de organización, alta de organización o rutas legacy `/api/tenants`.
+- Actualización del lenguaje de documentación técnica: `scoped a organización`, `orientado a organización`, `instancia única`, `instalación dedicada` y `instalación dedicada/on-premise` deben desaparecer o quedar marcados como deuda técnica histórica, no como capacidad vigente.
+- Matriz de reemplazo terminológico: `organization` por `organización` o `instancia`; `administrador de organización` por `administrador de organización`; `platform admin` por `administrador del sistema`; `scoped a organización` por `scoped a organización` solo si todavía describe código existente.
+
+Criterio de salida:
+
+- `rg -n "multi[- ]?organization|organizacion|organizaciones|scoped a organización|orientado a organización|instalación dedicada" --glob "*.md"` no devuelve menciones de producto vigente.
+- Las menciones históricas remanentes, si existen, están explícitamente marcadas como estado legado a migrar.
+
+### Fase 12.2. Plan técnico de simplificación a instancia única
+
+Objetivo:
+definir el cambio técnico necesario para que el código acompañe la documentación y el producto deje de depender conceptualmente de organizaciones.
+
+Entregables:
+
+- Diseño de migración de dominio para reemplazar la entidad técnica legacy `Tenant` por `Organization`, `InstallationProfile` o entidad equivalente de instancia única.
+- Decisión sobre persistencia: mantener temporalmente `organization_id` como columna técnica legacy con valor único o migrar a claves sin organización en fases posteriores.
+- Diseño de compatibilidad para rutas API: mantener `/api/tenants/...` como superficie legacy, incorporar rutas de organización actual como `/api/organization/current` y migrar después a rutas sin identificador de organización.
+- Backlog de refactor para `Auth`, `Admin`, `Documents`, `Records`, `Workflow`, `Signature`, `Search`, `Reports`, `Audit`, verticales y estructura documental.
+- Plan de tests para reemplazar casos `scoped a organización` por casos de permisos, organización única, áreas, roles y proyectos.
+- Plan de migración de datos para instalaciones existentes, fijando una única organización activa y eliminando operaciones de alta/listado de organizaciones adicionales.
+- Primer incremento ejecutado: se bloqueó el alta adicional después del bootstrap, se eliminó la acción visible de creación en la UI admin y se agregó `GET /api/organization/current` como endpoint de transición.
+- Segundo incremento ejecutado: se agregaron rutas de usuarios de organización actual `GET/POST /api/organization/users` y `POST /api/organization/users/{userId}/roles`, manteniendo las rutas legacy con identificador para compatibilidad.
+
+Criterio de salida:
+
+- Existe ADR o documento de diseño aprobado antes de tocar migraciones destructivas.
+- El plan identifica rutas, tablas, servicios, DTOs, tests y pantallas impactadas.
+
+### Fase 12.3. Requisitos base del módulo `digitization`
+
+Objetivo:
+convertir `requisitos_sgd_antiguo.md` en backlog implementable del nuevo módulo independiente.
+
+Entregables:
+
+- Crear módulo backend `digitization` con Clean Architecture y límites propios.
+- Crear paquete frontend `feature_digitization` o sección equivalente en `gdms_app`.
+- Definir agregados iniciales: proyecto de digitalización, manifiesto esperado, lote físico, remito, contenedor físico, documento físico, etiqueta, sesión de escaneo, revisión, excepción y despacho.
+- Definir estados canónicos de contenedor y documento según `requisitos_sgd_antiguo.md`.
+- Integrar auditoría obligatoria para toma de trabajo, cambios de estado, excepciones, etiquetas, escaneo, edición de páginas, revisión, OCR, firma y despacho.
+- Integrar permisos por rol operativo: supervisor, recepción detallada, preparación, digitalización, revisión/indexación, consultor externo y auditor.
+
+Criterio de salida:
+
+- El módulo compila con contratos públicos definidos.
+- Existen tests unitarios de estados y transiciones críticas.
+- No se mezcla lógica específica de digitalización dentro del core documental salvo interfaces explícitas.
+
+### Fase 12.4. Recepción, manifiestos, excepciones y etiquetas
+
+Objetivo:
+cubrir el flujo físico previo al escaneo.
+
+Entregables:
+
+- Carga manual y estructura de importación flexible de manifiestos, dejando pendiente el formato oficial definitivo.
+- Registro de solicitudes de contenedores y remitos de ingreso sin integración automática con depósitos externos.
+- Recepción detallada por contenedor y documento.
+- Verificación de completitud contra manifiesto.
+- Gestión de faltantes, sobrantes y documentos sin contenedor presente.
+- Zona controlada para documentos sin contenedor.
+- Generación e impresión de etiquetas con numeración autoincremental para contenedores y documentos.
+- Reimpresión controlada con motivo auditado.
+
+Criterio de salida:
+
+- Un lote puede recibirse, verificarse y quedar listo para preparación.
+- Las discrepancias bloquean avance normal hasta resolución o autorización.
+- Todo movimiento relevante queda auditado.
+
+### Fase 12.5. Preparación y escaneo operativo
+
+Objetivo:
+implementar la operación de preparación física y digitalización.
+
+Entregables:
+
+- Bandeja de preparación por rol.
+- Marcado de documentos preparados y observaciones por deterioro o no escaneabilidad.
+- Toma de contenedor por digitalizador mediante código de barras.
+- Integración con `windows-twain` para captura desde escáner.
+- Agregado desde archivo con validaciones de seguridad.
+- Manejo de páginas individuales con miniaturas, navegación, rotación, reordenamiento, inserción, eliminación y salto a página.
+- Eliminación de blancos apoyada en configuración de escáner y validación opcional de contenido mínimo desde el módulo.
+- Validación backend de que todo documento obligatorio tenga al menos una imagen antes de enviar a revisión.
+
+Criterio de salida:
+
+- El flujo `preparación -> escaneo -> envío a revisión` funciona de extremo a extremo.
+- Fallos de escáner o red no corrompen sesiones ni pierden páginas confirmadas.
+- Las imágenes quedan preservadas individualmente hasta el cierre documental.
+
+### Fase 12.6. Revisión, indexación, PDF/A y OCR
+
+Objetivo:
+cerrar calidad documental y producir el artefacto digital final.
+
+Entregables:
+
+- Bandeja de revisión e indexación.
+- Comparación contra físico con resultado correcto, observado o corregir escaneo.
+- Carga de metadatos configurables por proyecto y tipo documental.
+- Devolución a corrección de escaneo con motivo, documento y páginas observadas.
+- Generación final de PDF/A desde imágenes individuales.
+- OCR opcional según configuración del proyecto, embebido o asociado al PDF/A final.
+- Indexación de metadatos y texto OCR para búsqueda.
+
+Criterio de salida:
+
+- Un documento revisado correctamente puede finalizar en PDF/A.
+- Si el proyecto tiene OCR activo, el PDF/A final queda buscable por texto.
+- Los documentos observados no se publican hasta resolución.
+
+### Fase 12.7. Visualizador, permisos externos y firma
+
+Objetivo:
+exponer los documentos finalizados desde el mismo cliente GDMS con control de permisos.
+
+Entregables:
+
+- Permisos externos dentro del mismo cliente, sin construir visualizador separado.
+- Búsqueda por atributos de proyecto, contenedor, documento, lote, remito, metadatos y OCR.
+- Previsualización segura con navegación de páginas y descarga según política.
+- Firma digital/electrónica mediante puerto `SignatureProviderPort`, con proveedor concreto pendiente.
+- Adaptador simulado o estado `pendiente_configuracion` para proyectos que requieran firma antes de definir proveedor.
+
+Criterio de salida:
+
+- Un consultor externo autorizado accede solo a documentos publicados.
+- La búsqueda no filtra resultados fuera de permisos.
+- El flujo de firma queda preparado aunque el proveedor final se defina después.
+
+### Fase 12.8. Despacho físico, remitos firmados y evidencia
+
+Objetivo:
+cerrar el ciclo físico y probatorio del contenedor.
+
+Entregables:
+
+- Bandeja de contenedores pendientes de despacho.
+- Generación de remito de salida/devolución.
+- Escaneo y adjunto del remito firmado como evidencia documental.
+- Registro de transporte, fecha, usuario que entrega y evidencia asociada.
+- Cierre de contenedor solo si no hay excepciones abiertas, OCR/firma obligatoria pendiente ni jobs críticos fallidos.
+- Exportación de paquete de evidencia por documento, contenedor o lote.
+
+Criterio de salida:
+
+- Un contenedor puede pasar de finalizado digitalmente a despachado y cerrado.
+- El remito firmado queda asociado al despacho y disponible para auditoría.
+- La cadena de custodia puede reconstruirse extremo a extremo.
+
+### Fase 12.9. Reportes, dashboards y operación
+
+Objetivo:
+dar visibilidad operativa al nuevo flujo de digitalización.
+
+Entregables:
+
+- Dashboard de estados por lote, proyecto, contenedor, documento y sector.
+- Alertas por faltantes, sobrantes, correcciones de escaneo, jobs OCR fallidos, firma pendiente y despachos demorados.
+- Reporte de discrepancias de manifiesto.
+- Reporte de productividad por usuario, sector y período.
+- Seguimiento de ubicación física por zonas: recepción, preparación, digitalización, revisión, documentos sin contenedor y despacho.
+- Métricas de jobs de OCR, PDF/A, indexación y firma.
+
+Criterio de salida:
+
+- El supervisor puede detectar cuellos de botella y excepciones abiertas.
+- Los reportes operativos pueden exportarse.
+- Las métricas se incorporan al smoke/preproducción cuando el módulo esté activo.
+
+### Fase 12.10. Calidad, migración documental y gates
+
+Objetivo:
+asegurar que los cambios de arquitectura documental, simplificación a instancia única y digitalización no degraden el estándar del repo.
+
+Entregables:
+
+- Tests unitarios del módulo `digitization`.
+- Tests de integración con PostgreSQL para manifiestos, contenedores, documentos, estados, excepciones y despachos.
+- Contract tests de API para rutas nuevas sin organización.
+- E2E smoke `recepción -> etiquetas -> preparación -> escaneo -> revisión -> PDF/A/OCR -> visualización -> despacho`.
+- Actualización de `validate_workspace.ps1` para incluir el nuevo módulo.
+- Actualización de runbooks y manuales una vez implementado el flujo.
+- Verificación documental final para confirmar que no quedaron referencias instancia única como capacidad vigente.
+
+Criterio de salida:
+
+- Workspace en verde.
+- Documentación alineada al modelo de instancia única.
+- Flujo principal de digitalización cubierto por pruebas automatizadas.
+
+
+
+
+

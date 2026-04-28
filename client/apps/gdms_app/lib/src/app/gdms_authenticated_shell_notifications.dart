@@ -19,7 +19,7 @@ Widget buildNotificationsPage({
   required NotificationsViewModel notificationsViewModel,
   required AppSessionViewModel sessionViewModel,
   required Future<void> Function(BuildContext context, WidgetBuilder builder)
-      showDialog,
+  showDialog,
 }) {
   return NotificationsDashboardPage(
     viewModel: notificationsViewModel,
@@ -73,11 +73,12 @@ Future<void> _openWorkflowPreview(
   AppSessionViewModel sessionViewModel,
   Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog,
 ) {
-  final viewModel = WorkflowViewModel(
-    ApiWorkflowRepository(sessionViewModel.apiClient, sessionViewModel),
-  )
-    ..updateStatusFilter('OPEN')
-    ..updateQuery(item.title);
+  final viewModel =
+      WorkflowViewModel(
+          ApiWorkflowRepository(sessionViewModel.apiClient, sessionViewModel),
+        )
+        ..updateStatusFilter('OPEN')
+        ..updateQuery(item.title);
   return showDialog(
     context,
     (_) => ModulePreviewDialog(
@@ -130,13 +131,14 @@ Future<void> _openRecordsPreview(
   Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog,
 ) {
   final documentQuery = _suffixAfterColon(item.title);
-  final viewModel = RecordsViewModel(
-    ApiRecordsRepository(sessionViewModel.apiClient, sessionViewModel),
-  )..updateQueueFilter(
-      item.detail.toUpperCase().contains('LEGAL HOLD')
-          ? RecordsQueueFilter.legalHold
-          : RecordsQueueFilter.executable,
-    );
+  final viewModel =
+      RecordsViewModel(
+        ApiRecordsRepository(sessionViewModel.apiClient, sessionViewModel),
+      )..updateQueueFilter(
+        item.detail.toUpperCase().contains('LEGAL HOLD')
+            ? RecordsQueueFilter.legalHold
+            : RecordsQueueFilter.executable,
+      );
   if (documentQuery.isNotEmpty) {
     viewModel.updateQuery(documentQuery);
   }
@@ -175,15 +177,16 @@ Future<void> _openAuditPreview(
   AppSessionViewModel sessionViewModel,
   Future<void> Function(BuildContext context, WidgetBuilder builder) showDialog,
 ) {
-  final viewModel = AuditOverviewViewModel(
-    ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
-  )
-    ..updateSeverityFilter(item.severity)
-    ..updateQuery(
-      item.title.toUpperCase().contains('INICIO DE SESIÓN')
-          ? 'LOGIN_FAILED'
-          : item.title.toUpperCase().replaceAll(' ', '_'),
-    );
+  final viewModel =
+      AuditOverviewViewModel(
+          ApiAuditRepository(sessionViewModel.apiClient, sessionViewModel),
+        )
+        ..updateSeverityFilter(item.severity)
+        ..updateQuery(
+          item.title.toUpperCase().contains('INICIO DE SESIÓN')
+              ? 'LOGIN_FAILED'
+              : item.title.toUpperCase().replaceAll(' ', '_'),
+        );
   return showDialog(
     context,
     (_) => ModulePreviewDialog(

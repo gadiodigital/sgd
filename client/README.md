@@ -46,13 +46,13 @@ Configuración actual del monorepo:
 - detalle documental con carga de nuevas versiones e historial descargable
 - detalle documental con solicitudes de firma contextualizadas, alta, cierre y cancelación
 - records con ejecucion de disposicion y gestion de legal holds/politicas
-- admin con tenants recientes, actividad auditada, alta de tenant y usuarios del tenant con asignacion de roles
+- admin con organizaciones recientes, actividad auditada, configuración de la organización y gestión de usuarios con asignacion de roles
 - modulo dedicado de auditoria conectado a endpoints reales
 - modulo dedicado de busqueda documental conectado a endpoints reales
 - modulo dedicado de firma documental conectado a endpoints reales
 - modulo dedicado de integraciones conectado a endpoints reales
 - modulo dedicado de configuración conectado a Firebase con fallback local
-- modulo dedicado de notificaciones conectado a un inbox operativo tenant-scoped
+- modulo dedicado de notificaciones conectado a un inbox operativo scoped a organización
 - modulo dedicado de reportes operativos conectado a endpoints reales
 - modulo dedicado de workflow documental conectado a endpoints reales
 - vertical jurídico inicial construido sobre workflow, records y auditoría
@@ -110,7 +110,7 @@ Flujos principales ya conectados:
 - descarga de una versión específica desde el historial del documento
 - dashboard de records con ejecución de disposición y gestión operativa
 - dashboard admin con auditoría real y acciones de gobierno básicas
-- dashboard de auditoría dedicado con eventos recientes de plataforma o tenant
+- dashboard de auditoría dedicado con eventos recientes de plataforma o organización
 - dashboard de búsqueda dedicado con apertura de detalle documental
 - dashboard de búsqueda con filtros por tipo documental, estado y legal hold
 - dashboard de firma dedicado con creación y cierre de solicitudes
@@ -119,7 +119,7 @@ Flujos principales ya conectados:
 - dashboard de configuración dedicado con Remote Config y preferencias Firestore
 - dashboard de notificaciones dedicado con alertas operativas
 - dashboard de notificaciones con eventos recientes de firma cancelada
-- dashboard de reportes dedicado con resumen operativo tenant y vista de plataforma
+- dashboard de reportes dedicado con resumen operativo organización y vista de plataforma
 - dashboard de reportes con KPI de firmas canceladas
 - dashboard jurídico dedicado para sector legal
 - dashboard jurídico con expedientes recientes y detalle navegable por expediente
@@ -131,7 +131,7 @@ Flujos principales ya conectados:
 - dashboard de workflow con asignación opcional y filtro de `Solo mis tareas`
 - detalle documental con workflow asociado, creación y cierre de tareas por documento
 - detalle documental con firma asociada y acciones de completar o cancelar solicitud
-- gestion de usuarios del tenant con alta y asignacion de roles
+- gestion de usuarios de la organización con alta y asignacion de roles
 - gestion de permisos documentales finos desde el detalle documental
 
 ```powershell
@@ -150,3 +150,7 @@ Si `melos` no entra por `PATH`, revisar que existan:
 ```powershell
 powershell -ExecutionPolicy Bypass -File ..\scripts\quality\validate_workspace.ps1
 ```
+
+
+
+

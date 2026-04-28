@@ -26,7 +26,7 @@ public sealed class IntegrationsController : ControllerBase
     }
 
     /// <summary>
-    /// Lists configured integrations for the current tenant operator view.
+    /// Lists configured integrations for the current organization operator view.
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyCollection<IntegrationStatusResponse>), StatusCodes.Status200OK)]

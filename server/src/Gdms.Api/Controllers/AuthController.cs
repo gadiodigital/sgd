@@ -66,7 +66,7 @@ public sealed class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// Authenticates a user with tenant-scoped local credentials.
+    /// Authenticates a user with organization-scoped local credentials.
     /// </summary>
     [AllowAnonymous]
     [HttpPost("token")]

@@ -40,7 +40,7 @@ void main() {
     expect(repository.loadCalls, 1);
     expect(find.text('Reporte operativo sincronizado.'), findsOneWidget);
     expect(find.text('Documentos'), findsNWidgets(2));
-    expect(find.text('Tenants'), findsOneWidget);
+    expect(find.text('Organizaciones'), findsOneWidget);
 
     await tester.tap(find.text('Cumplimiento'));
     await tester.pumpAndSettle();
@@ -55,9 +55,9 @@ void main() {
 
     await tester.tap(find.text('Todos'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Tenants'));
+    await tester.tap(find.text('Organizaciones'));
     await tester.pumpAndSettle();
-    expect(selectedPlatformMetric?.label, 'Tenants');
+    expect(selectedPlatformMetric?.label, 'Organizaciones');
   });
 }
 

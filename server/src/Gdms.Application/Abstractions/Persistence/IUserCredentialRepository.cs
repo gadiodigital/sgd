@@ -3,12 +3,12 @@ using Gdms.Application.Identity;
 namespace Gdms.Application.Abstractions.Persistence;
 
 /// <summary>
-/// Defines credential-specific persistence operations for tenant users.
+/// Defines credential-specific persistence operations for organization users.
 /// </summary>
 public interface IUserCredentialRepository
 {
     /// <summary>
-    /// Returns the authentication snapshot for a tenant user by email.
+    /// Returns the authentication snapshot for an organization user by email.
     /// </summary>
     Task<UserCredentialSnapshot?> GetByEmailAsync(Guid tenantId, string email, CancellationToken cancellationToken);
 

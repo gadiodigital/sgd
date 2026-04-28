@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../domain/tenant_user_entry.dart';
 
-/// Renders one tenant user with current roles and quick actions.
+/// Renders one organization user with current roles and quick actions.
 class TenantUserCard extends StatelessWidget {
   const TenantUserCard({
     required this.user,

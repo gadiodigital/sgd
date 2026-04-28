@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gdms.Api.Controllers;
 
 /// <summary>
-/// Manages the public HTTP surface for tenant administration.
+/// Manages the legacy HTTP surface for organization bootstrap compatibility.
 /// </summary>
 [ApiController]
 [Route("api/tenants")]
@@ -19,7 +19,7 @@ public sealed class TenantsController : ControllerBase
     private readonly TenantService _tenantService;
 
     /// <summary>
-    /// Initializes the controller with the application tenant service.
+    /// Initializes the controller with the legacy organization service.
     /// </summary>
     public TenantsController(TenantService tenantService, AuthService authService)
     {
@@ -28,7 +28,7 @@ public sealed class TenantsController : ControllerBase
     }
 
     /// <summary>
-    /// Lists the tenants currently available in the platform.
+    /// Lists legacy organization records for compatibility tooling.
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "PLATFORM_ADMIN")]
@@ -40,11 +40,12 @@ public sealed class TenantsController : ControllerBase
     }
 
     /// <summary>
-    /// Creates a new tenant.
+    /// Creates the initial organization during bootstrap.
     /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(TenantResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<TenantResponse>> Create(
         [FromBody] CreateTenantRequest request,
         CancellationToken cancellationToken)
@@ -60,6 +61,11 @@ public sealed class TenantsController : ControllerBase
             {
                 return Forbid();
             }
+
+            return Conflict(new
+            {
+                message = "La instalación opera con una única organización. No se permite crear organizaciones adicionales."
+            });
         }
 
         var tenant = await _tenantService.CreateAsync(

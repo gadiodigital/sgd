@@ -7,7 +7,7 @@ Fecha de corte: 2026-03-18
 - Backend: `.NET 10 LTS`, Clean Architecture por módulo, estrategia `modular monolith`.
 - Frontend: `Flutter` estable, `MVVM` para presentación y Clean Architecture para dominio, aplicación y datos.
 - Infraestructura por defecto: `PostgreSQL 18.3` sobre rama `18` vigente al `2026-03-18` para datos transaccionales y relacionales; `Firebase Remote Config` para configuración dinámica no sensible; `Cloud Firestore` para datos no relacionales y proyecciones; `S3-compatible storage`; `OpenSearch`; `Outbox`.
-- Despliegue: híbrido, con soporte SaaS multi-tenant y single-tenant/on-premise.
+- Despliegue: híbrido, con soporte de instalación dedicada en nube u on-premise.
 - Seguridad desde el diseño: controles técnicos, organizativos y de SDLC desde la primera fase.
 
 ## 2. Regla estructural obligatoria
@@ -38,11 +38,11 @@ Fecha de corte: 2026-03-18
 - Norma origen: ISO/IEC 27002, ISO/IEC 27017.
 - Impacto arquitectónico: terminación TLS controlada, mTLS o equivalentes para tráfico interno sensible.
 
-## RNF-003 Cifrado en reposo y separación por tenant
+## RNF-003 Cifrado en reposo por instalación
 
 - Categoría: Seguridad.
-- Descripción: documentos, índices, backups y secretos persistidos deben quedar cifrados; la solución debe admitir segregación de claves por tenant.
-- Métrica/SLO: 100% de binarios y respaldos cifrados; soporte de clave lógica por tenant en diseño.
+- Descripción: documentos, índices, backups y secretos persistidos deben quedar cifrados; la solución debe admitir claves asociadas a la instalación u organización principal.
+- Métrica/SLO: 100% de binarios y respaldos cifrados; soporte de clave lógica por instalación en diseño.
 - Método de validación: revisión de arquitectura, pruebas de despliegue y checklist de seguridad.
 - Norma origen: Ley 25.326, ISO/IEC 27001, ISO/IEC 27018.
 - Impacto arquitectónico: `KmsPort`, abstracción de storage y separación entre cifrado aplicativo y de plataforma.
@@ -115,7 +115,7 @@ Fecha de corte: 2026-03-18
 ## RNF-011 Gestión de encargados y subencargados
 
 - Categoría: Privacidad.
-- Descripción: debe existir trazabilidad de todo tercero que procese datos personales por cuenta del tenant o de la plataforma.
+- Descripción: debe existir trazabilidad de todo tercero que procese datos personales por cuenta dla organización o de la plataforma.
 - Métrica/SLO: 100% de integraciones externas con registro de responsable, finalidad y categoría de datos.
 - Método de validación: revisión de inventario de integraciones y auditoría de configuración.
 - Norma origen: Ley 25.326, Decreto 1558/2001, ISO/IEC 27701.
@@ -128,7 +128,7 @@ Fecha de corte: 2026-03-18
 - Métrica/SLO: 100% de flujos de datos externos etiquetados por región y proveedor.
 - Método de validación: revisión de arquitectura, inventario de flujos y pruebas de despliegue.
 - Norma origen: Ley 25.326, ISO/IEC 27018, ISO/IEC 27701.
-- Impacto arquitectónico: configuración por tenant, storage regionalizable y documentación de flujos.
+- Impacto arquitectónico: configuración por organización, storage regionalizable y documentación de flujos.
 
 ## 3.3 Trazabilidad probatoria y records management
 
@@ -269,7 +269,7 @@ Fecha de corte: 2026-03-18
 ## RNF-027 Observabilidad transversal
 
 - Categoría: Observabilidad.
-- Descripción: logs, métricas y trazas deben estar correlacionados por tenant, usuario, request y evento de negocio.
+- Descripción: logs, métricas y trazas deben estar correlacionados por organización, usuario, request y evento de negocio.
 - Métrica/SLO: 100% de requests críticas con correlation id; dashboards mínimos por API, workers y storage.
 - Método de validación: inspección de telemetría y pruebas de incident response.
 - Norma origen: ISO/IEC 27001, ISO 22301.
@@ -425,6 +425,9 @@ Fecha de corte: 2026-03-18
 - Todo módulo debe poder evolucionar sin romper contratos públicos innecesariamente.
 - Los servicios externos deben quedar detrás de puertos.
 - La seguridad no puede depender de lógica del frontend.
-- La configuración por tenant, sector y jurisdicción debe ser declarativa y auditable.
+- La configuración por organización, sector y jurisdicción debe ser declarativa y auditable.
 - Los verticales sectoriales no deben duplicar el core documental; deben extenderlo.
 - PostgreSQL debe conservar el ownership de las entidades críticas y Firebase no debe introducir doble fuente de verdad no controlada.
+
+
+

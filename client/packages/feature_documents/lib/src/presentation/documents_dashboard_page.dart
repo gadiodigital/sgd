@@ -70,7 +70,7 @@ class _DocumentsDashboardPageState extends State<DocumentsDashboardPage> {
               title: 'Repositorio documental',
               subtitle:
                   'Supervisa volumen, clasificacion, legal holds y actividad '
-                  'reciente del repositorio multi-tenant.',
+                  'reciente del repositorio documental de la organización.',
               trailing:
                   widget._onUploadRequested == null &&
                       widget._onScanRequested == null

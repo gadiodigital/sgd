@@ -1,7 +1,7 @@
 namespace Gdms.Contracts.Structure;
 
 /// <summary>
-/// Tenant-scoped configurable document structure.
+/// Organization-scoped configurable document structure.
 /// </summary>
 public sealed record StructureProjectResponse(
     Guid Id,

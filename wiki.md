@@ -14,7 +14,7 @@ Sirve para:
 
 ## 2. Qué es GDMS
 
-`GDMS` es un sistema de gestión documental y `ECM` modular, multi-tenant, auditable y orientado a operación real para organizaciones como:
+`GDMS` es un sistema de gestión documental y `ECM` modular, instancia única, auditable y orientado a operación real para organizaciones como:
 
 - empresas;
 - inmobiliarias;
@@ -355,3 +355,7 @@ Su función es indicar:
 - en qué estado está el proyecto;
 - cuál es el plan;
 - hacia dónde sigue el roadmap.
+
+
+
+

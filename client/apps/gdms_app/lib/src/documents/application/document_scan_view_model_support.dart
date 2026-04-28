@@ -22,9 +22,7 @@ final class DocumentScanViewModelSupport {
           vm.setLastKnownSessionId(null);
           vm.clearScannedState();
           DocumentScanViewModelPreferences.persist(vm);
-          vm.setMessage(
-            'La sesion quedo vacia y se descarto del host local.',
-          );
+          vm.setMessage('La sesion quedo vacia y se descarto del host local.');
           return;
         }
         if (vm.currentPreviewPage > snapshot.pageCount) {

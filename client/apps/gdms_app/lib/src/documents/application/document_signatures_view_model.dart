@@ -10,10 +10,10 @@ import '../../infrastructure/repositories/api_signature_repository.dart';
 /// Loads signature requests associated with the selected document.
 final class DocumentSignaturesViewModel extends ViewModel {
   DocumentSignaturesViewModel(this._sessionViewModel)
-      : _signatureRepository = ApiSignatureRepository(
-          _sessionViewModel.apiClient,
-          _sessionViewModel,
-        );
+    : _signatureRepository = ApiSignatureRepository(
+        _sessionViewModel.apiClient,
+        _sessionViewModel,
+      );
 
   final AppSessionViewModel _sessionViewModel;
   final ApiSignatureRepository _signatureRepository;

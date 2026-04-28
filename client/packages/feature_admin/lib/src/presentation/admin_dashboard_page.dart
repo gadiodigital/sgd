@@ -7,27 +7,25 @@ import '../domain/admin_overview.dart';
 import '../domain/admin_tenant_summary.dart';
 import '../infrastructure/demo_admin_repository.dart';
 
-/// Displays platform governance, tenants and security health indicators.
+/// Displays organization governance and security health indicators.
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({
     super.key,
     AdminOverviewViewModel? viewModel,
-    Future<void> Function(BuildContext context)? onCreateTenantRequested,
     Future<void> Function(BuildContext context)? onManageUsersRequested,
     Future<void> Function(
       BuildContext context,
       AdminMetricItem metric,
       AdminOverview overview,
     )?
-        onMetricSelected,
+    onMetricSelected,
     Future<void> Function(BuildContext context, AdminAuditEvent event)?
-        onEventSelected,
+    onEventSelected,
     Future<void> Function(BuildContext context, GovernanceTask task)?
-        onTaskSelected,
+    onTaskSelected,
     Future<void> Function(BuildContext context, AdminTenantSummary tenant)?
-        onTenantSelected,
+    onTenantSelected,
   }) : _viewModel = viewModel,
-       _onCreateTenantRequested = onCreateTenantRequested,
        _onManageUsersRequested = onManageUsersRequested,
        _onMetricSelected = onMetricSelected,
        _onEventSelected = onEventSelected,
@@ -35,20 +33,19 @@ class AdminDashboardPage extends StatefulWidget {
        _onTenantSelected = onTenantSelected;
 
   final AdminOverviewViewModel? _viewModel;
-  final Future<void> Function(BuildContext context)? _onCreateTenantRequested;
   final Future<void> Function(BuildContext context)? _onManageUsersRequested;
   final Future<void> Function(
     BuildContext context,
     AdminMetricItem metric,
     AdminOverview overview,
   )?
-      _onMetricSelected;
+  _onMetricSelected;
   final Future<void> Function(BuildContext context, AdminAuditEvent event)?
-      _onEventSelected;
+  _onEventSelected;
   final Future<void> Function(BuildContext context, GovernanceTask task)?
-      _onTaskSelected;
+  _onTaskSelected;
   final Future<void> Function(BuildContext context, AdminTenantSummary tenant)?
-      _onTenantSelected;
+  _onTenantSelected;
 
   @override
   State<AdminDashboardPage> createState() => _AdminDashboardPageState();
@@ -80,48 +77,51 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           return const SizedBox.shrink();
         }
 
-        final metrics = [
-          AdminMetricItem(
-            label: 'Tenants activos',
-            value: overview.activeTenants,
-            colorHex: Theme.of(context).colorScheme.primary.toARGB32(),
-            kind: AdminMetricKind.activeTenants,
-          ),
-          const AdminMetricItem(
-            label: 'Provisioning pendiente',
-            value: 0,
-            colorHex: 0xFFC4811C,
-            kind: AdminMetricKind.pendingProvisioning,
-          ),
-          AdminMetricItem(
-            label: 'Failed logins 24h',
-            value: overview.failedLogins24h,
-            colorHex: Theme.of(context).colorScheme.error.toARGB32(),
-            kind: AdminMetricKind.failedLogins24h,
-          ),
-          const AdminMetricItem(
-            label: 'Alertas de storage',
-            value: 0,
-            colorHex: 0xFF1E8A5B,
-            kind: AdminMetricKind.storageAlerts,
-          ),
-        ].map((item) {
-          return item.kind == AdminMetricKind.pendingProvisioning
-              ? AdminMetricItem(
-                  label: item.label,
-                  value: overview.pendingProvisioning,
-                  colorHex: item.colorHex,
-                  kind: item.kind,
-                )
-              : item.kind == AdminMetricKind.storageAlerts
-              ? AdminMetricItem(
-                  label: item.label,
-                  value: overview.storageAlerts,
-                  colorHex: item.colorHex,
-                  kind: item.kind,
-                )
-              : item;
-        }).toList(growable: false);
+        final metrics =
+            [
+                  AdminMetricItem(
+                    label: 'Organización activa',
+                    value: overview.activeTenants,
+                    colorHex: Theme.of(context).colorScheme.primary.toARGB32(),
+                    kind: AdminMetricKind.activeTenants,
+                  ),
+                  const AdminMetricItem(
+                    label: 'Provisioning pendiente',
+                    value: 0,
+                    colorHex: 0xFFC4811C,
+                    kind: AdminMetricKind.pendingProvisioning,
+                  ),
+                  AdminMetricItem(
+                    label: 'Failed logins 24h',
+                    value: overview.failedLogins24h,
+                    colorHex: Theme.of(context).colorScheme.error.toARGB32(),
+                    kind: AdminMetricKind.failedLogins24h,
+                  ),
+                  const AdminMetricItem(
+                    label: 'Alertas de storage',
+                    value: 0,
+                    colorHex: 0xFF1E8A5B,
+                    kind: AdminMetricKind.storageAlerts,
+                  ),
+                ]
+                .map((item) {
+                  return item.kind == AdminMetricKind.pendingProvisioning
+                      ? AdminMetricItem(
+                          label: item.label,
+                          value: overview.pendingProvisioning,
+                          colorHex: item.colorHex,
+                          kind: item.kind,
+                        )
+                      : item.kind == AdminMetricKind.storageAlerts
+                      ? AdminMetricItem(
+                          label: item.label,
+                          value: overview.storageAlerts,
+                          colorHex: item.colorHex,
+                          kind: item.kind,
+                        )
+                      : item;
+                })
+                .toList(growable: false);
 
         return ListView(
           padding: const EdgeInsets.all(24),
@@ -129,7 +129,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             GdmsPageHeader(
               title: 'Administracion y gobierno',
               subtitle:
-                  'Controla tenants, posture de seguridad y pendientes '
+                  'Controla la organización, postura de seguridad y pendientes '
                   'operativos de la plataforma documental.',
               trailing: _buildHeaderActions(context),
             ),
@@ -174,7 +174,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ),
             const SizedBox(height: 16),
             GdmsSectionCard(
-              title: 'Tenants recientes',
+              title: 'Organización configurada',
               child: Column(
                 children: overview.tenants
                     .map(
@@ -183,7 +183,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         child: ListTile(
                           onTap: widget._onTenantSelected == null
                               ? null
-                              : () => widget._onTenantSelected!(context, tenant),
+                              : () =>
+                                    widget._onTenantSelected!(context, tenant),
                           tileColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
@@ -251,9 +252,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget? _buildHeaderActions(BuildContext context) {
-    final hasCreate = widget._onCreateTenantRequested != null;
     final hasManage = widget._onManageUsersRequested != null;
-    if (!hasCreate && !hasManage) {
+    if (!hasManage) {
       return null;
     }
 
@@ -266,12 +266,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             onPressed: () => widget._onManageUsersRequested!(context),
             icon: const Icon(Icons.manage_accounts),
             label: const Text('Usuarios'),
-          ),
-        if (hasCreate)
-          FilledButton.icon(
-            onPressed: () => widget._onCreateTenantRequested!(context),
-            icon: const Icon(Icons.add_business),
-            label: const Text('Crear tenant'),
           ),
       ],
     );
